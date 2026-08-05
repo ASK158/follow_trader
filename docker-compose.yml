@@ -1,0 +1,15 @@
+services:
+  signal-web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      SIGNAL_DATA_DIR: /data
+    volumes:
+      - signal-data:/data
+
+volumes:
+  signal-data:
