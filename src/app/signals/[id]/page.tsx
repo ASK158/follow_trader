@@ -21,6 +21,7 @@ export default async function SignalPage({ params }: { params: Promise<{ id: str
   const signal = await getSignal(id);
   if (!signal) notFound();
 
+  const sourceUpdatedDate = new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium", timeZone: "Asia/Shanghai" }).format(new Date(signal.sourceUpdatedAt));
   const updatedAt = new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Shanghai" }).format(new Date(signal.sourceUpdatedAt));
   const annualizedReturn = getAnnualizedReturn(signal.growth, signal.startedAt, signal.sourceUpdatedAt);
   const runningMonths = getRunningMonths(signal.startedAt, signal.sourceUpdatedAt);
@@ -28,7 +29,7 @@ export default async function SignalPage({ params }: { params: Promise<{ id: str
     <main className="detail-shell">
       <nav className="nav detail-nav"><Link href="/" className="back-link">← 所有策略</Link><div><span className="brand-mark">S</span><span className="brand">Signal Watch</span></div></nav>
       <header className="signal-header">
-        <div><div className="title-meta"><span className="signal-badge">MT5</span><span className={signal.sourceStatus === "live" ? "data-live" : "data-snapshot"}><i />{signal.sourceStatus === "live" ? "公开页已同步" : "本地快照"}</span></div><h1>{signal.name}</h1><p>{signal.broker} · 开始于 {new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium" }).format(new Date(signal.startedAt))}</p></div>
+        <div><div className="title-meta"><span className="signal-badge">MT5</span><span className={signal.sourceStatus === "live" ? "data-live" : "data-snapshot"}><i />{signal.sourceStatus === "live" ? "公开页已同步" : "本地快照"}</span></div><h1 className="signal-title"><span>{signal.name}</span><small>数据更新：{sourceUpdatedDate}</small></h1><p>{signal.broker} · 开始于 {new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium" }).format(new Date(signal.startedAt))}</p></div>
         <a className="source-link" href={signal.sourceUrl} target="_blank" rel="noreferrer">查看原始信号 ↗</a>
       </header>
       <section className="overview-grid" aria-label="策略概览">
