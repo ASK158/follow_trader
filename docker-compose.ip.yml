@@ -1,0 +1,41 @@
+services:
+  signal-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      SIGNAL_DATA_DIR: /data
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - signal-data:/data
+    networks:
+      - signal-web-network
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      - signal-web
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile.ip:/etc/caddy/Caddyfile:ro
+    networks:
+      - signal-web-network
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  signal-web-network:
+    driver: bridge
+
+volumes:
+  signal-data:

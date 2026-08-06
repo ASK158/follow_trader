@@ -1,0 +1,14 @@
+.git
+.github
+.next
+node_modules
+.env
+.env.*
+!.env.example
+.signal-data
+*.tsbuildinfo
+copy-trade
+deploy
+README.md
+AGENTS.md
+CLAUDE.md

@@ -18,15 +18,9 @@
 
 ## 云服务器部署与每日 8:00 同步
 
-项目提供 [Dockerfile](Dockerfile) 与 [docker-compose.yml](docker-compose.yml)。在服务器复制 `.env.example` 为 `.env`，填入高强度 `CRON_SECRET` 后执行 `docker compose up -d --build`。运行时数据写入 Docker 持久卷，不会因容器重建丢失。
+生产环境使用 [docker-compose.production.yml](docker-compose.production.yml) 和 [Caddyfile](Caddyfile)：Caddy 自动管理 HTTPS，应用端口仅在服务器本机监听，运行时数据保存于 Docker 持久卷。阿里云 ECS 的安全组、域名/备案、Docker 安装、MQL5 Cookie 配置、首次同步、每日 08:00 cron、备份与更新流程请参见完整的 [deploy/README.md](deploy/README.md)。
 
-将服务器时区设为 `Asia/Shanghai`，使用 `cron` 每日 08:00 调用一次受保护的同步接口：
-
-```cron
-0 8 * * * curl --fail --silent --show-error -X POST -H "Authorization: Bearer <CRON_SECRET>" https://<你的域名>/api/cron/sync-signals >> /var/log/signal-web-sync.log 2>&1
-```
-
-同步任务先更新公开页指标；若配置了仅服务器可见的 `MQL5_SESSION_COOKIE`，还会下载最新的完整交易 CSV 并重建曲线。接口不会向浏览器暴露 Cookie 或密钥。若任一策略同步失败，仍保留其上一次成功的数据，并在接口响应中返回失败原因。
+同步任务先更新公开页指标；若配置了仅服务器可见的 `MQL5_SESSION_COOKIE`，还会下载最新的完整交易 CSV 并重建曲线。接口不会向浏览器暴露 Cookie 或密钥。若任一策略同步失败，仍保留其上一次成功的数据。
 
 ## 数据说明
 

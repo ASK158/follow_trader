@@ -1,0 +1,17 @@
+{
+	# Caddy 使用 Let's Encrypt 的 ACME 服务为 ${DOMAIN} 自动申请和续期 HTTPS 证书。
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# 同步端点仅允许服务器本机通过容器网络访问，不向公网暴露。
+	handle /api/cron/* {
+		respond "Not Found" 404
+	}
+
+	handle {
+		reverse_proxy signal-web:3000
+	}
+}

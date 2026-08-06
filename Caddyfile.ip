@@ -1,0 +1,12 @@
+:80 {
+	encode zstd gzip
+
+	# 同步接口仅由服务器本机通过 127.0.0.1:3000 调用，不对公网提供。
+	handle /api/cron/* {
+		respond "Not Found" 404
+	}
+
+	handle {
+		reverse_proxy signal-web:3000
+	}
+}
