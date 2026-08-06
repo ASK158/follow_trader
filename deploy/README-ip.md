@@ -77,7 +77,37 @@ CRON_SECRET=<粘贴 openssl 生成的随机值>
 
 `DOMAIN` 和 `ACME_EMAIL` 在 IP 模式下无需配置。不要向聊天、Git 或日志粘贴 Cookie。
 
-启动：
+## 5. 推荐：由 GitHub Actions 构建镜像，服务器只拉取运行
+
+本仓库的 [publish-image.yml](../.github/workflows/publish-image.yml) 会在每次推送 `main` 后使用 GitHub Actions 构建镜像并发布到 GitHub Container Registry（GHCR）。这避免 2 GB 内存 ECS 执行 `npm run build`。
+
+首次推送工作流后，到 GitHub 仓库的 **Actions** 页面等待“Publish container image”成功；再到 GitHub 个人资料的 **Packages** 中打开 `signal-web` 包，将其 Package visibility 设置为 **Public**。公开镜像不包含 `.env`、Cookie 或同步数据；这些数据仅保存在服务器。
+
+然后在服务器执行：
+
+```bash
+cd /opt/signal-web
+git pull --ff-only origin main
+docker compose -f docker-compose.ip.pull.yml pull
+docker compose -f docker-compose.ip.pull.yml up -d
+docker compose -f docker-compose.ip.pull.yml ps
+```
+
+以后每次代码推送和 Actions 成功后，服务器更新只需：
+
+```bash
+cd /opt/signal-web
+git pull --ff-only origin main
+docker compose -f docker-compose.ip.pull.yml pull
+docker compose -f docker-compose.ip.pull.yml up -d
+./deploy/scripts/sync-signals.sh
+```
+
+`signal-data` Docker 卷不会被上述更新删除，因此每日同步数据、交易 CSV、收益曲线和浏览服务均继续保留在 ECS。
+
+## 6. 仅在无法使用 GHCR 时：服务器本地构建
+
+不推荐在该 2 GB ECS 上执行本地构建；仅当 GHCR 不可用时才使用以下命令：
 
 ```bash
 docker compose -f docker-compose.ip.yml up -d --build
@@ -91,7 +121,7 @@ docker compose -f docker-compose.ip.yml logs -f
 http://47.84.72.62
 ```
 
-## 5. 首次同步与定时同步
+## 7. 首次同步与定时同步
 
 首次启动后执行：
 
@@ -121,7 +151,7 @@ sudo crontab -e
 0 8 * * * /usr/local/sbin/signal-web-sync >> /var/log/signal-web-sync.log 2>&1
 ```
 
-## 6. 更新项目
+## 8. 本地构建模式更新项目
 
 ```bash
 cd /opt/signal-web

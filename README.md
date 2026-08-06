@@ -18,7 +18,7 @@
 
 ## 云服务器部署与每日 8:00 同步
 
-生产环境使用 [docker-compose.production.yml](docker-compose.production.yml) 和 [Caddyfile](Caddyfile)：Caddy 自动管理 HTTPS，应用端口仅在服务器本机监听，运行时数据保存于 Docker 持久卷。阿里云 ECS 的安全组、域名/备案、Docker 安装、MQL5 Cookie 配置、首次同步、每日 08:00 cron、备份与更新流程请参见完整的 [deploy/README.md](deploy/README.md)。
+生产环境使用 [docker-compose.production.yml](docker-compose.production.yml) 和 [Caddyfile](Caddyfile)：Caddy 自动管理 HTTPS，应用端口仅在服务器本机监听，运行时数据保存于 Docker 持久卷。GitHub Actions 会自动构建并发布运行镜像，使低内存服务器只需拉取和运行；阿里云 ECS 的安全组、域名/备案、Docker 安装、MQL5 Cookie 配置、首次同步、每日 08:00 cron、备份与更新流程请参见完整的 [deploy/README.md](deploy/README.md)。
 
 同步任务先更新公开页指标；若配置了仅服务器可见的 `MQL5_SESSION_COOKIE`，还会下载最新的完整交易 CSV 并重建曲线。接口不会向浏览器暴露 Cookie 或密钥。若任一策略同步失败，仍保留其上一次成功的数据。
 
