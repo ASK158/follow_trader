@@ -53,7 +53,9 @@ export async function synchronizeSignals(): Promise<SyncResult[]> {
       const equity = parseNumber(page, "净值");
       const balance = parseNumber(page, "结余");
       const maxDrawdown = parseMaxDrawdown(page);
-      if ([growth, profit, equity, balance].some((value) => value === null)) throw new Error("无法解析 MQL5 公开页指标");
+      if (growth === null || profit === null || equity === null || balance === null) {
+        throw new Error("无法解析 MQL5 公开页指标");
+      }
 
       states[signal.id] = {
         id: signal.id,
