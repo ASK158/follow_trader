@@ -38,6 +38,7 @@ export type SignalData = {
   sourceStatus: "live" | "snapshot";
   sourceUpdatedAt: string;
   growth: number;
+  maxDrawdown?: number;
   profit: number;
   equity: number;
   balance: number;
@@ -58,7 +59,7 @@ export type SignalData = {
   tradesHistory: Trade[];
 };
 
-type StoredSignalState = Pick<SignalData, "id" | "sourceStatus" | "sourceUpdatedAt" | "growth" | "profit" | "equity" | "balance">;
+type StoredSignalState = Pick<SignalData, "id" | "sourceStatus" | "sourceUpdatedAt" | "growth" | "maxDrawdown" | "profit" | "equity" | "balance">;
 type StoredSignalStates = Record<string, StoredSignalState>;
 
 const runtimeDataDirectory = process.env.SIGNAL_DATA_DIR ?? join(process.cwd(), ".signal-data");
@@ -213,12 +214,7 @@ export function getSignalSnapshots(): SignalData[] {
 }
 
 export function invalidateSignalCaches(): void {
-  tradesHistoryPromises.clear();
-  curveHistoryPromises.clear();
 }
-
-const tradesHistoryPromises = new Map<string, Promise<Trade[]>>();
-const curveHistoryPromises = new Map<string, Promise<CurvePoint[]>>();
 
 async function readStoredStates(): Promise<StoredSignalStates> {
   try {
@@ -244,7 +240,7 @@ function toNumber(value: string): number {
 }
 
 function isReconstructedCurve(signal: SignalData): boolean {
-  return ["2379208", "2304847", "2329290", "2351091"].includes(signal.id);
+  return true;
 }
 
 /**
@@ -254,10 +250,8 @@ function isReconstructedCurve(signal: SignalData): boolean {
  */
 async function getReconstructedCurve(signal: SignalData): Promise<CurvePoint[]> {
   if (!isReconstructedCurve(signal)) return signal.curve;
-  const existing = curveHistoryPromises.get(signal.id);
-  if (existing) return existing;
 
-  const curve = getCsvPath(signal.id).then((csvPath) => readFile(csvPath, "utf8"))
+  return getCsvPath(signal.id).then((csvPath) => readFile(csvPath, "utf8"))
     .then((csv) => {
       const dailyChanges = new Map<string, { cashFlow: number; tradeProfit: number }>();
       csv.trim().split(/\r?\n/).slice(1).forEach((line) => {
@@ -294,17 +288,12 @@ async function getReconstructedCurve(signal: SignalData): Promise<CurvePoint[]> 
       }));
     })
     .catch(() => signal.curve);
-  curveHistoryPromises.set(signal.id, curve);
-  return curve;
 }
 
 /** 解析从已授权 MQL5 会话导出的完整 CSV；跳过余额变动等非逐笔成交记录。 */
 async function getFullTradesHistory(signal: SignalData): Promise<Trade[]> {
-  const existing = tradesHistoryPromises.get(signal.id);
-  if (existing) return existing;
-
-  const parsedHistory = getCsvPath(signal.id).then((csvPath) => readFile(csvPath, "utf8"))
-      .then((csv) => csv.trim().split(/\r?\n/).slice(1)
+  return getCsvPath(signal.id).then((csvPath) => readFile(csvPath, "utf8"))
+    .then((csv) => csv.trim().split(/\r?\n/).slice(1)
         .map((line, index): Trade | null => {
           const [openedAt, type, volume, symbol, openPrice, , closedAt, closePrice, commission, swap, profit] = line.split(";");
           if ((type !== "Buy" && type !== "Sell") || !closedAt) return null;
@@ -322,10 +311,8 @@ async function getFullTradesHistory(signal: SignalData): Promise<Trade[]> {
             profit: toNumber(profit),
           };
         })
-        .filter((trade): trade is Trade => trade !== null))
-        .catch(() => signal.tradesHistory);
-      tradesHistoryPromises.set(signal.id, parsedHistory);
-      return parsedHistory;
+      .filter((trade): trade is Trade => trade !== null))
+    .catch(() => signal.tradesHistory);
 }
 
 function parseNumber(page: string, label: string): number | null {
@@ -338,9 +325,11 @@ function parseNumber(page: string, label: string): number | null {
 export async function getSignal(id = firstSignalSnapshot.id): Promise<SignalData | null> {
   const snapshot = signalSnapshots[id];
   if (!snapshot) return null;
-  const [tradesHistory, curve, states] = await Promise.all([getFullTradesHistory(snapshot), getReconstructedCurve(snapshot), readStoredStates()]);
+  const states = await readStoredStates();
   const storedState = states[id];
-  return { ...snapshot, ...storedState, curve, tradesHistory };
+  const signal = { ...snapshot, ...storedState };
+  const [tradesHistory, curve] = await Promise.all([getFullTradesHistory(signal), getReconstructedCurve(signal)]);
+  return { ...signal, curve, tradesHistory };
 }
 
 export async function getSignals(): Promise<SignalData[]> {

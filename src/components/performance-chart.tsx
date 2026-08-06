@@ -9,6 +9,7 @@ type Props = { data: CurvePoint[]; compact?: boolean; currency?: SignalData["cur
 export function PerformanceChart({ data, compact = false, currency: currencyCode = "USD" }: Props) {
   const currency = new Intl.NumberFormat("zh-CN", { style: "currency", currency: currencyCode, maximumFractionDigits: 0 });
   const [visibleSeries, setVisibleSeries] = useState({ growth: true, balance: false });
+  const chartTopMargin = compact ? 18 : 62;
   const toggleSeries = (series: "growth" | "balance") => {
     setVisibleSeries(current => ({ ...current, [series]: !current[series] }));
   };
@@ -20,7 +21,7 @@ export function PerformanceChart({ data, compact = false, currency: currencyCode
         <button type="button" className={visibleSeries.balance ? "selected balance-control" : "balance-control"} onClick={() => toggleSeries("balance")} aria-pressed={visibleSeries.balance}><i />资金</button>
       </div>}
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 18, right: compact ? 4 : 18, left: compact ? -28 : 14, bottom: 0 }}>
+        <AreaChart data={data} margin={{ top: chartTopMargin, right: compact ? 4 : 18, left: compact ? -28 : 14, bottom: 0 }}>
           <defs>
             <linearGradient id="fill-growth" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#4f8df7" stopOpacity={0.22} /><stop offset="100%" stopColor="#4f8df7" stopOpacity={0.01} /></linearGradient>
             <linearGradient id="fill-balance" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#5cc49a" stopOpacity={0.16} /><stop offset="100%" stopColor="#5cc49a" stopOpacity={0.01} /></linearGradient>

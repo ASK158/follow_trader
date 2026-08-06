@@ -3,7 +3,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getSignalSnapshots, invalidateSignalCaches, type SignalData } from "./signal-data";
 
-type StoredSignalState = Pick<SignalData, "id" | "sourceStatus" | "sourceUpdatedAt" | "growth" | "profit" | "equity" | "balance">;
+type StoredSignalState = Pick<SignalData, "id" | "sourceStatus" | "sourceUpdatedAt" | "growth" | "maxDrawdown" | "profit" | "equity" | "balance">;
 type SyncResult = { id: string; status: "updated" | "failed"; csvUpdated: boolean; reason?: string };
 
 const dataDirectory = process.env.SIGNAL_DATA_DIR ?? join(process.cwd(), ".signal-data");
@@ -12,8 +12,17 @@ const statePath = join(dataDirectory, "signals.json");
 
 function parseNumber(page: string, label: string): number | null {
   const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = page.match(new RegExp(`${escaped}\\s*[:：]\\s*([\\d\\s,.]+)`, "i"));
-  return match ? Number(match[1].replace(/\s|,/g, "")) : null;
+  const match = page.match(new RegExp(`<div[^>]*class=["'][^"']*s-list-info__label[^"']*["'][^>]*>\\s*${escaped}\\s*[:：]\\s*<\\/div>\\s*<div[^>]*class=["'][^"']*s-list-info__value[^"']*["'][^>]*>\\s*([\\d\\s,.]+)`, "i"));
+  if (!match) return null;
+  const value = Number(match[1].replace(/\s|,/g, ""));
+  return Number.isFinite(value) ? value : null;
+}
+
+function parseMaxDrawdown(page: string): number | null {
+  const match = page.match(/value\s*:\s*([\d\s,.]+)\s*,\s*name\s*:\s*['"]最大跌幅['"]/i);
+  if (!match) return null;
+  const value = Number(match[1].replace(/\s|,/g, ""));
+  return Number.isFinite(value) ? value : null;
 }
 
 async function readStates(): Promise<Record<string, StoredSignalState>> {
@@ -39,15 +48,22 @@ export async function synchronizeSignals(): Promise<SyncResult[]> {
       const response = await fetch(signal.sourceUrl, { cache: "no-store", headers: { "User-Agent": "Signal-Web sync service/1.0", ...(cookie ? { Cookie: cookie } : {}) } });
       const page = await response.text();
       if (!response.ok || !page.includes(signal.name)) throw new Error("无法验证 MQL5 信号公开页");
+      const growth = parseNumber(page, "成长");
+      const profit = parseNumber(page, "利润");
+      const equity = parseNumber(page, "净值");
+      const balance = parseNumber(page, "结余");
+      const maxDrawdown = parseMaxDrawdown(page);
+      if ([growth, profit, equity, balance].some((value) => value === null)) throw new Error("无法解析 MQL5 公开页指标");
 
       states[signal.id] = {
         id: signal.id,
         sourceStatus: "live",
         sourceUpdatedAt: new Date().toISOString(),
-        growth: parseNumber(page, "成长") ?? signal.growth,
-        profit: parseNumber(page, "利润") ?? signal.profit,
-        equity: parseNumber(page, "净值") ?? signal.equity,
-        balance: parseNumber(page, "结余") ?? signal.balance,
+        growth,
+        ...(maxDrawdown === null ? {} : { maxDrawdown }),
+        profit,
+        equity,
+        balance,
       };
 
       let csvUpdated = false;
