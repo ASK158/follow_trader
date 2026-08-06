@@ -1,0 +1,12 @@
+{
+  "mt5_terminal_path": "D:\\Star Bridge Capital Group MT5 Terminal\\terminal64.exe",
+  "expected_source_account": 5121897,
+  "signal_directory": "",
+  "signal_file_name": "mt5-copy-snapshot.json",
+  "state_file_name": "mt5-copy-publisher-state.json",
+  "log_file_name": "mt5-copy-publisher.log",
+  "poll_interval_ms": 1000,
+  "snapshot_ttl_seconds": 10,
+  "source_symbols": ["XAUUSD.n", "EURUSD"],
+  "source_magic_numbers": []
+}

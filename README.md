@@ -12,6 +12,10 @@
 
 安装依赖后执行 `npm run dev`，再访问本地开发地址。
 
+## 本地 MT5 跟单（独立模块）
+
+项目还提供同一台 Windows 主机上的 MT5 持仓快照跟单模块，位于 [copy-trade](copy-trade)。Python 从 MT5-A 轮询**当前完整持仓**并原子写入共享文件，MT5-B 中的 `ea_file_copier.mq5` 只读取该本地文件，以独立 magic 隔离并同步受管仓位。它与本 Web 展示应用互不依赖；请严格按照 [copy-trade/README.md](copy-trade/README.md) 在 Hedging 模拟账户完成验证后使用。
+
 ## 云服务器部署与每日 8:00 同步
 
 项目提供 [Dockerfile](Dockerfile) 与 [docker-compose.yml](docker-compose.yml)。在服务器复制 `.env.example` 为 `.env`，填入高强度 `CRON_SECRET` 后执行 `docker compose up -d --build`。运行时数据写入 Docker 持久卷，不会因容器重建丢失。

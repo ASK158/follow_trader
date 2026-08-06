@@ -1,0 +1,24 @@
+{
+  "schema": "mt5-copy-snapshot/v1",
+  "snapshot_complete": true,
+  "sequence": 1760000000000,
+  "source_account": 12345678,
+  "generated_at_unix_ms": 1760000000000,
+  "expires_at_unix_ms": 1760000010000,
+  "published_at_utc": "2026-08-06T00:00:00.000+00:00",
+  "position_count": 1,
+  "positions": [
+    {
+      "source_id": "123456789",
+      "ticket": "123456789",
+      "symbol": "XAUUSD",
+      "side": "BUY",
+      "volume": 0.1,
+      "sl": 2350.0,
+      "tp": 2380.0,
+      "price_open": 2360.0,
+      "opened_at_unix_ms": 1760000000000,
+      "source_magic": 0
+    }
+  ]
+}
