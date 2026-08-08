@@ -137,6 +137,8 @@ HTTPS_PROXY=http://<代理主机>:<端口>
 HTTP_PROXY=http://<代理主机>:<端口>
 ```
 
+同步服务会显式将上述代理用于 MQL5 请求；修改 `.env` 后执行 `docker compose -f docker-compose.ip.pull.yml up -d` 重建容器环境。
+
 设置每日北京时间 08:00 同步：
 
 ```bash

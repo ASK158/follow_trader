@@ -1,6 +1,7 @@
 import "server-only";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { ProxyAgent, fetch } from "undici";
 import { getSignalSnapshots, invalidateSignalCaches, type SignalData } from "./signal-data";
 
 type StoredSignalState = Pick<SignalData, "id" | "sourceStatus" | "sourceUpdatedAt" | "growth" | "maxDrawdown" | "profit" | "equity" | "balance">;
@@ -9,6 +10,17 @@ type SyncResult = { id: string; status: "updated" | "failed"; csvUpdated: boolea
 const dataDirectory = process.env.SIGNAL_DATA_DIR ?? join(process.cwd(), ".signal-data");
 const positionsDirectory = join(dataDirectory, "positions");
 const statePath = join(dataDirectory, "signals.json");
+const mql5Proxy = process.env.HTTPS_PROXY ?? process.env.HTTP_PROXY;
+const mql5Dispatcher = mql5Proxy ? new ProxyAgent(mql5Proxy) : undefined;
+
+function fetchMql5(url: string, headers: HeadersInit) {
+  return fetch(url, {
+    cache: "no-store",
+    headers,
+    ...(mql5Dispatcher ? { dispatcher: mql5Dispatcher } : {}),
+    signal: AbortSignal.timeout(120_000),
+  });
+}
 
 function parseNumber(page: string, label: string): number | null {
   const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -45,7 +57,8 @@ export async function synchronizeSignals(): Promise<SyncResult[]> {
   const cookie = process.env.MQL5_SESSION_COOKIE;
   const results = await Promise.all(getSignalSnapshots().map(async (signal): Promise<SyncResult> => {
     try {
-      const response = await fetch(signal.sourceUrl, { cache: "no-store", headers: { "User-Agent": "Signal-Web sync service/1.0", ...(cookie ? { Cookie: cookie } : {}) } });
+      const headers = { "User-Agent": "Signal-Web sync service/1.0", ...(cookie ? { Cookie: cookie } : {}) };
+      const response = await fetchMql5(signal.sourceUrl, headers);
       const page = await response.text();
       if (!response.ok || !page.includes(signal.name)) throw new Error("无法验证 MQL5 信号公开页");
       const growth = parseNumber(page, "成长");
@@ -69,7 +82,7 @@ export async function synchronizeSignals(): Promise<SyncResult[]> {
       };
 
       let csvUpdated = false;
-      const csvResponse = await fetch(`${signal.sourceUrl}/export/positions`, { cache: "no-store", headers: { "User-Agent": "Signal-Web sync service/1.0", ...(cookie ? { Cookie: cookie } : {}) } });
+      const csvResponse = await fetchMql5(`${signal.sourceUrl}/export/positions`, headers);
       const csv = await csvResponse.text();
       if (csvResponse.ok && csv.startsWith("Time;Type;")) {
         await writeAtomically(join(positionsDirectory, `signal-${signal.id}.positions.csv`), csv);

@@ -8,10 +8,11 @@ export default async function Home() {
 
   return (
     <main className="home-shell">
-      <nav className="nav"><div className="brand-lockup"><span className="brand-mark">S</span><span className="brand">Signal Watch</span><span className="nav-label">策略信号仪表盘</span></div><span className="sync-indicator"><i />数据快照已就绪</span></nav>
+      <nav className="nav"><div className="brand-lockup"><span className="brand-mark">S</span><span className="brand">Sigma signal</span><span className="nav-label">策略信号仪表盘</span></div><span className="sync-indicator"><i />数据快照已就绪</span></nav>
       <section className="hero">
-        <div className="hero-copy"><span className="eyebrow">STRATEGY INTELLIGENCE</span><h1>用清晰的曲线，<br />追踪策略表现。</h1><p>聚合公开策略信号的收益、资金与交易概览。数据源不可用时，自动显示可追溯的本地快照。</p></div>
-        <div className="hero-orbit" aria-hidden="true"><span className="orbit-ring ring-one" /><span className="orbit-ring ring-two" /><span className="orbit-core">06<small>策略</small></span><span className="orbit-label">LIVE<br />MONITORING</span></div>
+        <div className="hero-ambient" aria-hidden="true"><span className="formula-background formula-one">E(Rₚ) = ∑ wᵢE(Rᵢ)</span><span className="formula-background formula-two">S = (Rₚ − Rƒ) / σₚ</span><span className="formula-background formula-three">VaRα = μ − zασ</span><span className="formula-background formula-four">σₚ² = wᵀΣw</span><span className="formula-background formula-five">C = S₀N(d₁) − Ke⁻ʳᵀN(d₂)</span><span className="formula-background formula-six">P(A|B) = P(B|A)P(A) / P(B)</span><span className="ambient-orb orb-one" /><span className="ambient-orb orb-two" /><span className="scan-line" /></div>
+        <div className="hero-copy"><div className="hero-kicker"><span className="eyebrow">SIGMA SIGNAL · STRATEGY INTELLIGENCE</span><span className="hero-status"><i />LIVE MONITORING</span></div><h1>让策略被看见，<br />让数据成为信号。</h1><p>以严谨数据观察策略，以清晰洞见穿越波动。Sigma signal，让每一条曲线都有迹可循。</p><div className="hero-highlights"><span><b>06</b> 精选策略</span><span><b>08:00</b> 每日更新</span></div></div>
+        <div className="brand-visual" aria-hidden="true"><div className="sigma-halo halo-outer" /><div className="sigma-halo halo-inner" /><span className="sigma-axis axis-one" /><span className="sigma-axis axis-two" /><div className="sigma-emblem">Σ<small>SIGMA SIGNAL</small></div><span className="brand-coordinate coordinate-one">α / RETURN</span><span className="brand-coordinate coordinate-two">σ / RISK</span><span className="brand-coordinate coordinate-three">β / MARKET</span><span className="brand-manifesto">MEASURE · INTERPRET · EVOLVE</span></div>
       </section>
       <section className="signals-section" aria-labelledby="signals-title">
         <div className="section-heading"><div><span className="eyebrow">信号列表</span><h2 id="signals-title">已跟踪策略</h2></div><span className="count-pill">{String(signals.length).padStart(2, "0")} 个信号</span></div>

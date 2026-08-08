@@ -6,7 +6,7 @@ const accountDetails = [
   ["账号", "123456"],
   ["观摩密码", "abcde"],
   ["服务器", "ICMarketsSC-MT5-Live"],
-  ["联系方式", "wx2026"],
+  ["联系方式", "Peter2026"],
 ] as const;
 
 export function AccountViewerDialog() {

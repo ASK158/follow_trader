@@ -62,6 +62,8 @@ docker compose -f docker-compose.ip.pull.yml logs --tail=100
 tail -f /var/log/signal-web-sync.log
 ```
 
+脚本仅在所有信号都同步成功时返回成功。若日志中出现 `HTTP 207`，请查看同一条 JSON 的 `results` 字段；其中的 `reason` 即为上游访问或页面解析失败原因。此前 `curl` 会把 `207` 当作成功，容易掩盖数据持续未更新的问题。
+
 ---
 
 ## 三、停止服务
@@ -100,6 +102,9 @@ docker compose -f docker-compose.ip.pull.yml pull
 
 # 3. 重启容器（零停机时间极短）
 docker compose -f docker-compose.ip.pull.yml up -d
+
+# 4. 同步脚本安装在 /usr/local/sbin；代码库更新后也要覆盖它
+install -m 750 /opt/signal-web/deploy/scripts/sync-signals.sh /usr/local/sbin/signal-web-sync
 ```
 
 ---
