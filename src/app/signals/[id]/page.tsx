@@ -27,7 +27,7 @@ export default async function SignalPage({ params }: { params: Promise<{ id: str
   const runningMonths = getRunningMonths(signal.startedAt, signal.sourceUpdatedAt);
   return (
     <main className="detail-shell">
-      <nav className="nav detail-nav"><Link href="/" className="back-link">← 所有策略</Link><div><span className="brand-mark">S</span><span className="brand">Sigma signal</span></div></nav>
+      <nav className="nav detail-nav"><Link href="/" className="back-link"><span aria-hidden="true">←</span><span>所有策略</span></Link><div><span className="brand-mark">S</span><span className="brand">Sigma signal</span></div></nav>
       <header className="signal-header">
         <div><div className="title-meta"><span className="signal-badge">MT5</span><span className={signal.sourceStatus === "live" ? "data-live" : "data-snapshot"}><i />{signal.sourceStatus === "live" ? "公开页已同步" : "本地快照"}</span></div><h1 className="signal-title"><span>策略：{signal.name}</span><small>数据更新：{sourceUpdatedDate}</small></h1><p>{signal.broker} · 开始于 {new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium" }).format(new Date(signal.startedAt))}</p></div>
         <AccountViewerDialog />
