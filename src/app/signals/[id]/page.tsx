@@ -36,7 +36,7 @@ export default async function SignalPage({ params }: { params: Promise<{ id: str
         <div><span>累计收益率</span><b className="positive">+{percent.format(signal.growth)}%</b></div><div><span>年化收益率</span><b className="positive">+{percent.format(annualizedReturn)}%</b></div><div><span>胜率</span><b>{percent.format(signal.winRate)}%</b></div><div><span>最大回撤</span><b className="negative">-{percent.format(signal.maxDrawdown ?? 0)}%</b></div><div><span>运行时长</span><b>{runningMonths} 月</b></div>
       </section>
       <SignalDetails signal={signal} />
-      <footer className="data-footer">数据更新说明：每日北京时间 08:00 同步 MQL5 公开页指标和已授权交易流水。数据状态：本次公开页同步成功 · 最近更新于 2026年8月7日 06:50 · 上游不可用或解析失败时保留上次成功数据。仅供信息展示，不构成投资建议。</footer>
+      <footer className="data-footer">仅作信息展示，不构成投资建议。历史表现不代表未来结果。</footer>
     </main>
   );
 }

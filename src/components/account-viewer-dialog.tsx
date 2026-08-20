@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-const accountDetails = [
-  ["账号", "123456"],
-  ["观摩密码", "abcde"],
-  ["服务器", "ICMarketsSC-MT5-Live"],
-  ["联系方式", "Peter2026"],
+const signalDetails = [
+  ["联系人", "Peter-X"],
+  ["联系方式 (Telegram)", "@peterman666"],
+  ["添加备注", "获取 MT5 策略信号"],
 ] as const;
 
 export function AccountViewerDialog() {
@@ -25,12 +24,12 @@ export function AccountViewerDialog() {
 
   return (
     <>
-      <button type="button" className="viewer-button" onClick={() => setOpen(true)}>查看观摩账号</button>
+      <button type="button" className="viewer-button" onClick={() => setOpen(true)}>获取策略信号</button>
       {open && <div className="dialog-backdrop" role="presentation" onMouseDown={() => setOpen(false)}>
         <section className="viewer-dialog" role="dialog" aria-modal="true" aria-labelledby="viewer-dialog-title" onMouseDown={event => event.stopPropagation()}>
-          <div className="viewer-dialog-heading"><div><span className="panel-label">观摩账号</span><h2 id="viewer-dialog-title">账户登录信息</h2></div><button type="button" className="dialog-close" onClick={() => setOpen(false)} aria-label="关闭弹出框">×</button></div>
-          <p>请在 MetaTrader 5 中使用以下信息登录观摩账户。</p>
-          <dl className="viewer-details">{accountDetails.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+          <div className="viewer-dialog-heading"><div><span className="panel-label">策略信号</span><h2 id="viewer-dialog-title">获取策略信号</h2></div><button type="button" className="dialog-close" onClick={() => setOpen(false)} aria-label="关闭弹出框">×</button></div>
+          <p>请通过以下方式联系，获取 MT5 策略信号。</p>
+          <dl className="viewer-details">{signalDetails.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
           <button type="button" className="dialog-confirm" onClick={() => setOpen(false)}>我知道了</button>
         </section>
       </div>}
