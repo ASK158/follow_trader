@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-const signalDetails = [
-  ["联系人", "Peter-X"],
-  ["联系方式 (Telegram)", "@peterman666"],
-  ["添加备注", "获取 MT5 策略信号"],
-] as const;
+const signalDetails: ReadonlyArray<{ label: string; value: string; href?: string }> = [
+  { label: "联系人", value: "Peter-X" },
+  { label: "联系方式 (Telegram)", value: "@peterman666", href: "https://t.me/peterman666" },
+  { label: "添加备注", value: "获取 MT5 策略信号" },
+];
 
 export function AccountViewerDialog() {
   const [open, setOpen] = useState(false);
@@ -29,7 +29,7 @@ export function AccountViewerDialog() {
         <section className="viewer-dialog" role="dialog" aria-modal="true" aria-labelledby="viewer-dialog-title" onMouseDown={event => event.stopPropagation()}>
           <div className="viewer-dialog-heading"><div><span className="panel-label">策略信号</span><h2 id="viewer-dialog-title">获取策略信号</h2></div><button type="button" className="dialog-close" onClick={() => setOpen(false)} aria-label="关闭弹出框">×</button></div>
           <p>请通过以下方式联系，获取 MT5 策略信号。</p>
-          <dl className="viewer-details">{signalDetails.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+          <dl className="viewer-details">{signalDetails.map(({ label, value, href }) => <div key={label}><dt>{label}</dt><dd>{href ? <a className="telegram-link" href={href} target="_blank" rel="noreferrer">{value}</a> : value}</dd></div>)}</dl>
           <button type="button" className="dialog-confirm" onClick={() => setOpen(false)}>我知道了</button>
         </section>
       </div>}
