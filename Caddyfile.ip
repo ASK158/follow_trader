@@ -7,6 +7,9 @@
 	}
 
 	handle {
-		reverse_proxy signal-web:3000
+		reverse_proxy signal-web:3000 {
+			# 本项目未使用 Server Action；过滤公网伪造的 Action 标头，避免无效请求写入应用错误日志。
+			header_up -Next-Action
+		}
 	}
 }
