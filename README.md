@@ -1,16 +1,20 @@
 # Signal Web
 
-基于 Next.js 的策略信号展示页。目前内置六个 MQL5 信号：`2265877`（Gold Reaper New V2 2）、`2339082`（GoldWave signal）、`2379208`（World PEACE Multi FX Algo）、`2304847`（MSC SuperGold Pro）、`2329290`（Precise Pair Trading Pro）和 `2351091`（Gold Breakout PRO All Star）。
+基于 Next.js 的策略信号展示与 MT5 AI 策略开发站。目前内置六个 MQL5 信号：`2265877`（Gold Reaper New V2 2）、`2339082`（GoldWave signal）、`2379208`（World PEACE Multi FX Algo）、`2304847`（MSC SuperGold Pro）、`2329290`（Precise Pair Trading Pro）和 `2351091`（Gold Breakout PRO All Star）。
 
 ## 功能
 
 - 首页以策略卡片展示累计收益和资金曲线；已导入完整交易流水的新增策略会按日聚合已平仓盈亏与余额变动，重建非线性的历史曲线。
 - 策略详情页按顺序展示可选曲线、月度收益、统计与交易历史。
 - 页面只读取最近一次成功同步的本地快照；上游不可访问或结构变化时自动保留上一次可靠数据。
+- `/agent` 提供多轮自然语言对话，将策略需求转换为结构化 `StrategySpec`、流式 MQL5 源码和 React Flow 逻辑图。
+- Agent 工作台内置 Monaco 编辑器、基础风险检测、本地草稿保存和 `.mq5` 下载。
 
 ## 本地运行
 
-安装依赖后执行 `npm run dev`，再访问本地开发地址。
+安装依赖后，将 [.env.example](.env.example) 复制为 `.env.local`，至少填写 `AI_API_KEY`。默认使用 OpenAI Chat Completions 流式接口；也可以通过 `AI_CHAT_COMPLETIONS_URL` 和 `AI_MODEL` 接入兼容服务。执行 `npm run dev` 后访问本地开发地址，Agent 工作台位于 `/agent`。
+
+Agent 的 API 密钥只允许放在服务端环境变量中，不得增加 `NEXT_PUBLIC_` 前缀。当前 MVP 尚未接入用户系统，策略草稿保存在当前浏览器的 Local Storage；清理浏览器数据会删除草稿，请及时下载 `.mq5` 文件。运行于 Windows 且本机安装 MetaTrader 5 时，Agent 每次生成完整 EA 后会自动调用 MetaEditor 进行编译并展示日志。编译失败时，系统最多将错误日志和当前完整源码交给 AI 自动修复 2 次；每个版本与编译日志均在“编译验证”中可查看。默认编译器路径是 `C:\Program Files\MetaTrader 5\MetaEditor64.exe`，可通过 `MQL5_METAEDITOR_PATH` 覆盖。编译通过不等于回测或实盘安全验证。
 
 ## 本地 MT5 跟单（独立模块）
 

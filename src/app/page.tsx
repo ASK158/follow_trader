@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SignalCard } from "@/components/signal-card";
 import { getSignals } from "@/lib/signal-data";
 
@@ -8,7 +9,7 @@ export default async function Home() {
 
   return (
     <main className="home-shell">
-      <nav className="nav"><div className="brand-lockup"><span className="brand-mark">S</span><span className="brand">Sigma signal</span><span className="nav-label">策略信号仪表盘</span></div><span className="sync-indicator"><i />数据快照已就绪</span></nav>
+      <nav className="nav"><div className="brand-lockup"><span className="brand-mark">S</span><span className="brand">Sigma signal</span><span className="nav-label">策略信号仪表盘</span></div><div className="nav-actions"><Link href="/agent" className="agent-entry"><i>Σ</i><span>AI 策略实验室</span></Link><span className="sync-indicator"><i />数据已就绪</span></div></nav>
       <section className="hero">
         <div className="hero-ambient" aria-hidden="true"><span className="formula-background formula-one">E(Rₚ) = ∑ wᵢE(Rᵢ)</span><span className="formula-background formula-two">S = (Rₚ − Rƒ) / σₚ</span><span className="formula-background formula-three">VaRα = μ − zασ</span><span className="formula-background formula-four">σₚ² = wᵀΣw</span><span className="formula-background formula-five">C = S₀N(d₁) − Ke⁻ʳᵀN(d₂)</span><span className="formula-background formula-six">P(A|B) = P(B|A)P(A) / P(B)</span><span className="ambient-orb orb-one" /><span className="ambient-orb orb-two" /><span className="scan-line" /></div>
         <div className="hero-copy"><div className="hero-kicker"><span className="eyebrow">SIGMA SIGNAL · STRATEGY INTELLIGENCE</span><span className="hero-status"><i />LIVE MONITORING</span></div><h1>让策略被看见，<br />让数据成为信号。</h1><p>以严谨数据观察策略，以清晰洞见穿越波动。Sigma signal，让每一条曲线都有迹可循。</p><div className="hero-highlights"><span><b>06</b> 精选策略</span><span><b>08:00</b> 每日更新</span></div></div>
@@ -19,6 +20,7 @@ export default async function Home() {
         <div className="signals-grid">{signals.map((signal) => <SignalCard key={signal.id} signal={signal} />)}</div>
       </section>
       <p className="disclaimer">仅作信息展示，不构成投资建议。历史表现不代表未来结果。</p>
+      <Link href="/agent" className="agent-float" aria-label="打开 AI 写 MT5 策略"><i>Σ</i><span><b>AI 写策略</b><small>生成 MQL5 代码</small></span><strong>→</strong></Link>
     </main>
   );
 }
