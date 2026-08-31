@@ -25,6 +25,7 @@ const DRAFTS_KEY = "sigma-agent-drafts-v1";
 const MODEL_CONFIG_KEY = "sigma-agent-model-config-v1";
 const examples = ["用 EMA20/EMA50 金叉死叉交易 EURUSD H1，单笔风险 1%", "为 XAUUSD M15 设计 RSI 超买超卖反转策略，限制交易时段", "写一个布林带突破 EA，加入点差过滤、移动止损和每日亏损上限"];
 const deepSeekConfig: ClientModelConfig = { apiKey: "", endpoint: "https://api.deepseek.com/chat/completions", model: "deepseek-chat" };
+const isDevelopment = process.env.NODE_ENV !== "production";
 
 function readDrafts(): SavedDraft[] {
   if (typeof window === "undefined") return [];
@@ -88,13 +89,13 @@ export function AgentWorkbench() {
   async function submit(prompt = input) {
     const content = prompt.trim();
     if (!content || isGenerating) return;
-    if (!modelConfig.apiKey.trim()) {
+    if (isDevelopment && !modelConfig.apiKey.trim()) {
       setError("请先在左侧“配置 AI API”中填写并保存 DeepSeek API Key。");
       setIsConfigOpen(true);
       setStatus("等待配置 DeepSeek API Key");
       return;
     }
-    if (!modelConfig.endpoint.trim() || !modelConfig.model.trim()) {
+    if (isDevelopment && (!modelConfig.endpoint.trim() || !modelConfig.model.trim())) {
       setError("请填写接口地址和模型名称后保存配置。");
       setIsConfigOpen(true);
       setStatus("AI API 配置不完整");
@@ -120,7 +121,7 @@ export function AgentWorkbench() {
       const response = await fetch("/api/agent/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: currentStrategy ? [{ role: "user", content }] : nextModelMessages, ...(currentStrategy ? { currentStrategy, hasPendingChange: Boolean(pendingChange) } : {}), ...(modelConfig.apiKey.trim() ? { clientModel: modelConfig } : {}) }),
+        body: JSON.stringify({ messages: currentStrategy ? [{ role: "user", content }] : nextModelMessages, ...(currentStrategy ? { currentStrategy, hasPendingChange: Boolean(pendingChange) } : {}), ...(isDevelopment && modelConfig.apiKey.trim() ? { clientModel: modelConfig } : {}) }),
         signal: controller.signal,
       });
       if (!response.ok) {
@@ -271,8 +272,8 @@ export function AgentWorkbench() {
     <div className="agent-layout">
       <aside className="agent-sidebar">
         <div><span className="agent-kicker">AI STRATEGY ARCHITECT</span><h1>MT5 策略 Agent</h1><p>通过多轮对话，把交易想法转化为结构化策略、逻辑图和可编辑的 MQL5 源码。</p></div>
-        <button className="model-config-button" onClick={() => setIsConfigOpen((open) => !open)} disabled={isGenerating}><span><i className={modelConfig.apiKey ? "configured" : ""} />{modelConfig.apiKey ? modelConfig.model : "配置 AI API"}</span><b>{isConfigOpen ? "−" : "+"}</b></button>
-        {isConfigOpen && <div className="model-config"><div className="model-config-heading"><b>开发者 API 配置</b><button onClick={() => { setModelConfig(deepSeekConfig); setError(""); }}>DeepSeek 预设</button></div><label>接口地址<input value={modelConfig.endpoint} onChange={(event) => setModelConfig((current) => ({ ...current, endpoint: event.target.value }))} placeholder="https://api.deepseek.com/chat/completions" /></label><label>模型<input value={modelConfig.model} onChange={(event) => setModelConfig((current) => ({ ...current, model: event.target.value }))} placeholder="deepseek-chat" /></label><label>API Key<input type="password" value={modelConfig.apiKey} onChange={(event) => setModelConfig((current) => ({ ...current, apiKey: event.target.value }))} placeholder="sk-..." autoComplete="off" /></label><div><button disabled={!modelConfig.apiKey.trim() || !modelConfig.endpoint.trim() || !modelConfig.model.trim()} onClick={() => { localStorage.setItem(MODEL_CONFIG_KEY, JSON.stringify({ ...modelConfig, endpoint: modelConfig.endpoint.trim(), model: modelConfig.model.trim(), apiKey: modelConfig.apiKey.trim() })); setModelConfig((current) => ({ ...current, endpoint: current.endpoint.trim(), model: current.model.trim(), apiKey: current.apiKey.trim() })); setIsConfigOpen(false); setError(""); setStatus("浏览器 API 配置已保存，可发送策略需求"); }}>保存配置</button><button className="clear-config" onClick={() => { setModelConfig(deepSeekConfig); localStorage.removeItem(MODEL_CONFIG_KEY); setError(""); setStatus("已清除浏览器 API 配置"); }}>清除</button></div><p>当前：{modelConfig.endpoint || "未填写"} · {modelConfig.model || "未填写"}</p><p>仅开发环境有效，Key 会保存在当前浏览器 Local Storage，绝不可在生产站使用。</p></div>}
+        {isDevelopment && <><button className="model-config-button" onClick={() => setIsConfigOpen((open) => !open)} disabled={isGenerating}><span><i className={modelConfig.apiKey ? "configured" : ""} />{modelConfig.apiKey ? modelConfig.model : "配置 AI API"}</span><b>{isConfigOpen ? "−" : "+"}</b></button>
+        {isConfigOpen && <div className="model-config"><div className="model-config-heading"><b>开发者 API 配置</b><button onClick={() => { setModelConfig(deepSeekConfig); setError(""); }}>DeepSeek 预设</button></div><label>接口地址<input value={modelConfig.endpoint} onChange={(event) => setModelConfig((current) => ({ ...current, endpoint: event.target.value }))} placeholder="https://api.deepseek.com/chat/completions" /></label><label>模型<input value={modelConfig.model} onChange={(event) => setModelConfig((current) => ({ ...current, model: event.target.value }))} placeholder="deepseek-chat" /></label><label>API Key<input type="password" value={modelConfig.apiKey} onChange={(event) => setModelConfig((current) => ({ ...current, apiKey: event.target.value }))} placeholder="sk-..." autoComplete="off" /></label><div><button disabled={!modelConfig.apiKey.trim() || !modelConfig.endpoint.trim() || !modelConfig.model.trim()} onClick={() => { localStorage.setItem(MODEL_CONFIG_KEY, JSON.stringify({ ...modelConfig, endpoint: modelConfig.endpoint.trim(), model: modelConfig.model.trim(), apiKey: modelConfig.apiKey.trim() })); setModelConfig((current) => ({ ...current, endpoint: current.endpoint.trim(), model: current.model.trim(), apiKey: current.apiKey.trim() })); setIsConfigOpen(false); setError(""); setStatus("浏览器 API 配置已保存，可发送策略需求"); }}>保存配置</button><button className="clear-config" onClick={() => { setModelConfig(deepSeekConfig); localStorage.removeItem(MODEL_CONFIG_KEY); setError(""); setStatus("已清除浏览器 API 配置"); }}>清除</button></div><p>当前：{modelConfig.endpoint || "未填写"} · {modelConfig.model || "未填写"}</p><p>仅开发环境有效，Key 会保存在当前浏览器 Local Storage，绝不可在生产站使用。</p></div>}</>}
         <button className="new-chat-button" onClick={() => { setMessages([]); setModelMessages([]); setArtifact(null); setPendingChange(null); setDraftId(null); setError(""); setStatus("已新建会话"); }} disabled={isGenerating}>＋ 新建策略</button>
         <div className="draft-list"><span>本地草稿</span>{drafts.length ? drafts.map((draft) => <button key={draft.id} className={draft.id === draftId ? "active" : ""} onClick={() => loadDraft(draft)}><b>{draft.title}</b><small>{new Date(draft.updatedAt).toLocaleString("zh-CN")}</small></button>) : <p>保存后的策略会显示在这里</p>}</div>
         <div className="agent-note">草稿目前保存在此浏览器。接入用户系统后可迁移到个人云端策略库。</div>
