@@ -6,9 +6,10 @@ RUN npm ci --prefer-offline
 
 FROM node:22.22.0-alpine AS builder
 WORKDIR /app
+ARG DEPLOYMENT_VERSION
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN DEPLOYMENT_VERSION="${DEPLOYMENT_VERSION:-$(date +%s)}" npm run build
 
 FROM node:22.22.0-alpine AS runner
 WORKDIR /app
