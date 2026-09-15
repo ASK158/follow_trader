@@ -93,14 +93,16 @@
 }
 
 .editorial-sheet .hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(280px, .75fr);
-  gap: 56px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
   max-width: none;
-  min-height: 300px;
+  min-height: 310px;
   margin: 0;
-  padding: 28px 30px 24px;
-  overflow: visible;
+  padding: 38px 32px 32px;
+  overflow: hidden;
   color: var(--editorial-ink);
   border: 0;
   border-bottom: 1px solid var(--editorial-rule);
@@ -115,8 +117,10 @@
 }
 
 .editorial-sheet .hero-copy {
-  display: block;
-  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
   text-shadow: none;
 }
 

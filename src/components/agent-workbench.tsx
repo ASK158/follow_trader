@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createClientUuid } from "@/lib/client-id";
 import { inspectStrategyRisk } from "@/lib/agent/risk-check";
 import { extractMql5InputParameters } from "@/lib/agent/mql5-inputs";
 import type { AgentArtifact, AgentAttachment, AgentMessage, AgentStreamEvent, StrategySpec } from "@/lib/agent/types";
@@ -139,7 +140,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
         const isText = kind === "document" && (file.type.startsWith("text/") || TEXT_DOCUMENT_EXTENSIONS.has(fileExtension(file.name)));
         const mimeType = file.type || (isText ? "text/plain" : "application/octet-stream");
         return {
-          id: crypto.randomUUID(),
+          id: createClientUuid(),
           name: file.name,
           mimeType,
           size: file.size,
@@ -159,7 +160,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
     const content = prompt.trim() || (selectedAttachments.length ? "请分析附件内容，并结合其中的信息回答或创建策略。" : "");
     if (!content || isGenerating) return;
     const attachmentMetadata = selectedAttachments.map(({ name, mimeType, kind }) => ({ name, mimeType, kind }));
-    const userMessage: UiMessage = { id: crypto.randomUUID(), role: "user", content, ...(attachmentMetadata.length ? { attachments: attachmentMetadata } : {}) };
+    const userMessage: UiMessage = { id: createClientUuid(), role: "user", content, ...(attachmentMetadata.length ? { attachments: attachmentMetadata } : {}) };
     const nextModelMessages = [...modelMessages, { role: "user" as const, content }];
     const currentStrategy = artifact ? { code: artifact.code, spec: artifact.spec, versions: artifact.versions } : undefined;
     const previousArtifact = artifact;
@@ -180,7 +181,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
       const response = await fetch("/api/agent/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requestId: crypto.randomUUID(), messages: currentStrategy ? [{ role: "user", content }] : nextModelMessages, ...(selectedAttachments.length ? { attachments: selectedAttachments } : {}), ...(currentStrategy ? { currentStrategy, hasPendingChange: Boolean(pendingChange), requestedSpec } : {}) }),
+        body: JSON.stringify({ requestId: createClientUuid(), messages: currentStrategy ? [{ role: "user", content }] : nextModelMessages, ...(selectedAttachments.length ? { attachments: selectedAttachments } : {}), ...(currentStrategy ? { currentStrategy, hasPendingChange: Boolean(pendingChange), requestedSpec } : {}) }),
         signal: controller.signal,
       });
       if (!response.ok) {
@@ -226,7 +227,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
       if (finalAnswer) {
         setStreamedCode("");
         setStreamedReply("");
-        setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: finalAnswer }]);
+        setMessages((current) => [...current, { id: createClientUuid(), role: "assistant", content: finalAnswer }]);
         setModelMessages([...nextModelMessages, { role: "assistant", content: finalModelContent }]);
         setStatus("已回答问题，未修改当前策略");
         return;
@@ -241,7 +242,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
       setActiveTab("code");
       setStreamedCode("");
       setStreamedReply("");
-      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: finalArtifact!.reply }]);
+      setMessages((current) => [...current, { id: createClientUuid(), role: "assistant", content: finalArtifact!.reply }]);
       setModelMessages([...nextModelMessages, { role: "assistant", content: finalModelContent }]);
       setStatus(finalArtifact.changes?.length ? `已局部更新 ${finalArtifact.changes.length} 个代码块，并完成策略验证` : "策略、代码和逻辑图已生成");
     } catch (caught) {
@@ -302,7 +303,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
   async function saveDraft() {
     if (!artifact && !messages.length) return;
     const now = new Date().toISOString();
-    const id = draftId ?? crypto.randomUUID();
+    const id = draftId ?? createClientUuid();
     const firstUserMessage = messages.find((message) => message.role === "user")?.content;
     const title = artifact?.spec.name ?? firstUserMessage?.slice(0, 36) ?? "Agent 对话";
     const draft: SavedDraft = { id, title, artifact, messages, modelMessages, updatedAt: now };

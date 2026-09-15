@@ -82,7 +82,12 @@ CRON_SECRET=<使用 openssl rand -hex 32 生成的随机值>
 DOMAIN=signal.example.com
 ACME_EMAIL=ops@example.com
 MQL5_SESSION_COOKIE=<可选，仅服务器保存的完整 Cookie 请求头值>
+AI_API_KEY=<AI 服务密钥，仅服务器保存>
+AI_CHAT_COMPLETIONS_URL=https://api.deepseek.com/chat/completions
+AI_MODEL=deepseek-chat
 ```
+
+`AI_API_KEY`、`AI_CHAT_COMPLETIONS_URL` 与 `AI_MODEL` 用于 AI 实验室的初始配置和运行时回退。部署并创建管理员后，也可在 `/admin/finance` 在线验证并保存配置，无需重建服务；后台 API Key 使用 `AUTH_ENCRYPTION_KEY` 加密保存且不会回显。密钥不得写入源码、镜像、日志或发送至浏览器。
 
 生成同步密钥：
 

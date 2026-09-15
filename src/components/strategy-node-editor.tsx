@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { createClientUuid } from "@/lib/client-id";
 import type { DiagramNode, StrategyCondition, StrategySpec } from "@/lib/agent/types";
 
 const timeframes = ["M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"];
 
 function newId(prefix: string) {
-  return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
+  return `${prefix}-${createClientUuid().slice(0, 8)}`;
 }
 
 function cloneSpec(spec: StrategySpec): StrategySpec {

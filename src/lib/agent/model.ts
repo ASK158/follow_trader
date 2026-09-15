@@ -1,20 +1,12 @@
 import "server-only";
 import { ProxyAgent, fetch } from "undici";
 import type { AgentAttachment, AgentMessage, AgentProgramType } from "./types";
+import { getAgentModelConfig } from "./model-config";
+
+export { getAgentModelConfig } from "./model-config";
 
 const proxyUrl = process.env.HTTPS_PROXY ?? process.env.HTTP_PROXY;
 const dispatcher = proxyUrl ? new ProxyAgent(proxyUrl) : undefined;
-
-export function getAgentModelConfig() {
-  const apiKey = process.env.AI_API_KEY?.trim();
-  if (!apiKey) throw new Error("服务端尚未配置 AI_API_KEY");
-
-  return {
-    apiKey,
-    endpoint: process.env.AI_CHAT_COMPLETIONS_URL?.trim() || "https://api.deepseek.com/chat/completions",
-    model: process.env.AI_MODEL?.trim() || "deepseek-chat",
-  };
-}
 
 export const agentSystemPrompt = `你是熟悉 MT5、MQL5、量化策略与技术指标开发的中文助手。你既能解答一般问题，也能根据创建需求生成结构明确、可审查的 MT5 Expert Advisor 或 MQL5 自定义指标。
 

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { createClientUuid } from "@/lib/client-id";
 
 export function DeveloperAuthForm({ nextPath = "/developer" }: { nextPath?: string }) {
   const router = useRouter();
@@ -15,7 +16,7 @@ export function DeveloperAuthForm({ nextPath = "/developer" }: { nextPath?: stri
 
   function registrationDeviceId() {
     const key = "sigma-registration-device-v1";
-    const value = crypto.randomUUID();
+    const value = createClientUuid();
     try {
       const existing = localStorage.getItem(key);
       if (existing) return existing;

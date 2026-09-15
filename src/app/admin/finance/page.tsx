@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AdminAgentModelConfig } from "@/components/admin-agent-model-config";
 import { AdminFinancePanel } from "@/components/admin-finance-panel";
 import { AdminPlatformSettings } from "@/components/admin-platform-settings";
 import { SiteNav } from "@/components/site-nav";
@@ -8,6 +9,7 @@ import { getCurrentUser, isAdmin } from "@/lib/marketplace/auth";
 import { formatGa } from "@/lib/marketplace/currency";
 import { getFinanceSummary, listGaTransactions, type GaTransactionType } from "@/lib/marketplace/ga";
 import { listFinanceOrders } from "@/lib/marketplace/orders";
+import { getAdminAgentModelConfig } from "@/lib/agent/model-config";
 import { getPlatformSettings } from "@/lib/platform-settings";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,7 @@ export default async function AdminFinancePage() {
   const [users, transactions, orders] = [listAdminUsers(), listGaTransactions(), listFinanceOrders()];
   const summary = getFinanceSummary();
   const platformSettings = getPlatformSettings();
+  const agentModelConfig = getAdminAgentModelConfig();
   return (
     <main className="platform-shell developer-shell">
       <SiteNav active="developer" />
@@ -41,6 +44,7 @@ export default async function AdminFinancePage() {
         <article><small>Agent 用量</small><b>{summary.agentFreeRequestCount + summary.agentPaidRequestCount} 次</b><span>对话 {summary.agentChatRequestCount} · 修改 {summary.agentModifyRequestCount} · 完整生成 {summary.agentGenerateRequestCount}</span><span>免费 {summary.agentFreeRequestCount} · 付费 {summary.agentPaidRequestCount} · {formatGa(summary.agentSpent)}</span></article>
         <article><small>已确认订单</small><b>{summary.confirmedOrderCount}</b><span>{formatGa(summary.confirmedOrderVolume)}</span></article>
       </section>
+      <AdminAgentModelConfig initialConfig={agentModelConfig} />
       <AdminPlatformSettings settings={platformSettings} />
       <div className="finance-section-heading"><div><span className="panel-code">BALANCE OPERATIONS</span><h2>用户积分</h2></div><p>扣减不能使余额低于 0；数量只允许正整数。</p></div>
       <AdminFinancePanel users={users} />

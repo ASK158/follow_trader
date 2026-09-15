@@ -9,7 +9,7 @@
 - 页面只读取最近一次成功同步的本地快照；上游不可访问或结构变化时自动保留上一次可靠数据。
 - `/agent` 提供多轮自然语言对话，将策略需求转换为结构化 `StrategySpec`、流式 MQL5 源码和 React Flow 逻辑图。
 - Agent 工作台内置 Monaco 编辑器、基础风险检测、账户云端草稿（浏览器离线回退）和 `.mq5` 下载。
-- `/marketplace` 为 EA / 指标商城：商品统一使用 Gas 积分定价，登录用户可收藏、购买、评论和提交作品，管理员审核通过后自动上架；已购评论带有标识。
+- `/marketplace` 为 EA / 指标商城：商品统一使用 Gas 积分定价，登录用户可收藏、购买、评论和提交作品，管理员审核通过后自动上架；已购评论带有标识。商城不包含内置演示策略。
 - 统一账户仅分为用户和管理员：用户可使用 Gas 消费及上架作品，管理员可管理用户、分配积分、查看消费流水、审核作品、管理评论并查看审计记录。
 - 账户支持邮箱验证、密码找回/修改、TOTP 二次验证和登录设备撤销；会话令牌只以 SHA-256 摘要落库。
 - 登录、注册、密码恢复、评论和订单使用持久化限流，写操作执行同源请求校验。
@@ -18,7 +18,7 @@
 
 安装依赖后，将 [.env.example](.env.example) 复制为 `.env.local`，至少填写官方 `AI_API_KEY`。默认使用 DeepSeek Chat Completions 流式接口；运营方可在服务端通过 `AI_CHAT_COMPLETIONS_URL` 和 `AI_MODEL` 切换兼容服务。执行 `npm run dev` 后访问本地开发地址，Agent 工作台位于 `/agent`。
 
-Agent 的 API 密钥只允许放在服务端环境变量中，不得增加 `NEXT_PUBLIC_` 前缀。所有用户统一使用运营方配置的官方模型服务，页面不提供 API 地址、模型或密钥的配置入口。Agent 需要登录使用，普通用户每日 30 次调用，管理员每日 200 次；草稿同步至账户并在浏览器保留离线副本。运行于 Windows 且本机安装 MetaTrader 5 时，Agent 每次生成完整 EA 后会自动调用 MetaEditor 进行编译并展示日志。编译失败时，系统最多将错误日志和当前完整源码交给 AI 自动修复 2 次；每个版本与编译日志均在“编译验证”中可查看。默认编译器路径是 `C:\Program Files\MetaTrader 5\MetaEditor64.exe`，可通过 `MQL5_METAEDITOR_PATH` 覆盖。编译通过不等于回测或实盘安全验证。
+Agent 的 API 密钥只允许保存在服务端，不得增加 `NEXT_PUBLIC_` 前缀。管理员可在 `/admin/finance` 在线验证并配置兼容 OpenAI Chat Completions 的 API 地址、模型和密钥；密钥使用 `AUTH_ENCRYPTION_KEY` 经 AES-256-GCM 加密后存入服务器数据库，且不会回显到浏览器。未设置后台配置时，服务端环境变量 `AI_API_KEY`、`AI_CHAT_COMPLETIONS_URL` 和 `AI_MODEL` 作为回退。所有用户统一使用运营方配置的模型服务。Agent 需要登录使用，普通用户每日 30 次调用，管理员每日 200 次；草稿同步至账户并在浏览器保留离线副本。运行于 Windows 且本机安装 MetaTrader 5 时，Agent 每次生成完整 EA 后会自动调用 MetaEditor 进行编译并展示日志。编译失败时，系统最多将错误日志和当前完整源码交给 AI 自动修复 2 次；每个版本与编译日志均在“编译验证”中可查看。默认编译器路径是 `C:\Program Files\MetaTrader 5\MetaEditor64.exe`，可通过 `MQL5_METAEDITOR_PATH` 覆盖。编译通过不等于回测或实盘安全验证。
 
 生产环境必须设置 `AUTH_ENCRYPTION_KEY`（64 个十六进制字符），并建议分别设置 `AUTH_AUDIT_PEPPER` 与 `AUTH_RATE_LIMIT_PEPPER`。注册后系统发送 24 小时有效、仅可使用一次的邮箱验证链接；未验证账户不能登录。账户验证与密码重置邮件可直接通过 SMTP 发送，需设置 `SMTP_HOST`、`SMTP_PORT`、`SMTP_SECURE`、`SMTP_USER`、`SMTP_PASS` 和 `SMTP_FROM`。也可改用 `EMAIL_WEBHOOK_URL` 邮件网关，网关接收 `{ to, template, actionUrl }` JSON，并可使用 `EMAIL_WEBHOOK_TOKEN` Bearer 鉴权。两种方式同时配置时优先使用 Webhook。未配置邮件服务时消息保留在 SQLite outbox，开发环境会在注册结果和服务日志中显示操作链接。
 
@@ -40,7 +40,7 @@ Agent 的 API 密钥只允许放在服务端环境变量中，不得增加 `NEXT
 
 ## EA 商城与开发者上架
 
-商城数据分两部分：官方演示商品硬编码于 `src/lib/marketplace-data.ts`；社区商品持久化在 SQLite（`$SIGNAL_DATA_DIR/marketplace/marketplace.db`，本地默认为 `.signal-data/marketplace/`，已 gitignore），上传的源码保存在同级 `sources/` 目录。
+商城商品持久化在 SQLite（`$SIGNAL_DATA_DIR/marketplace/marketplace.db`，本地默认为 `.signal-data/marketplace/`，已 gitignore），上传的源码保存在同级 `sources/` 目录。仅审核通过的社区作品会在商城展示。
 
 账户与上架流程：
 
