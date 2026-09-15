@@ -1,0 +1,9 @@
+/var/log/signal-web-sync.log /var/log/signal-web-backup.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 root root
+}

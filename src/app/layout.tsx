@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sigma signal | 策略信号",
-  description: "MQL5 策略信号的收益与资金曲线展示",
+  title: "Sigma Signal | 量化交易技术平台",
+  description: "策略信号监测、MT4/MT5 交易工具、AI 策略开发与量化交易教程。",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

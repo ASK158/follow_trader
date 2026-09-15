@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountViewerDialog } from "@/components/account-viewer-dialog";
+import { SiteNav } from "@/components/site-nav";
 import { SignalDetails } from "@/components/signal-details";
 import { getSignal } from "@/lib/signal-data";
 
@@ -27,9 +28,10 @@ export default async function SignalPage({ params }: { params: Promise<{ id: str
   const runningMonths = getRunningMonths(signal.startedAt, signal.sourceUpdatedAt);
   return (
     <main className="detail-shell">
-      <nav className="nav detail-nav"><Link href="/" className="back-link"><span aria-hidden="true">←</span><span>所有策略</span></Link><div><span className="brand-mark">S</span><span className="brand">Sigma signal</span></div></nav>
+      <SiteNav active="signals" />
+      <div className="detail-context-bar"><Link href="/" className="back-link"><span aria-hidden="true">←</span><span>策略中心</span></Link><span>SIGNAL ANALYTICS / {signal.id}</span></div>
       <header className="signal-header">
-        <div><div className="title-meta"><span className="signal-badge">MT5</span><span className={signal.sourceStatus === "live" ? "data-live" : "data-snapshot"}><i />{signal.sourceStatus === "live" ? "公开页已同步" : "本地快照"}</span></div><h1 className="signal-title"><span>策略：{signal.name}</span><small>数据更新：{sourceUpdatedDate}</small></h1><p>{signal.broker} · 开始于 {new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium" }).format(new Date(signal.startedAt))}</p></div>
+        <div><div className="title-meta"><span className="signal-badge">MT5 / SIGNAL</span><span className={signal.sourceStatus === "live" ? "data-live" : "data-snapshot"}><i />{signal.sourceStatus === "live" ? "实时数据已同步" : "本地快照数据"}</span></div><h1 className="signal-title"><span>{signal.name}</span><small>更新时间：{sourceUpdatedDate}</small></h1><p>{signal.broker} · 监测起始 {new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium" }).format(new Date(signal.startedAt))}</p></div>
         <AccountViewerDialog />
       </header>
       <section className="overview-grid" aria-label="策略概览">

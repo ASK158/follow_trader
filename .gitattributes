@@ -1,0 +1,7 @@
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+Caddyfile* text eol=lf
+deploy/signal-web.cron text eol=lf
+deploy/signal-web.logrotate text eol=lf

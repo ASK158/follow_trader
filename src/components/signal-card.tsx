@@ -4,12 +4,12 @@ import { PerformanceChart } from "./performance-chart";
 
 const percent = new Intl.NumberFormat("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export function SignalCard({ signal }: { signal: SignalData }) {
+export function SignalCard({ signal, index }: { signal: SignalData; index?: number }) {
   const currency = new Intl.NumberFormat("zh-CN", { style: "currency", currency: signal.currency, maximumFractionDigits: 2 });
   return (
     <Link href={`/signals/${signal.id}`} className="signal-card" aria-label={`查看 ${signal.name} 的详情`}>
       <div className="card-topline">
-        <span className="signal-badge">MT5</span>
+        <span className="signal-badge">{index ? String(index).padStart(2, "0") : "MT5"} / MT5</span>
         <span className={signal.sourceStatus === "live" ? "data-live" : "data-snapshot"}>
           <i />{signal.sourceStatus === "live" ? "已同步" : "本地快照"}
         </span>
@@ -26,7 +26,7 @@ export function SignalCard({ signal }: { signal: SignalData }) {
         <div><span>胜率</span><b>{percent.format(signal.winRate)}%</b></div>
         <div><span>交易</span><b>{signal.trades} 笔</b></div>
       </div>
-      <span className="card-action">查看完整表现 <span aria-hidden="true">→</span></span>
+      <span className="card-action">查看详情 <small>VIEW DETAILS</small><span aria-hidden="true">→</span></span>
     </Link>
   );
 }

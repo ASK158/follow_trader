@@ -3,5 +3,6 @@ node_modules/
 out/
 .env*
 !.env.example
+.env.backup
 .signal-data/
 *.tsbuildinfo

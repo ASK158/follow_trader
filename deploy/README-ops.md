@@ -88,6 +88,8 @@ docker compose -f docker-compose.ip.pull.yml up -d
 
 ## 五、更新到最新版本
 
+ssh -p 22 root@47.84.72.62
+
 代码推送到 GitHub `main` 分支后，GitHub Actions 自动构建新镜像。在服务器上执行以下命令拉取并更新：
 
 ```bash

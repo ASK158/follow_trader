@@ -1,0 +1,345 @@
+/* Shared primary navigation */
+.site-nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: stretch;
+  min-height: 64px;
+  border-bottom: 1px solid var(--tech-rule);
+  color: var(--tech-ink);
+  background: var(--tech-paper);
+}
+.site-brand { display: flex; align-items: center; gap: 9px; padding: 0 24px; border-right: 1px solid var(--tech-rule); }
+.site-brand > span { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--tech-red); border-radius: 50%; color: var(--tech-red); font-size: 16px; font-weight: 800; }
+.site-brand b { font-size: 12px; letter-spacing: .1em; white-space: nowrap; }
+.site-nav-tabs { display: flex; align-items: stretch; min-width: 0; padding-left: 12px; }
+.site-nav-tabs a { position: relative; display: grid; place-items: center; padding: 0 19px; color: #615a53; font-size: 12px; font-weight: 650; white-space: nowrap; }
+.site-nav-tabs a::after { position: absolute; right: 18px; bottom: -1px; left: 18px; height: 3px; background: var(--tech-red); content: ""; opacity: 0; transform: scaleX(.3); transition: opacity .18s, transform .18s; }
+.site-nav-tabs a:hover,.site-nav-tabs a.active { color: var(--tech-red); background: #fff8ef80; }
+.site-nav-tabs a.active::after { opacity: 1; transform: scaleX(1); }
+.site-nav-tabs small { display: none; }
+.site-nav-account { display:flex; align-items:stretch; }
+.site-nav-account > a { position:relative; display:grid; min-width:104px; place-items:center; padding:0 18px; border-left:1px solid var(--tech-rule); color:#615a53; font-size:12px; font-weight:700; white-space:nowrap; }
+.site-nav-account > a::after { position:absolute; right:16px; bottom:-1px; left:16px; height:3px; background:var(--tech-red); content:""; opacity:0; transform:scaleX(.3); transition:opacity .18s,transform .18s; }
+.site-nav-account > a:hover,.site-nav-account > a.active { color:var(--tech-red); background:#fff8ef80; }
+.site-nav-account > a.active::after { opacity:1; transform:scaleX(1); }
+.site-nav-account small { display:none; }
+.site-system-state { display: flex; align-items: center; gap: 7px; padding: 0 22px; border-left: 1px solid var(--tech-rule); color: var(--tech-muted); font: 700 9px "Cascadia Code",Consolas,monospace; letter-spacing: .08em; white-space: nowrap; }
+.site-system-state i { width: 6px; height: 6px; border-radius: 50%; background: var(--tech-green); box-shadow: 0 0 0 3px #28745a1a; }
+.site-nav-account > .site-system-state { display:flex; min-width:auto; gap:7px; padding:0 22px; color:var(--tech-muted); font:700 10px "Cascadia Code",Consolas,monospace; letter-spacing:.04em; }
+.site-nav-account > .site-system-state:hover,.site-nav-account > .site-system-state.active { color:var(--tech-green); }
+.site-nav-account > .site-system-state::after { background:var(--tech-green); }
+.site-nav-mobile-menu { display:none; }
+.editorial-sheet > .site-nav { min-height: 62px; }
+.detail-shell > .site-nav { margin: 0 -30px; padding: 0 20px; }
+.detail-context-bar { display: flex; align-items: center; justify-content: space-between; min-height: 54px; border-bottom: 1px solid var(--tech-rule); color: var(--tech-muted); font: 700 9px "Cascadia Code",Consolas,monospace; letter-spacing: .08em; }
+.agent-shell > .site-nav { width: min(1800px,100%); margin: 0 auto; border-right: 8px solid var(--tech-red); border-left: 8px solid var(--tech-red); }
+
+/* Marketplace and learning pages */
+.platform-shell { --ink:var(--tech-ink); --muted:var(--tech-muted); --line:var(--tech-rule); --blue:var(--tech-red); width:min(1360px,calc(100% - 32px)); min-height:calc(100vh - 44px); margin:22px auto; border:10px solid var(--tech-red); color:var(--tech-ink); background:linear-gradient(#00000007 1px,transparent 1px) 0 0/100% 28px,var(--tech-paper); box-shadow:0 28px 80px #0009; }
+.platform-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:40px; min-height:245px; padding:48px 36px 34px; border-bottom:3px solid var(--tech-ink); }
+.panel-code { color:var(--tech-red); font:700 9px "Cascadia Code",Consolas,monospace; letter-spacing:.14em; }
+.platform-hero h1 { margin:10px 0 12px; font-size:clamp(40px,5vw,66px); line-height:.95; letter-spacing:-.06em; }
+.platform-hero p { max-width:650px; margin:0; color:var(--tech-muted); font-size:14px; line-height:1.75; }
+.market-hero-stats { display:grid; grid-template-columns:repeat(4,1fr); min-width:520px; border:1px solid var(--tech-ink); }
+.market-hero-stats span { display:grid; gap:6px; padding:15px; border-right:1px solid var(--tech-rule); color:var(--tech-muted); font-size:10px; }
+.market-hero-stats span:last-child { border:0; }
+.market-hero-stats b { color:var(--tech-red); font:800 26px/1 "Cascadia Code",Consolas,monospace; }
+.market-category-nav { display:grid; gap:10px; padding:18px 36px 0; border-bottom:1px solid var(--tech-rule); background:#fffaf3a8; }
+.market-main-tabs,.market-sub-tabs { display:flex; align-items:center; gap:7px; overflow-x:auto; scrollbar-width:thin; }
+.market-main-tabs a,.market-sub-tabs a { flex:0 0 auto; border:1px solid var(--tech-rule); color:var(--tech-muted); background:var(--tech-paper-raised); font-weight:700; white-space:nowrap; }
+.market-main-tabs a { min-width:92px; padding:11px 18px; text-align:center; font-size:11px; }
+.market-subcategory-groups { display:grid; gap:8px; padding-bottom:12px; }
+.market-subcategory-group { display:grid; grid-template-columns:92px minmax(0,1fr); align-items:center; gap:10px; }
+.market-subcategory-title { padding:7px 10px; border-left:3px solid var(--type-color,var(--tech-red)); color:var(--tech-ink); background:#eee5d9; font-size:10px; font-weight:800; text-align:center; }
+.market-subcategory-group:nth-child(1) { --type-color:#b4162b; }
+.market-subcategory-group:nth-child(2) { --type-color:#20706f; }
+.market-subcategory-group:nth-child(3) { --type-color:#a56a13; }
+.market-subcategory-title:hover,.market-subcategory-title.active { color:#fff; background:var(--type-color); }
+.market-sub-tabs { min-height:32px; }
+.market-sub-tabs a { padding:7px 13px; font-size:10px; }
+.market-main-tabs a:hover,.market-main-tabs a.active,.market-sub-tabs a:hover,.market-sub-tabs a.active { border-color:var(--tech-red); color:#fff; background:var(--tech-red); }
+.market-toolbar { display:grid; grid-template-columns:minmax(320px,1fr) auto auto; align-items:end; gap:18px; padding:15px 36px; border-bottom:1px solid var(--tech-rule); }
+.market-search { display:grid; gap:6px; }
+.market-search > label,.market-sort-group label { color:var(--tech-muted); font:700 8px "Cascadia Code",Consolas,monospace; letter-spacing:.1em; }
+.market-search > div { display:flex; min-width:0; }
+.market-search input { min-width:0; flex:1; padding:10px 12px; border:1px solid var(--tech-rule); color:var(--tech-ink); background:var(--tech-paper-raised); font:400 11px inherit; }
+.market-search input:focus,.market-sort-group select:focus { border-color:var(--tech-red); outline:none; }
+.market-search button,.market-search a { padding:10px 14px; border:1px solid var(--tech-red); color:#fff; background:var(--tech-red); font:700 10px inherit; cursor:pointer; }
+.market-search a { border-color:var(--tech-rule); color:var(--tech-muted); background:transparent; }
+.market-sort-group { display:grid; grid-template-columns:auto auto; align-items:center; gap:6px 9px; }
+.market-sort-group > span { grid-column:1/-1; color:var(--tech-muted); font-size:9px; text-align:right; }
+.market-sort-group select { min-width:172px; padding:9px 10px; border:1px solid var(--tech-rule); color:var(--tech-ink); background:var(--tech-paper-raised); font:400 10px inherit; }
+.market-toolbar-actions { display:flex; gap:8px; }
+.market-toolbar-actions a { padding:9px 11px; border:1px solid var(--tech-rule); color:var(--tech-muted); font-size:10px; white-space:nowrap; }
+.market-toolbar-actions a:hover { border-color:var(--tech-red); color:var(--tech-red); }
+.market-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; padding:30px 36px 42px; }
+.market-empty-results { min-height:280px; padding:70px 36px; text-align:center; }
+.market-empty-results b { font-size:24px; }
+.market-empty-results p { color:var(--tech-muted); font-size:12px; }
+.market-card { overflow:hidden; border:1px solid var(--tech-rule); border-top:4px solid var(--type-color,var(--tech-red)); background:#faf6ef; transition:transform .2s,box-shadow .2s,border-color .2s; }
+.market-card--ea { --type-color:#b4162b; }
+.market-card--indicator { --type-color:#20706f; }
+.market-card--tool { --type-color:#a56a13; }
+.market-card:hover { transform:translate(-3px,-3px); border-color:var(--tech-red); box-shadow:7px 7px 0 #b4162b20; }
+.market-card--indicator:hover { border-color:#20706f; box-shadow:7px 7px 0 #20706f24; }
+.market-card--tool:hover { border-color:#a56a13; box-shadow:7px 7px 0 #a56a1324; }
+.market-card-cover-link { display:block; }
+.product-cover { --product-accent:#b4162b; position:relative; display:flex; min-height:218px; flex-direction:column; justify-content:flex-end; overflow:hidden; padding:20px; color:#fff; background:radial-gradient(circle at 75% 28%,color-mix(in srgb,var(--product-accent) 75%,white),transparent 4%),repeating-linear-gradient(120deg,transparent 0 18px,#ffffff0a 18px 19px),linear-gradient(145deg,#171719 10%,var(--product-accent)); }
+.market-card--indicator .product-cover { background:radial-gradient(circle at 75% 28%,#73b8b2,transparent 5%),repeating-linear-gradient(90deg,transparent 0 26px,#ffffff0c 26px 27px),linear-gradient(145deg,#111b20 8%,#20706f); }
+.market-card--tool .product-cover { background:radial-gradient(circle at 75% 28%,#e4b35f,transparent 5%),repeating-linear-gradient(45deg,transparent 0 22px,#ffffff0b 22px 23px),linear-gradient(145deg,#201b13 8%,#a56a13); }
+.product-cover.product-cover--image { background:linear-gradient(180deg,#00000012 18%,#000000c7 100%),var(--product-cover-image) center/cover no-repeat; }
+.product-cover.product-cover--image::before,.product-cover.product-cover--image::after { display:none; }
+.product-cover::before { position:absolute; top:24px; right:24px; width:90px; height:90px; border:1px solid #ffffff5c; border-radius:50%; box-shadow:0 0 0 18px #ffffff0a,0 0 0 36px #ffffff08; content:""; }
+.product-cover::after { position:absolute; inset:0; background:linear-gradient(135deg,transparent 48%,#ffffff24 48% 48.5%,transparent 48.5%); content:""; }
+.product-cover > span,.product-cover > b,.product-cover > small,.product-cover-tags { position:relative; z-index:1; }
+.product-cover > span { width:max-content; margin-bottom:auto; padding:5px 7px; border:1px solid #ffffff88; font:800 10px "Cascadia Code",Consolas,monospace; }
+.product-cover-tags { display:flex; justify-content:space-between; gap:10px; margin-bottom:auto; }
+.product-cover-tags span { padding:5px 7px; border:1px solid #ffffff88; background:#09090924; font:800 10px "Cascadia Code",Consolas,monospace; }
+.product-cover > b { max-width:80%; font-size:26px; letter-spacing:-.04em; line-height:1; }
+.product-cover > small { margin-top:8px; color:#ffffffc9; font:700 8px "Cascadia Code",Consolas,monospace; letter-spacing:.08em; }
+.product-cover > i { position:absolute; z-index:1; right:18px; bottom:14px; color:#ffffff44; font:italic 800 62px/1 Arial,sans-serif; }
+.market-card-body { padding:17px; }
+.market-card h2 { margin:12px 0 6px; font-size:18px; letter-spacing:-.03em; }
+.market-card p { min-height:36px; margin:0; color:var(--tech-muted); font-size:11px; line-height:1.6; }
+.product-rating { display:flex; justify-content:space-between; margin-top:15px; color:var(--tech-muted); font-size:9px; }
+.product-rating > span:first-child { color:var(--type-color,var(--tech-red)); }
+.favorite-button { padding:0; border:0; color:var(--tech-muted); background:transparent; font:inherit; cursor:pointer; }
+.favorite-button:hover,.favorite-button.active { color:var(--tech-red); }
+.favorite-button:disabled { cursor:wait; opacity:.65; }
+.market-card footer { display:flex; align-items:end; justify-content:space-between; margin-top:14px; padding-top:13px; border-top:1px solid var(--tech-ink); }
+.market-card footer b { color:var(--tech-red); font-size:20px; }
+.market-card footer a { color:var(--tech-red); font:700 9px "Cascadia Code",Consolas,monospace; }
+.platform-footer { padding:18px 36px; border-top:1px solid var(--tech-rule); color:var(--tech-muted); font-size:10px; line-height:1.6; }
+.platform-breadcrumb { display:flex; justify-content:space-between; padding:15px 36px; border-bottom:1px solid var(--tech-rule); color:var(--tech-muted); font:700 9px "Cascadia Code",Consolas,monospace; }
+.platform-breadcrumb a { color:var(--tech-red); }
+.product-detail-header { display:grid; grid-template-columns:260px minmax(0,1fr); gap:38px; padding:36px; border-bottom:3px solid var(--tech-ink); }
+.product-cover-large { min-height:315px; }
+.product-intro { align-self:center; }
+.product-intro h1 { margin:11px 0 8px; font-size:clamp(36px,5vw,60px); letter-spacing:-.06em; line-height:1; }
+.product-intro > p:first-of-type { margin:0; color:var(--tech-red); font-size:16px; font-weight:700; }
+.product-meta { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }
+.product-meta span { padding:6px 9px; border:1px solid var(--tech-rule); color:var(--tech-muted); font-size:9px; }
+.product-description { max-width:680px; color:var(--tech-muted)!important; font-size:13px!important; font-weight:400!important; line-height:1.8; }
+.product-intro > small { color:var(--tech-muted); }
+.product-detail-grid { display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:28px; padding:36px; }
+.product-content { display:grid; gap:42px; min-width:0; }
+.product-content section > h2 { margin:8px 0 18px; font-size:24px; }
+.product-gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.product-shot { margin:0; border:1px solid var(--tech-rule); background:#171719; }
+.product-shot > div { position:relative; display:flex; min-height:180px; flex-direction:column; justify-content:space-between; overflow:hidden; padding:14px; color:#f8eee6; background:repeating-linear-gradient(0deg,transparent 0 24px,#ffffff10 24px 25px),linear-gradient(145deg,#171719,#4a2630); }
+.product-shot > div::before { position:absolute; right:-22px; bottom:24px; width:150px; height:70px; border-top:2px solid var(--tech-red); border-radius:50%; transform:rotate(-12deg); content:""; box-shadow:0 -14px 0 -13px #ffffff55,0 -28px 0 -27px #ffffff33; }
+.product-shot > div > span,.product-shot > div > b { position:relative; z-index:1; }
+.product-shot > div > span { color:#ef7888; font:700 9px "Cascadia Code",Consolas,monospace; }
+.product-shot > div > b { font-size:15px; }
+.product-shot figcaption { min-height:48px; padding:10px; color:var(--tech-muted); background:var(--tech-paper-raised); font-size:9px; line-height:1.5; }
+.product-shot.matrix > div { background:repeating-linear-gradient(90deg,transparent 0 39px,#ffffff0e 39px 40px),repeating-linear-gradient(0deg,transparent 0 29px,#ffffff0e 29px 30px),#25211f; }
+.product-shot.risk > div { background:linear-gradient(145deg,#171719,#6e1724); }
+.product-shot.heatmap > div { background:radial-gradient(circle at 65% 45%,#d24a27,#5c1822 20%,#171719 50%); }
+.product-shot.structure > div { background:linear-gradient(25deg,transparent 48%,#4f9f7e 49% 50%,transparent 51%),#171719; }
+.product-shot.oscillator > div { background:repeating-linear-gradient(165deg,transparent 0 38px,#a83c4b 39px 41px,transparent 42px 75px),#171719; }
+.feature-list { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--tech-rule); border-left:1px solid var(--tech-rule); }
+.feature-list div { display:grid; grid-template-columns:36px 1fr; align-items:center; min-height:62px; padding:10px; border-right:1px solid var(--tech-rule); border-bottom:1px solid var(--tech-rule); }
+.feature-list span { color:var(--tech-red); font:800 10px "Cascadia Code",Consolas,monospace; }
+.feature-list b { font-size:12px; }
+.requirement-list { display:grid; gap:0; margin:0; padding:0; list-style:none; border-top:1px solid var(--tech-rule); }
+.requirement-list li { position:relative; padding:12px 10px 12px 30px; border-bottom:1px solid var(--tech-rule); color:var(--tech-muted); font-size:12px; }
+.requirement-list li::before { position:absolute; left:10px; color:var(--tech-red); content:"+"; font-weight:800; }
+.purchase-panel { position:sticky; top:20px; align-self:start; padding:22px; border:1px solid var(--tech-ink); border-top:5px solid var(--tech-red); background:var(--tech-paper-raised); box-shadow:7px 7px 0 #b4162b18; }
+.purchase-panel h2 { margin:12px 0; color:var(--tech-red); font-size:34px; }
+.purchase-panel p { color:var(--tech-muted); font-size:11px; line-height:1.7; }
+.purchase-panel ul { margin:17px 0; padding:13px 0; border-top:1px solid var(--tech-rule); border-bottom:1px solid var(--tech-rule); list-style:none; }
+.purchase-panel li { padding:5px 0; color:var(--tech-muted); font-size:10px; }
+.purchase-panel li::before { margin-right:7px; color:var(--tech-red); content:"✓"; }
+.purchase-panel button,.purchase-unlocked a { display:block; width:100%; padding:12px; border:0; color:#fff; background:var(--tech-red); font:700 11px inherit; text-align:center; cursor:pointer; }
+.purchase-panel button:hover,.purchase-unlocked a:hover { background:var(--tech-red-dark); }
+.purchase-panel > small { display:block; margin-top:13px; color:#998e83; font-size:9px; line-height:1.5; }
+.purchase-unlocked { display:grid; gap:9px; }
+.purchase-unlocked b { color:var(--tech-green); font-size:11px; }
+.product-comments { margin:0 36px 42px; padding:28px; border:1px solid var(--tech-rule); border-top:4px solid var(--tech-ink); background:var(--tech-paper-raised); }
+.product-comments > header { display:flex; align-items:end; justify-content:space-between; gap:20px; padding-bottom:18px; border-bottom:1px solid var(--tech-rule); }
+.product-comments > header h2 { margin:7px 0 0; font-size:28px; }
+.product-comments > header > b { color:var(--tech-muted); font-size:10px; }
+.comment-form { display:grid; gap:10px; margin-top:20px; padding:18px; border-left:4px solid var(--tech-red); background:#f7f0e7; }
+.comment-form label { font-size:11px; font-weight:750; }
+.comment-form textarea { width:100%; resize:vertical; padding:12px; border:1px solid var(--tech-rule); color:var(--tech-ink); background:#fffdf9; font:400 12px/1.7 inherit; }
+.comment-form textarea:focus { border-color:var(--tech-red); outline:none; }
+.comment-form > div { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
+.comment-form small { margin-right:auto; color:var(--tech-muted); font-size:9px; }
+.comment-form p { margin:0; color:var(--tech-red); font-size:10px; }
+.comment-form button,.comment-login-prompt a { padding:10px 18px; border:0; color:#fff; background:var(--tech-red); font:700 10px inherit; cursor:pointer; }
+.comment-form button:disabled { cursor:not-allowed; opacity:.55; }
+.comment-login-prompt { margin-top:20px; padding:20px; border:1px solid var(--tech-rule); text-align:center; }
+.comment-login-prompt p { margin:7px 0 14px; color:var(--tech-muted); font-size:11px; }
+.comment-login-prompt a { display:inline-block; }
+.comment-list { display:grid; margin-top:24px; }
+.comment-list > article { display:grid; grid-template-columns:38px minmax(0,1fr); gap:13px; padding:18px 0; border-top:1px solid var(--tech-rule); }
+.comment-avatar { display:grid; width:38px; height:38px; place-items:center; border-radius:50%; color:#fff; background:var(--tech-ink); font-weight:800; }
+.comment-list article header { display:flex; justify-content:space-between; gap:20px; }
+.comment-list article header b { font-size:12px; }
+.comment-list time { color:var(--tech-muted); font:400 9px "Cascadia Code",Consolas,monospace; }
+.comment-list article p { margin:7px 0 0; color:#5f5851; font-size:12px; line-height:1.75; white-space:pre-wrap; overflow-wrap:anywhere; }
+.comment-empty { margin:0; padding:35px 0 10px; color:var(--tech-muted); font-size:11px; text-align:center; }
+.favorites-header { padding:42px 36px 28px; border-bottom:3px solid var(--tech-ink); }
+.favorites-header h1 { margin:9px 0; font-size:44px; letter-spacing:-.05em; }
+.favorites-header p,.favorites-empty p { color:var(--tech-muted); }
+.favorites-empty { min-height:310px; padding:70px 36px; text-align:center; }
+.favorites-empty b { font-size:25px; }
+.favorites-empty a { display:inline-block; margin-top:12px; padding:10px 16px; color:#fff; background:var(--tech-red); font-size:11px; font-weight:700; }
+
+/* Tutorials */
+.tutorial-path { display:grid; grid-template-columns:1fr 1fr; min-width:360px; border-top:1px solid var(--tech-ink); border-left:1px solid var(--tech-ink); }
+.tutorial-path span { padding:12px; border-right:1px solid var(--tech-ink); border-bottom:1px solid var(--tech-ink); font:700 9px "Cascadia Code",Consolas,monospace; }
+.tutorial-section { padding:34px 36px 42px; border-bottom:1px solid var(--tech-rule); }
+.tutorial-section > header { display:flex; align-items:end; justify-content:space-between; margin-bottom:18px; padding-bottom:14px; border-bottom:3px solid var(--tech-ink); }
+.tutorial-section h2 { margin:7px 0 0; font-size:27px; }
+.tutorial-section header p { margin:0; color:var(--tech-muted); font-size:10px; }
+.tutorial-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.tutorial-card { border:1px solid var(--tech-rule); background:var(--tech-paper-raised); transition:.2s; }
+.tutorial-card:hover { border-color:var(--tech-red); transform:translate(-3px,-3px); box-shadow:6px 6px 0 #b4162b1b; }
+.tutorial-cover { --tutorial-accent:#b4162b; position:relative; display:grid; min-height:145px; place-content:center; overflow:hidden; color:#fff; background:linear-gradient(145deg,#171719,var(--tutorial-accent)); text-align:center; }
+.tutorial-cover::before { position:absolute; inset:18px; border:1px solid #ffffff2f; content:""; transform:rotate(-3deg); }
+.tutorial-cover > span { position:relative; z-index:1; font-size:34px; font-weight:800; }
+.tutorial-cover > b { position:relative; z-index:1; margin-top:6px; font:700 10px "Cascadia Code",Consolas,monospace; letter-spacing:.08em; }
+.tutorial-cover > i { position:absolute; right:10px; bottom:8px; color:#ffffff70; font:700 7px "Cascadia Code",Consolas,monospace; }
+.tutorial-card-body { padding:16px; }
+.tutorial-card-body > div { display:flex; gap:5px; }
+.tutorial-card-body > div span { padding:3px 5px; border:1px solid var(--tech-rule); color:var(--tech-muted); font-size:8px; }
+.tutorial-card h2 { min-height:44px; margin:12px 0 7px; font-size:17px; line-height:1.3; }
+.tutorial-card p { min-height:49px; margin:0; color:var(--tech-muted); font-size:10px; line-height:1.6; }
+.tutorial-action { display:block; margin-top:14px; padding-top:12px; border-top:1px solid var(--tech-ink); color:var(--tech-red); font:700 9px "Cascadia Code",Consolas,monospace; }
+.tutorial-article > header { padding:56px max(36px,calc((100% - 1050px)/2)); border-bottom:3px solid var(--tech-ink); box-shadow:inset 7px 0 0 var(--tutorial-accent); }
+.tutorial-article > header h1 { max-width:850px; margin:13px 0; font-size:clamp(38px,5vw,62px); letter-spacing:-.055em; }
+.tutorial-article > header p { max-width:680px; margin:0; color:var(--tech-muted); line-height:1.8; }
+.article-layout { display:grid; grid-template-columns:220px minmax(0,1fr); gap:45px; max-width:1050px; margin:0 auto; padding:42px 0 60px; }
+.article-layout > aside { position:sticky; top:20px; display:grid; align-self:start; border-top:3px solid var(--tech-ink); }
+.article-layout > aside b,.article-layout > aside a { padding:11px 5px; border-bottom:1px solid var(--tech-rule); }
+.article-layout > aside b { color:var(--tech-red); font:700 9px "Cascadia Code",Consolas,monospace; }
+.article-layout > aside a { color:var(--tech-muted); font-size:10px; }
+.managed-article-layout > aside span { padding:11px 5px; border-bottom:1px solid var(--tech-rule); color:var(--tech-muted); font-size:10px; }
+.managed-article-layout .rte-content { padding:0; color:#5f5851; font-size:14px; line-height:1.9; }
+.managed-article-layout .rte-content img { max-width:100%; height:auto; }
+.article-content { display:grid; gap:48px; }
+.article-content section { position:relative; scroll-margin-top:20px; }
+.article-content section > span { position:absolute; top:0; right:0; color:#b4162b22; font:900 72px/1 "Cascadia Code",Consolas,monospace; }
+.article-content h2 { position:relative; margin:0 0 18px; padding-bottom:13px; border-bottom:1px solid var(--tech-rule); font-size:26px; }
+.article-content p { position:relative; color:#5f5851; font-size:14px; line-height:1.9; }
+.article-content ul { padding:14px 18px 14px 36px; border-left:3px solid var(--tech-red); background:#faf6ef; color:#5f5851; font-size:12px; line-height:1.9; }
+.article-diagram { display:flex; align-items:center; gap:0; margin-top:20px; border:1px solid var(--tech-ink); }
+.article-diagram > * { flex:1; padding:11px; border-right:1px solid var(--tech-rule); text-align:center; font:700 9px "Cascadia Code",Consolas,monospace; }
+.article-diagram > *:last-child { border:0; }
+.article-diagram b { color:#fff; background:var(--tech-red); }
+.article-diagram i { color:var(--tech-muted); font-style:normal; }
+
+/* Observation space */
+.observation-hero { align-items:center; }
+.observation-hero-meta { display:grid; min-width:255px; padding:20px; border:1px solid var(--tech-ink); border-top:5px solid var(--tech-green); background:var(--tech-paper-raised); }
+.observation-hero-meta > span { display:flex; align-items:center; gap:7px; color:var(--tech-green); font:700 8px "Cascadia Code",Consolas,monospace; letter-spacing:.08em; }
+.observation-hero-meta > span i,.observation-type i,.observation-card em i { width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px #28745a1a; }
+.observation-hero-meta > b { margin-top:15px; color:var(--tech-green); font:800 38px/1 "Cascadia Code",Consolas,monospace; }
+.observation-hero-meta > small { margin-top:5px; color:var(--tech-muted); }
+.observation-hero-meta > a { margin-top:17px; padding:10px; color:#fff; background:var(--tech-green); font-size:10px; font-weight:700; text-align:center; }
+.observation-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; padding:32px 36px 44px; }
+.observation-card { display:flex; min-width:0; flex-direction:column; padding:20px; border:1px solid var(--tech-rule); border-top:4px solid var(--tech-green); background:#faf6ef; transition:.2s; }
+.observation-card:hover { transform:translate(-3px,-3px); border-color:var(--tech-green); box-shadow:7px 7px 0 #28745a1c; }
+.observation-card > header { display:flex; align-items:center; justify-content:space-between; }
+.observation-card > header > span { padding:5px 8px; color:#fff; background:var(--tech-ink); font:800 10px "Cascadia Code",Consolas,monospace; }
+.observation-card em,.observation-type { display:flex; align-items:center; gap:7px; font-size:9px; font-style:normal; font-weight:750; }
+.observation-card em.live,.observation-type.live { color:var(--tech-green); }
+.observation-card em.demo,.observation-type.demo { color:#996219; }
+.observation-card h2 { margin:20px 0 9px; font-size:21px; letter-spacing:-.03em; }
+.observation-card > p { flex:1; min-height:54px; margin:0; color:var(--tech-muted); font-size:11px; line-height:1.65; }
+.observation-card dl { display:grid; gap:0; margin:18px 0; border-top:1px solid var(--tech-rule); }
+.observation-card dl div { display:grid; grid-template-columns:62px minmax(0,1fr); gap:10px; padding:9px 0; border-bottom:1px solid var(--tech-rule); }
+.observation-card dt { color:var(--tech-muted); font-size:9px; }
+.observation-card dd { min-width:0; margin:0; overflow:hidden; font:700 10px "Cascadia Code",Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
+.observation-card footer { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.observation-card footer small { color:var(--tech-muted); font-size:8px; }
+.observation-card footer a,.observation-empty a { flex:0 0 auto; color:var(--tech-green); font:700 9px "Cascadia Code",Consolas,monospace; }
+.observation-empty { grid-column:1/-1; }
+.observation-detail-header { display:flex; align-items:center; justify-content:space-between; gap:30px; padding:44px 36px 34px; border-bottom:3px solid var(--tech-ink); }
+.observation-detail-header h1 { margin:10px 0 9px; font-size:clamp(36px,5vw,60px); letter-spacing:-.055em; }
+.observation-detail-header p { margin:0; color:var(--tech-muted); font-size:11px; }
+.observation-type { padding:11px 14px; border:1px solid currentColor; white-space:nowrap; }
+.observation-detail-grid { display:grid; grid-template-columns:minmax(0,1fr) 350px; gap:30px; padding:36px; }
+.observation-description { min-width:0; }
+.observation-description h2 { margin:8px 0 18px; font-size:28px; }
+.observation-description .rte-content { padding:0; color:#5f5851; }
+.observation-access-panel { align-self:start; padding:22px; border:1px solid var(--tech-ink); border-top:5px solid var(--tech-green); background:var(--tech-paper-raised); box-shadow:7px 7px 0 #28745a18; }
+.observation-access-panel h2 { margin:10px 0 17px; font-size:22px; }
+.observation-access-panel dl { margin:0; border-top:1px solid var(--tech-rule); }
+.observation-access-panel dl div { display:grid; grid-template-columns:82px minmax(0,1fr); gap:12px; padding:11px 0; border-bottom:1px solid var(--tech-rule); }
+.observation-access-panel dt { color:var(--tech-muted); font-size:10px; }
+.observation-access-panel dd { min-width:0; margin:0; overflow-wrap:anywhere; font-size:11px; font-weight:700; }
+.observation-access-panel code { color:var(--tech-green); font:800 12px "Cascadia Code",Consolas,monospace; }
+.observation-access-panel > p { margin:16px 0 0; color:var(--tech-muted); font-size:9px; line-height:1.7; }
+
+@media(max-width:980px){
+  .site-nav { grid-template-columns:auto minmax(0,1fr) auto; }
+  .site-nav-account > .site-system-state { padding-inline:12px; }
+  .site-nav-account > a { min-width:96px; }
+  .market-grid,.tutorial-grid { grid-template-columns:repeat(2,1fr); }
+  .platform-hero { align-items:stretch; flex-direction:column; }
+  .market-hero-stats,.tutorial-path { width:100%; min-width:0; }
+  .market-toolbar { grid-template-columns:minmax(280px,1fr) auto; }
+  .market-toolbar-actions { grid-column:1/-1; justify-content:flex-end; }
+  .product-detail-header { grid-template-columns:150px minmax(0,1fr); }
+  .product-detail-grid { grid-template-columns:1fr; }
+  .purchase-panel { position:static; }
+  .product-gallery { grid-template-columns:repeat(2,1fr); }
+  .article-layout { grid-template-columns:1fr; padding:32px; }
+  .article-layout > aside { position:static; }
+  .observation-grid { grid-template-columns:repeat(2,1fr); }
+  .observation-detail-grid { grid-template-columns:1fr; }
+}
+@media(max-width:700px){
+  .platform-shell { width:100%; min-height:100vh; margin:0; border-width:7px; }
+  .site-nav { position:relative; display:flex; min-height:56px; align-items:stretch; }
+  .site-nav-mobile-menu { display:contents; }
+  .site-nav-menu-button { display:grid; width:56px; min-width:56px; place-content:center; gap:5px; padding:0; border:0; border-right:1px solid var(--tech-rule); color:var(--tech-ink); background:var(--tech-paper); cursor:pointer; }
+  .site-nav-menu-button:hover,.site-nav-menu-button:focus-visible { color:var(--tech-red); background:#fff8ef; outline:none; }
+  .site-nav-menu-button span { display:block; width:20px; height:2px; background:currentColor; transition:transform .18s,opacity .18s; }
+  .site-nav-menu-button[aria-expanded="true"] span:first-child { transform:translateY(7px) rotate(45deg); }
+  .site-nav-menu-button[aria-expanded="true"] span:nth-child(2) { opacity:0; }
+  .site-nav-menu-button[aria-expanded="true"] span:last-child { transform:translateY(-7px) rotate(-45deg); }
+  .site-nav-menu-backdrop { position:fixed; z-index:20; inset:0; border:0; background:#17171955; cursor:default; }
+  .site-nav-menu-panel { position:absolute; z-index:21; top:56px; left:0; display:grid; width:min(300px,calc(100vw - 14px)); padding:8px 0; border:1px solid var(--tech-ink); border-top:4px solid var(--tech-red); background:var(--tech-paper-raised); box-shadow:8px 8px 0 #17171933; }
+  .site-nav-menu-panel[hidden] { display:none; }
+  .site-nav-menu-panel a { padding:15px 20px; border-bottom:1px solid var(--tech-rule); color:var(--tech-ink); font-size:13px; font-weight:700; }
+  .site-nav-menu-panel a:last-child { border-bottom:0; }
+  .site-nav-menu-panel a:hover,.site-nav-menu-panel a.active { color:var(--tech-red); background:#fff8ef; }
+  .site-brand { flex:1; height:56px; justify-content:flex-start; padding:0 16px; border-right:0; }
+  .site-nav-tabs,.site-nav-account { display:none; }
+  .detail-shell > .site-nav { margin:0 -16px; padding:0; }
+  .agent-shell > .site-nav { border-width:7px; }
+  .platform-hero { min-height:0; padding:34px 20px 26px; }
+  .platform-hero h1 { font-size:42px; }
+  .market-hero-stats { grid-template-columns:1fr 1fr; }
+  .market-category-nav { padding:14px 20px 0; }
+  .market-subcategory-group { grid-template-columns:1fr; gap:5px; }
+  .market-subcategory-title { width:max-content; min-width:78px; }
+  .market-toolbar { grid-template-columns:1fr; align-items:start; padding:14px 20px; }
+  .market-search,.market-sort-group { width:100%; }
+  .market-sort-group { grid-template-columns:auto minmax(0,1fr); }
+  .market-sort-group > span { text-align:left; }
+  .market-sort-group select { width:100%; min-width:0; }
+  .market-toolbar-actions { grid-column:auto; width:100%; justify-content:flex-start; }
+  .market-grid,.tutorial-grid { grid-template-columns:1fr; }
+  .market-grid,.tutorial-section { padding:24px 20px 30px; }
+  .product-detail-header { grid-template-columns:1fr; padding:20px; }
+  .product-cover-large { min-height:250px; }
+  .product-detail-grid { padding:24px 20px; }
+  .product-comments { margin:0 20px 30px; padding:20px; }
+  .product-comments > header,.comment-list article header { align-items:flex-start; flex-direction:column; gap:5px; }
+  .comment-form > div { flex-wrap:wrap; }
+  .product-gallery,.feature-list { grid-template-columns:1fr; }
+  .platform-breadcrumb { padding:13px 20px; }
+  .platform-breadcrumb span { display:none; }
+  .tutorial-path { grid-template-columns:1fr 1fr; }
+  .tutorial-article > header { padding:38px 20px; }
+  .article-layout { padding:28px 20px 45px; }
+  .article-diagram { display:grid; grid-template-columns:1fr 1fr; }
+  .article-diagram > * { border-bottom:1px solid var(--tech-rule); }
+  .observation-grid { grid-template-columns:1fr; padding:24px 20px 30px; }
+  .observation-detail-header { align-items:flex-start; flex-direction:column; padding:32px 20px 25px; }
+  .observation-detail-grid { padding:26px 20px; }
+}
