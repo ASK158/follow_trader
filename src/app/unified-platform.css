@@ -444,7 +444,9 @@ body::before {
   min-height: 100vh;
   padding: 0 22px 22px;
   color: var(--tech-ink);
-  background: #171719;
+  background:
+    radial-gradient(circle at 84% 2%, #a45b6604 0, transparent 20%),
+    linear-gradient(145deg, #1d1d1c, #151515 60%, #1b1b1a);
 }
 
 .agent-shell .agent-nav {

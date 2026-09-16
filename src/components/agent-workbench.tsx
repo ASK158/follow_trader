@@ -61,6 +61,28 @@ function fileExtension(name: string) {
   return name.split(".").pop()?.toLowerCase() ?? "";
 }
 
+async function copyTextToClipboard(text: string): Promise<void> {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // 在 HTTP 或受限嵌入页面中，Clipboard API 可能不可用；继续使用兼容方案。
+    }
+  }
+
+  if (typeof document === "undefined") throw new Error("当前环境不支持复制");
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.cssText = "position:fixed;top:0;left:-9999px;opacity:0;";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) throw new Error("当前环境不支持复制");
+}
+
 function summarizeSpecChanges(previous: StrategySpec, next: StrategySpec, fallback: string): string {
   const changes: string[] = [];
   if (previous.symbol !== next.symbol) changes.push(`品种 ${previous.symbol} → ${next.symbol}`);
@@ -85,6 +107,8 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
   const [streamedReply, setStreamedReply] = useState("");
   const [status, setStatus] = useState("描述策略后开始生成");
   const [error, setError] = useState("");
+  const [errorTitle, setErrorTitle] = useState("生成失败");
+  const [copyNotice, setCopyNotice] = useState(false);
   const [activeTab, setActiveTab] = useState<"code" | "diagram" | "spec" | "parameters" | "compile" | "risk">("code");
   const [isGenerating, setIsGenerating] = useState(false);
   const [drafts, setDrafts] = useState<SavedDraft[]>([]);
@@ -98,6 +122,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
   const abortRef = useRef<AbortController | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const copyNoticeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -117,11 +142,15 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
     const timeout = window.setTimeout(() => setIsDiagramReady(false), 4_200);
     return () => window.clearTimeout(timeout);
   }, [isDiagramReady]);
+  useEffect(() => () => {
+    if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
+  }, []);
 
   const displayedCode = streamedCode || artifact?.code || "// 在左侧描述需求，生成的完整 MQL5 EA 或自定义指标将流式显示在这里。";
   async function addFiles(files: File[]) {
     if (!files.length || isGenerating) return;
     setError("");
+    setErrorTitle("附件处理失败");
     const availableSlots = MAX_ATTACHMENTS - attachments.length;
     if (availableSlots <= 0) {
       setError(`每次最多发送 ${MAX_ATTACHMENTS} 个附件`);
@@ -171,6 +200,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
     setInput("");
     setAttachments([]);
     setError("");
+    setErrorTitle("生成失败");
     setStreamedCode("");
     setStreamedReply("");
     setStatus("正在连接 AI Agent…");
@@ -344,21 +374,30 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
   }
 
   async function copyCode() {
-    if (!artifact) return;
+    if (!artifact?.code) return;
     try {
-      await navigator.clipboard.writeText(artifact.code);
+      await copyTextToClipboard(artifact.code);
+      setError("");
       setStatus("MQL5 代码已复制到剪贴板");
+      setCopyNotice(true);
+      if (copyNoticeTimerRef.current !== null) window.clearTimeout(copyNoticeTimerRef.current);
+      copyNoticeTimerRef.current = window.setTimeout(() => {
+        setCopyNotice(false);
+        copyNoticeTimerRef.current = null;
+      }, 2_200);
     } catch {
+      setErrorTitle("复制失败");
       setError("复制失败，请在代码编辑器中手动复制。");
     }
   }
 
   return (
     <div className="agent-layout">
+      {copyNotice && <div className="agent-copy-toast" role="status" aria-live="polite">复制代码成功</div>}
       <aside className="agent-sidebar">
         <div><span className="agent-kicker">AI MQL5 ARCHITECT</span><h1>MT5 程序 Agent</h1><p>通过多轮对话，把交易想法转化为结构化 EA 或自定义指标、逻辑图和可编辑的 MQL5 源码。</p></div>
         <div className="agent-billing-card"><span>{billing.isAdmin ? "管理员免计费" : billing.freeEligible ? `免费 ${billing.freeRemaining}/${billing.pricing.freeUsageLimit} 次 · ${billing.gasBalance} Gas` : `无免费额度 · ${billing.gasBalance} Gas`}</span><small>{billing.isAdmin ? "调用仍会记录用量与审计" : `对话 ${billing.pricing.chatCost} · 修改 ${billing.pricing.modifyCost} · 完整生成 ${billing.pricing.generateCost} Gas；免费用尽后需至少 ${billing.pricing.minimumGasToStart} Gas 才能发起`}</small></div>
-        <button className="new-chat-button" onClick={() => { setMessages([]); setModelMessages([]); setArtifact(null); setPendingChange(null); setSelectedNodeId(null); setDraftId(null); setAttachments([]); setError(""); setStatus("已新建会话"); }} disabled={isGenerating}>＋ 新建程序</button>
+        <button className="new-chat-button" onClick={() => { setMessages([]); setModelMessages([]); setArtifact(null); setPendingChange(null); setSelectedNodeId(null); setDraftId(null); setAttachments([]); setError(""); setStatus("已新建会话"); }} disabled={isGenerating}>＋ 新建对话</button>
         <div className="draft-list"><span>我的云端草稿</span>{drafts.length ? drafts.map((draft) => <button key={draft.id} className={draft.id === draftId ? "active" : ""} onClick={() => loadDraft(draft)}><b>{draft.title}</b><small>{new Date(draft.updatedAt).toLocaleString("zh-CN")}</small></button>) : <p>保存后的策略会显示在这里</p>}</div>
         <div className="agent-note">草稿与当前账户同步；浏览器中同时保留离线副本。</div>
       </aside>
@@ -369,7 +408,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
           {!messages.length && !streamedReply && <div className="agent-welcome"><span>Σ</span><h2>描述你的 EA 或指标</h2><p>请先说明要生成 EA 还是自定义指标，并尽量写明品种、周期、规则、显示方式或风险要求。</p><div>{examples.map((example) => <button key={example} onClick={() => void submit(example)}>{example}</button>)}</div></div>}
           {messages.map((message) => <article key={message.id} className={`chat-message ${message.role}`}><span>{message.role === "user" ? "你" : "AI"}</span><div className="chat-message-body"><p>{message.content}</p>{message.attachments?.length ? <div className="message-attachments">{message.attachments.map((item, index) => <span key={`${item.name}-${index}`}>{item.kind === "image" ? "▧" : "▤"} {item.name}</span>)}</div> : null}</div></article>)}
           {streamedReply && <article className="chat-message assistant"><span>AI</span><p>{streamedReply}<i className="typing-cursor" /></p></article>}
-          {error && <div className="agent-error"><b>生成失败</b><span>{error}</span></div>}
+          {error && <div className="agent-error"><b>{errorTitle}</b><span>{error}</span></div>}
           <div ref={chatEndRef} />
         </div>
         <div className="agent-composer">
