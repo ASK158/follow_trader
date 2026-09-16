@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/marketplace/auth";
 import { getAgentBillingStatus } from "@/lib/agent/billing";
 
 export const metadata = {
-  title: "MT5 策略 Agent | Sigma signal",
+  title: "MT5 策略 Agent | Sigma Bot",
   description: "通过自然语言生成结构化 MT5 策略、MQL5 代码和策略逻辑图。",
 };
 

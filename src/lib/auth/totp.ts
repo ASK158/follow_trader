@@ -43,8 +43,8 @@ export function generateTotpSecret(): string {
 }
 
 export function totpUri(secret: string, email: string): string {
-  const label = encodeURIComponent(`Sigma Signal:${email}`);
-  return `otpauth://totp/${label}?secret=${secret}&issuer=${encodeURIComponent("Sigma Signal")}&algorithm=SHA1&digits=6&period=30`;
+  const label = encodeURIComponent(`Sigma Bot:${email}`);
+  return `otpauth://totp/${label}?secret=${secret}&issuer=${encodeURIComponent("Sigma Bot")}&algorithm=SHA1&digits=6&period=30`;
 }
 
 export function verifyTotp(secret: string, candidate: string, now = Date.now()): boolean {

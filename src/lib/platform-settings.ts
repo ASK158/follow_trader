@@ -11,6 +11,10 @@ export type PlatformSettings = {
   registrationIpDailyLimit: number;
   registrationDevice30dLimit: number;
   registrationRiskThreshold: number;
+  telegramUrl: string;
+  wechatOfficialAccountUrl: string;
+  youtubeUrl: string;
+  bilibiliUrl: string;
 };
 
 export const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
@@ -22,9 +26,13 @@ export const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
   registrationIpDailyLimit: 3,
   registrationDevice30dLimit: 2,
   registrationRiskThreshold: 50,
+  telegramUrl: "",
+  wechatOfficialAccountUrl: "",
+  youtubeUrl: "",
+  bilibiliUrl: "",
 };
 
-const settingKeys: Record<keyof PlatformSettings, string> = {
+const numberSettingKeys = {
   agentFreeUsageLimit: "agent_free_usage_limit",
   agentChatCost: "agent_chat_cost",
   agentModifyCost: "agent_modify_cost",
@@ -33,6 +41,18 @@ const settingKeys: Record<keyof PlatformSettings, string> = {
   registrationIpDailyLimit: "registration_ip_daily_limit",
   registrationDevice30dLimit: "registration_device_30d_limit",
   registrationRiskThreshold: "registration_risk_threshold",
+} as const;
+
+const urlSettingKeys = {
+  telegramUrl: "social_telegram_url",
+  wechatOfficialAccountUrl: "social_wechat_official_account_url",
+  youtubeUrl: "social_youtube_url",
+  bilibiliUrl: "social_bilibili_url",
+} as const;
+
+const settingKeys: Record<keyof PlatformSettings, string> = {
+  ...numberSettingKeys,
+  ...urlSettingKeys,
 };
 
 function normalizedNumber(value: string | undefined, fallback: number): number {
@@ -40,12 +60,28 @@ function normalizedNumber(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
+function normalizedUrl(value: string | undefined, fallback: string): string {
+  const normalized = value?.trim();
+  if (!normalized) return fallback;
+  try {
+    const url = new URL(normalized);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function getPlatformSettings(): PlatformSettings {
   const rows = getMarketplaceDb().prepare("SELECT key, value FROM platform_settings").all() as Array<{ key: string; value: string }>;
   const values = new Map(rows.map((row) => [row.key, row.value]));
-  return Object.fromEntries(
-    (Object.keys(settingKeys) as Array<keyof PlatformSettings>).map((name) => [name, normalizedNumber(values.get(settingKeys[name]), DEFAULT_PLATFORM_SETTINGS[name])]),
-  ) as PlatformSettings;
+  return {
+    ...Object.fromEntries(
+      (Object.keys(numberSettingKeys) as Array<keyof typeof numberSettingKeys>).map((name) => [name, normalizedNumber(values.get(numberSettingKeys[name]), DEFAULT_PLATFORM_SETTINGS[name])]),
+    ),
+    ...Object.fromEntries(
+      (Object.keys(urlSettingKeys) as Array<keyof typeof urlSettingKeys>).map((name) => [name, normalizedUrl(values.get(urlSettingKeys[name]), DEFAULT_PLATFORM_SETTINGS[name])]),
+    ),
+  } as PlatformSettings;
 }
 
 export function updatePlatformSettings(settings: PlatformSettings): PlatformSettings {

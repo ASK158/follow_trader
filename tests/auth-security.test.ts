@@ -179,7 +179,7 @@ test("Agent 分级价格可由管理员配置并按预授权差额结算", () =>
   assert.equal(agentBilling.commitAgentUsage("user-tiered", modify.requestId, "modify").gasBalance, 2.4);
   const generate = agentBilling.reserveAgentUsage("user-tiered", "tiered-generate");
   assert.equal(agentBilling.commitAgentUsage("user-tiered", generate.requestId, "generate").gasBalance, 1.4);
-  const rows = db.prepare("SELECT action, gas_amount FROM agent_billing_requests WHERE user_id = 'user-tiered' ORDER BY created_at").all();
+  const rows = db.prepare("SELECT action, gas_amount FROM agent_billing_requests WHERE user_id = 'user-tiered' ORDER BY rowid").all();
   assert.deepEqual(rows, [{ action: "chat", gas_amount: 0.1 }, { action: "modify", gas_amount: 0.5 }, { action: "generate", gas_amount: 1 }]);
   platformSettings.updatePlatformSettings(platformSettings.DEFAULT_PLATFORM_SETTINGS);
 });

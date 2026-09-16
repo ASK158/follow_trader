@@ -239,7 +239,7 @@ function toNumber(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function isReconstructedCurve(signal: SignalData): boolean {
+function isReconstructedCurve(): boolean {
   return true;
 }
 
@@ -249,7 +249,7 @@ function isReconstructedCurve(signal: SignalData): boolean {
  * 余额变动仅影响资金曲线；两条曲线均按公开页的最终累计收益率校准。
  */
 async function getReconstructedCurve(signal: SignalData): Promise<CurvePoint[]> {
-  if (!isReconstructedCurve(signal)) return signal.curve;
+  if (!isReconstructedCurve()) return signal.curve;
 
   return getCsvPath(signal.id).then((csvPath) => readFile(csvPath, "utf8"))
     .then((csv) => {
@@ -313,12 +313,6 @@ async function getFullTradesHistory(signal: SignalData): Promise<Trade[]> {
         })
       .filter((trade): trade is Trade => trade !== null))
     .catch(() => signal.tradesHistory);
-}
-
-function parseNumber(page: string, label: string): number | null {
-  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = page.match(new RegExp(`${escaped}\\s*[:：]\\s*([\\d\\s,.]+)`, "i"));
-  return match ? Number(match[1].replace(/\s|,/g, "")) : null;
 }
 
 /** 页面只读取最近一次同步快照；同步任务失败时自动保留内置数据。 */

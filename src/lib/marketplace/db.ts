@@ -273,6 +273,10 @@ export function getMarketplaceDb(): Database.Database {
     registration_ip_daily_limit: "3",
     registration_device_30d_limit: "2",
     registration_risk_threshold: "50",
+    social_telegram_url: "",
+    social_wechat_official_account_url: "",
+    social_youtube_url: "",
+    social_bilibili_url: "",
   };
   const insertDefaultSetting = db.prepare("INSERT OR IGNORE INTO platform_settings (key, value, updated_at) VALUES (?, ?, ?)");
   for (const [key, value] of Object.entries(defaultSettings)) insertDefaultSetting.run(key, value, now);

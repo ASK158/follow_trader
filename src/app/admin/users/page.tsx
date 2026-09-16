@@ -6,7 +6,7 @@ import { listAdminUsers, listAuditLogs } from "@/lib/auth/admin";
 import { getCurrentUser, isAdmin } from "@/lib/marketplace/auth";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "用户与审计 | Sigma Signal" };
+export const metadata = { title: "用户与审计 | Sigma Bot" };
 export default async function AdminUsersPage() {
   const user = await getCurrentUser(); if (!user) redirect("/developer/login?next=/admin/users"); if (!isAdmin(user)) redirect("/developer");
   const users = listAdminUsers(); const logs = listAuditLogs();

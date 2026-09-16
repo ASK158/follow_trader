@@ -6,6 +6,17 @@ import { updatePlatformSettings } from "@/lib/platform-settings";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+const optionalHttpUrl = z.string().trim().max(500).refine((value) => !value || isHttpUrl(value), "请输入以 http:// 或 https:// 开头的有效链接");
+
 const schema = z.object({
   agentFreeUsageLimit: z.number().int().min(0).max(100),
   agentChatCost: z.number().min(0).max(100),
@@ -15,6 +26,10 @@ const schema = z.object({
   registrationIpDailyLimit: z.number().int().min(1).max(100),
   registrationDevice30dLimit: z.number().int().min(1).max(100),
   registrationRiskThreshold: z.number().int().min(1).max(100),
+  telegramUrl: optionalHttpUrl,
+  wechatOfficialAccountUrl: optionalHttpUrl,
+  youtubeUrl: optionalHttpUrl,
+  bilibiliUrl: optionalHttpUrl,
 }).superRefine((settings, context) => {
   const maximumCost = Math.max(settings.agentChatCost, settings.agentModifyCost, settings.agentGenerateCost);
   if (settings.agentMinimumGasToStart < maximumCost) {

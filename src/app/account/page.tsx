@@ -6,7 +6,7 @@ import { getCurrentUser, listUserSessions } from "@/lib/marketplace/auth";
 import { formatGa } from "@/lib/marketplace/currency";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "账户与安全 | Sigma Signal" };
+export const metadata = { title: "账户与安全 | Sigma Bot" };
 
 export default async function AccountPage() {
   const user = await getCurrentUser(); if (!user) redirect("/developer/login?next=/account");

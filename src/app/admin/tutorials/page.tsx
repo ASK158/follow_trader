@@ -5,7 +5,7 @@ import { SiteNav } from "@/components/site-nav";
 import { getCurrentUser, isAdmin } from "@/lib/marketplace/auth";
 import { listManagedTutorials } from "@/lib/tutorials";
 
-export const metadata: Metadata = { title: "教程管理 | Sigma Signal" };
+export const metadata: Metadata = { title: "教程管理 | Sigma Bot" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminTutorialsPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {

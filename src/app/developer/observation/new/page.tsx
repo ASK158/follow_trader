@@ -5,7 +5,7 @@ import { ObservationSubmitForm } from "@/components/observation-submit-form";
 import { SiteNav } from "@/components/site-nav";
 import { getCurrentUser } from "@/lib/marketplace/auth";
 
-export const metadata: Metadata = { title: "提交观摩空间账号 | Sigma Signal", description: "提交 MT4 或 MT5 只读观摩账号及图文介绍。" };
+export const metadata: Metadata = { title: "提交观摩空间账号 | Sigma Bot", description: "提交 MT4 或 MT5 只读观摩账号及图文介绍。" };
 export const dynamic = "force-dynamic";
 
 export default async function NewObservationAccountPage() {

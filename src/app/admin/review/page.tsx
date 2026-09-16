@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ReviewPanel } from "@/components/review-panel";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { getCurrentDeveloper, isAdmin } from "@/lib/marketplace/auth";
 import { formatGa } from "@/lib/marketplace/currency";
 import { listProductsByStatus } from "@/lib/marketplace/products";
 import { sanitizeProductDescription } from "@/lib/marketplace/rich-text";
 
-export const metadata: Metadata = { title: "上架审核 | Sigma Signal" };
+export const metadata: Metadata = { title: "上架审核 | Sigma Bot" };
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,7 @@ export default async function AdminReviewPage() {
           </article>
         ))}
       </section>
-      <footer className="platform-footer">审核仅校验商品信息完整性与合规性；源码质量需下载后人工编译验证。</footer>
+      <SiteFooter notice="审核仅校验商品信息完整性与合规性；源码质量需下载后人工编译验证。" />
     </main>
   );
 }

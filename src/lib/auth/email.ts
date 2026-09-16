@@ -5,8 +5,8 @@ import { getMarketplaceDb } from "@/lib/marketplace/db";
 type EmailTemplate = "verify_email" | "reset_password";
 
 const templateContent: Record<EmailTemplate, { subject: string; heading: string; action: string; expires: string }> = {
-  verify_email: { subject: "验证你的 Sigma Signal 账户", heading: "完成邮箱验证", action: "验证邮箱", expires: "此链接将在 24 小时后失效，且只能使用一次。" },
-  reset_password: { subject: "重置你的 Sigma Signal 密码", heading: "重置账户密码", action: "设置新密码", expires: "此链接将在 30 分钟后失效，且只能使用一次。" },
+  verify_email: { subject: "验证你的 Sigma Bot 账户", heading: "完成邮箱验证", action: "验证邮箱", expires: "此链接将在 24 小时后失效，且只能使用一次。" },
+  reset_password: { subject: "重置你的 Sigma Bot 密码", heading: "重置账户密码", action: "设置新密码", expires: "此链接将在 30 分钟后失效，且只能使用一次。" },
 };
 
 function escapeHtml(value: string): string {

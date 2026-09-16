@@ -1,0 +1,11 @@
+/* 全局移动端体验增强(配合各页面媒体查询使用) */
+html {
+  /* 防止 iOS/Android 在横屏或系统字号变化时自动放大文本 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  /* 触屏设备:移除系统默认灰色点击高亮,反馈交给组件自身状态 */
+  html { -webkit-tap-highlight-color: transparent; }
+}

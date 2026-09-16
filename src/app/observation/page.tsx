@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { getCurrentUser } from "@/lib/marketplace/auth";
 import { listObservationAccounts } from "@/lib/observation-accounts";
 
-export const metadata: Metadata = { title: "观摩空间 | Sigma Signal", description: "浏览用户公开上架的 MT4 与 MT5 只读观摩账号。" };
+export const metadata: Metadata = { title: "观摩空间 | Sigma Bot", description: "浏览用户公开上架的 MT4 与 MT5 只读观摩账号。" };
 export const dynamic = "force-dynamic";
 
 export default async function ObservationPage() {
@@ -27,7 +28,7 @@ export default async function ObservationPage() {
           </article>
         )) : <div className="dev-empty observation-empty"><b>暂时还没有观摩账号</b><p>登录后可在个人中心提交第一个 MT4 / MT5 观摩账号。</p><Link href={user ? "/developer/observation/new" : "/developer/login?next=/developer/observation/new"}>{user ? "提交观摩账号 →" : "登录后提交 →"}</Link></div>}
       </section>
-      <footer className="platform-footer">观摩信息由用户自行提交，仅用于交流与研究。请勿使用主交易密码；跟随、复制或据此交易产生的风险由使用者自行承担。</footer>
+      <SiteFooter notice="观摩信息由用户自行提交，仅用于交流与研究。请勿使用主交易密码；跟随、复制或据此交易产生的风险由使用者自行承担。" />
     </main>
   );
 }

@@ -99,7 +99,9 @@ export function Mql5Editor({ value, readOnly, onChange, highlightedBlocks = [] }
     if (editor && editor.getValue() !== value) editor.setValue(value);
   }, [value]);
 
-  useEffect(() => editorRef.current?.updateOptions({ readOnly }), [readOnly]);
+  useEffect(() => {
+    editorRef.current?.updateOptions({ readOnly });
+  }, [readOnly]);
 
   useEffect(() => {
     const editor = editorRef.current;

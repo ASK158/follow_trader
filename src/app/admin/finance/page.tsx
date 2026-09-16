@@ -13,7 +13,7 @@ import { getAdminAgentModelConfig } from "@/lib/agent/model-config";
 import { getPlatformSettings } from "@/lib/platform-settings";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Gas 财务中心 | Sigma Signal" };
+export const metadata = { title: "Gas 财务中心 | Sigma Bot" };
 
 const transactionLabels: Record<GaTransactionType, string> = {
   admin_grant: "管理员发放",

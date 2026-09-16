@@ -19,7 +19,7 @@ export async function compileMql5(code: string, strategyName: string): Promise<M
     return { status: "unavailable", summary: "当前运行环境未检测到 MetaEditor，未执行编译验证。", errors: 0, warnings: 0, log: "" };
   }
 
-  const workDirectory = join(tmpdir(), "sigma-signal-agent", crypto.randomUUID());
+  const workDirectory = join(tmpdir(), "sigma-bot-agent", crypto.randomUUID());
   const sourcePath = join(workDirectory, `${strategyName.replace(/[^a-zA-Z0-9_-]+/g, "_") || "strategy"}.mq5`);
   const logPath = join(workDirectory, "compile.log");
   await mkdir(workDirectory, { recursive: true });

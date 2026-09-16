@@ -5,7 +5,7 @@ import { SiteNav } from "@/components/site-nav";
 import { TutorialSubmitForm } from "@/components/tutorial-submit-form";
 import { getCurrentUser, isAdmin } from "@/lib/marketplace/auth";
 
-export const metadata: Metadata = { title: "上传教程 | Sigma Signal" };
+export const metadata: Metadata = { title: "上传教程 | Sigma Bot" };
 export const dynamic = "force-dynamic";
 
 export default async function NewTutorialPage() {

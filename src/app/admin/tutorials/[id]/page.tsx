@@ -6,7 +6,7 @@ import { TutorialSubmitForm } from "@/components/tutorial-submit-form";
 import { getCurrentUser, isAdmin } from "@/lib/marketplace/auth";
 import { getManagedTutorial } from "@/lib/tutorials";
 
-export const metadata: Metadata = { title: "编辑教程 | Sigma Signal" };
+export const metadata: Metadata = { title: "编辑教程 | Sigma Bot" };
 export const dynamic = "force-dynamic";
 
 export default async function EditTutorialPage({ params }: { params: Promise<{ id: string }> }) {

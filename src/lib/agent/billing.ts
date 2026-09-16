@@ -185,3 +185,44 @@ export function releaseStaleAgentReservations(userId: string, maxAgeMs = 30 * 60
   for (const row of rows) releaseAgentUsage(userId, row.request_id);
   return rows.length;
 }
+
+export type AgentBillingRecord = {
+  requestId: string;
+  source: "free" | "gas" | "admin";
+  status: "reserved" | "committed" | "released";
+  action: "chat" | "modify" | "generate";
+  gasAmount: number;
+  reservedGasAmount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function listUserAgentBillingRequests(userId: string, limit = 100): AgentBillingRecord[] {
+  const safeLimit = Math.max(1, Math.min(500, Math.trunc(limit)));
+  const rows = getMarketplaceDb().prepare(`
+    SELECT request_id, source, status, action, gas_amount, reserved_gas_amount, created_at, updated_at
+    FROM agent_billing_requests
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+    LIMIT ?
+  `).all(userId, safeLimit) as Array<{
+    request_id: string;
+    source: "free" | "gas" | "admin";
+    status: "reserved" | "committed" | "released";
+    action: "chat" | "modify" | "generate";
+    gas_amount: number;
+    reserved_gas_amount: number;
+    created_at: string;
+    updated_at: string;
+  }>;
+  return rows.map((row) => ({
+    requestId: row.request_id,
+    source: row.source,
+    status: row.status,
+    action: row.action,
+    gasAmount: roundGas(row.gas_amount),
+    reservedGasAmount: roundGas(row.reserved_gas_amount),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+}

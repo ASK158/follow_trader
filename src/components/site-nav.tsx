@@ -16,8 +16,8 @@ export async function SiteNav({ active }: { active: NavSection }) {
   return (
     <nav className="site-nav" aria-label="主功能导航">
       <SiteNavMenu active={active} signedIn={Boolean(currentUser)} />
-      <Link href="/" className="site-brand" aria-label="Sigma Signal 首页">
-        <span>Σ</span><b>SIGMA SIGNAL</b>
+      <Link href="/" className="site-brand" aria-label="Sigma Bot 首页">
+        <span>Σ</span><b>SIGMA BOT</b>
       </Link>
       <div className="site-nav-tabs">
         {items.map((item) => (

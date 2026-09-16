@@ -35,7 +35,8 @@
 .agent-shell > .site-nav { width: min(1800px,100%); margin: 0 auto; border-right: 8px solid var(--tech-red); border-left: 8px solid var(--tech-red); }
 
 /* Marketplace and learning pages */
-.platform-shell { --ink:var(--tech-ink); --muted:var(--tech-muted); --line:var(--tech-rule); --blue:var(--tech-red); width:min(1360px,calc(100% - 32px)); min-height:calc(100vh - 44px); margin:22px auto; border:10px solid var(--tech-red); color:var(--tech-ink); background:linear-gradient(#00000007 1px,transparent 1px) 0 0/100% 28px,var(--tech-paper); box-shadow:0 28px 80px #0009; }
+.platform-shell { --ink:var(--tech-ink); --muted:var(--tech-muted); --line:var(--tech-rule); --blue:var(--tech-red); display:flex; flex-direction:column; width:min(1360px,calc(100% - 32px)); min-height:calc(100vh - 44px); margin:22px auto; border:10px solid var(--tech-red); color:var(--tech-ink); background:linear-gradient(#00000007 1px,transparent 1px) 0 0/100% 28px,var(--tech-paper); box-shadow:0 28px 80px #0009; }
+.platform-shell > .site-footer { margin-top:auto; flex-shrink:0; }
 .platform-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:40px; min-height:245px; padding:48px 36px 34px; border-bottom:3px solid var(--tech-ink); }
 .panel-code { color:var(--tech-red); font:700 9px "Cascadia Code",Consolas,monospace; letter-spacing:.14em; }
 .platform-hero h1 { margin:10px 0 12px; font-size:clamp(40px,5vw,66px); line-height:.95; letter-spacing:-.06em; }
@@ -273,6 +274,29 @@
 .observation-access-panel code { color:var(--tech-green); font:800 12px "Cascadia Code",Consolas,monospace; }
 .observation-access-panel > p { margin:16px 0 0; color:var(--tech-muted); font-size:9px; line-height:1.7; }
 
+/* Legal article pages */
+.legal-article { max-width:1050px; margin:0 auto; padding:0 36px; }
+.legal-article > header { display:grid; gap:12px; padding:48px 0 30px; border-bottom:3px solid var(--tech-ink); }
+.legal-article > header h1 { margin:4px 0 0; font-size:clamp(40px,5vw,64px); letter-spacing:-.06em; line-height:.95; }
+.legal-article > header p { max-width:720px; margin:0; color:var(--tech-muted); font-size:14px; line-height:1.8; }
+.legal-article > header small { color:#998e83; font:700 9px "Cascadia Code",Consolas,monospace; letter-spacing:.08em; }
+.legal-body { padding:38px 0 56px; }
+
+/* Unified site footer */
+.site-footer { width:100%; padding:34px 36px 24px; border-top:3px solid var(--tech-ink); background:#f3ece1; }
+.site-footer-columns { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:26px; }
+.site-footer-col > b { display:block; margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid var(--tech-rule); color:var(--tech-red); font:700 9px "Cascadia Code",Consolas,monospace; letter-spacing:.12em; }
+.site-footer-col ul { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
+.site-footer-col a,.site-footer-col span { color:var(--tech-muted); font-size:11px; }
+.site-footer-col a:hover { color:var(--tech-red); text-decoration:underline; }
+.site-footer-col span { color:#998e83; }
+.site-footer-notice { margin:26px 0 0; padding:13px 15px; border-left:3px solid var(--tech-red); color:var(--tech-muted); background:#faf6ef; font-size:10px; line-height:1.7; }
+.site-footer-legal { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 18px; margin-top:22px; padding-top:14px; border-top:1px solid var(--tech-rule); color:#998e83; font:700 9px "Cascadia Code",Consolas,monospace; letter-spacing:.04em; }
+.site-footer-legal-links { display:inline-flex; align-items:center; gap:7px; }
+.site-footer-legal a { color:#8a7f74; }
+.site-footer-legal a:hover { color:var(--tech-red); }
+.site-footer-legal i { color:#c9bfb3; font-style:normal; }
+
 @media(max-width:980px){
   .site-nav { grid-template-columns:auto minmax(0,1fr) auto; }
   .site-nav-account > .site-system-state { padding-inline:12px; }
@@ -290,6 +314,11 @@
   .article-layout > aside { position:static; }
   .observation-grid { grid-template-columns:repeat(2,1fr); }
   .observation-detail-grid { grid-template-columns:1fr; }
+}
+@media (hover: none) and (pointer: coarse) {
+  /* 触屏设备:关闭卡片位移式 hover,避免点击后粘滞偏移 */
+  .market-card:hover, .market-card--indicator:hover, .market-card--tool:hover,
+  .tutorial-card:hover, .observation-card:hover { transform: none; box-shadow: none; }
 }
 @media(max-width:700px){
   .platform-shell { width:100%; min-height:100vh; margin:0; border-width:7px; }
@@ -342,4 +371,30 @@
   .observation-grid { grid-template-columns:1fr; padding:24px 20px 30px; }
   .observation-detail-header { align-items:flex-start; flex-direction:column; padding:32px 20px 25px; }
   .observation-detail-grid { padding:26px 20px; }
+  .legal-article { padding:0 20px; }
+  .legal-article > header { padding:34px 0 22px; }
+  .site-footer { padding:26px 20px calc(18px + env(safe-area-inset-bottom)); }
+  .site-footer-columns { grid-template-columns:1fr 1fr; gap:18px; }
+  .site-footer-legal { flex-direction:column; align-items:flex-start; gap:5px; }
+  /* iOS: 输入控件字号低于 16px 时聚焦会自动放大页面 */
+  .market-search input, .comment-form textarea { font-size: 16px; }
+  /* 触控目标不小于约 44px,降低误触 */
+  .market-search button, .market-search a,
+  .purchase-panel button, .purchase-unlocked a,
+  .comment-form button, .comment-login-prompt a,
+  .market-toolbar-actions a, .error-retry-button,
+  .observation-hero-meta > a, .favorites-empty a { min-height: 44px; }
+  .market-main-tabs a { padding-top: 13px; padding-bottom: 13px; }
+  .market-sub-tabs a { padding-top: 10px; padding-bottom: 10px; }
+  .favorite-button { min-width: 40px; min-height: 40px; }
+  /* 横向滚动容器:惯性滚动 + 防止滚动链 */
+  .market-main-tabs, .market-sub-tabs { -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
 }
+
+/* Error page buttons */
+.error-retry-button { display:inline-block; margin-top:14px; padding:11px 22px; border:0; color:#fff; background:var(--tech-red); font:700 11px inherit; cursor:pointer; }
+.error-retry-button:hover { background:var(--tech-red-dark); }
+
+.error-actions { display:flex; gap:12px; align-items:center; }
+.error-home-link { background:#3a3a3e; }
+.error-home-link:hover { background:#4a4a4e; }

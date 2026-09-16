@@ -1,4 +1,6 @@
 /* 开发者中心与审核后台 */
+.developer-shell { display: flex; flex-direction: column; }
+.developer-shell > .site-footer { margin-top: auto; }
 .developer-shell .dev-hero { align-items: center; }
 .dev-hero-actions { display: grid; gap: 10px; min-width: 220px; }
 .dev-primary-action, .dev-secondary-action, .dev-logout { display: block; padding: 13px 18px; border: 1px solid var(--tech-ink); font: 700 11px "Cascadia Code", Consolas, monospace; text-align: center; cursor: pointer; }
@@ -17,6 +19,13 @@
 .dashboard-tabs a:hover,.dashboard-tabs a.active { color: var(--tech-red); background: var(--tech-paper-raised); }
 .dashboard-tabs a.active::after { opacity: 1; }
 .dashboard-tabs span { display: inline-grid; min-width: 20px; height: 20px; margin-left: 6px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font: 700 8px "Cascadia Code", Consolas, monospace; }
+
+/* 我的订单：商城订单 / Sigma-ai 订单 子分类 */
+.order-subtabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.order-subtabs a { padding: 9px 16px; border: 1px solid var(--tech-rule); color: var(--tech-muted); background: var(--tech-paper-raised); font: 700 11px "Cascadia Code", Consolas, monospace; }
+.order-subtabs a:hover { border-color: var(--tech-red); color: var(--tech-red); }
+.order-subtabs a.active { border-color: var(--tech-ink); color: #fff; background: var(--tech-ink); }
+.order-subtabs span { display: inline-grid; min-width: 18px; height: 18px; margin-left: 6px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font: 700 8px "Cascadia Code", Consolas, monospace; }
 
 /* 登录 / 注册 */
 .dev-auth-section { display: grid; place-items: center; padding: 48px 36px 56px; }
@@ -172,9 +181,26 @@
   .finance-section-heading { align-items: start; flex-direction: column; padding-inline: 20px; }
   .finance-table-wrap { margin-inline: 20px; }
   .finance-settings-card { grid-template-columns: 1fr; margin-inline: 20px; }
+  /* 平板竖屏下缩窄外边距 */
+  .dev-form-header, .dev-form-section, .dev-notice, .dev-product-list { padding-inline: 20px; }
+  .tutorial-admin-actions { padding-inline: 20px; }
 }
 
 @media (max-width: 620px) {
   .dashboard-tabs a { padding: 14px 6px; font-size: 10px; }
   .dashboard-tabs span { display: none; }
+.order-subtabs a { padding: 8px 10px; font-size: 10px; }
+.order-subtabs span { display: none; }
+/* iOS: 输入控件字号低于 16px 时聚焦会自动放大页面 */
+.dev-form input, .dev-form select, .dev-form textarea,
+.dev-auth-tabs button,
+.purchase-form input, .review-panel textarea,
+.finance-adjust-form input, .finance-adjust-form select,
+.finance-settings-form input { font-size: 16px; }
+/* 触控目标不小于约 44px，降低误触 */
+.dev-primary-action, .dev-secondary-action, .dev-logout { min-height: 48px; }
+.dev-form > button, .tutorial-form-actions button, .review-panel button,
+.finance-adjust-form button, .finance-settings-form > button { min-height: 46px; }
+.dev-add-row, .dev-gallery-row button, .rte-toolbar button { min-height: 40px; }
+.dev-product-actions a, .dev-product-actions button { min-height: 40px; }
 }

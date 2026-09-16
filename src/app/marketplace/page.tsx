@@ -3,12 +3,13 @@ import { cookies } from "next/headers";
 import { MarketplaceCategoryTabs } from "@/components/marketplace-category-tabs";
 import { MarketplaceCard } from "@/components/marketplace-card";
 import { MarketplaceToolbar, type MarketplaceSort } from "@/components/marketplace-toolbar";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { getCurrentDeveloper } from "@/lib/marketplace/auth";
 import { PRODUCT_CATEGORIES, isProductCategory, isProductType, type ProductType } from "@/lib/marketplace/categories";
 import { getCatalogProducts, getFavoriteProductIds } from "@/lib/marketplace/products";
 
-export const metadata: Metadata = { title: "EA / 指标商城 | Sigma Signal", description: "浏览 MT4、MT5 EA 与技术指标，查看功能说明和源码交付信息。" };
+export const metadata: Metadata = { title: "EA / 指标商城 | Sigma Bot", description: "浏览 MT4、MT5 EA 与技术指标，查看功能说明和源码交付信息。" };
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function MarketplacePage({ searchParams }: Props) {
       <MarketplaceCategoryTabs selectedType={selectedType} selectedCategory={selectedCategory} categories={PRODUCT_CATEGORIES} query={query} sort={sort} />
       <MarketplaceToolbar query={query} sort={sort} selectedType={selectedType} selectedCategory={selectedCategory} resultCount={visibleProducts.length} currentUserName={currentUser?.name ?? null} />
       {visibleProducts.length > 0 ? <section className="market-grid" aria-label="EA、指标与工具商品列表">{visibleProducts.map((product) => <MarketplaceCard key={product.id} product={product} isFavorite={favoriteIds.has(product.id)} />)}</section> : <section className="market-empty-results"><b>没有找到匹配商品</b><p>请尝试其他商品名称或类型关键词。</p></section>}
-      <footer className="platform-footer">社区作品由开发者提交并经平台审核后上架；购买后通过订单凭证下载开发者交付的真实源码。自动交易具有风险，请先在模拟账户验证。</footer>
+      <SiteFooter notice="社区作品由开发者提交并经平台审核后上架；购买后通过订单凭证下载开发者交付的真实源码。自动交易具有风险，请先在模拟账户验证。" />
     </main>
   );
 }

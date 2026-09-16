@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductComments } from "@/components/product-comments";
 import { PurchasePanel } from "@/components/purchase-panel";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { getCurrentDeveloper, isAdmin } from "@/lib/marketplace/auth";
 import { listProductComments } from "@/lib/marketplace/comments";
@@ -42,7 +43,7 @@ export default async function ProductDetailPage({ params }: Props) {
         <PurchasePanel productId={product.id} productName={product.name} price={product.price} filename={product.sourceFilename} isTemplate={product.origin === "community" && product.isTemplate} currentUserEmail={currentUser?.email} currentUserBalance={currentUser?.gaBalance} />
       </div>
       <ProductComments productId={product.id} comments={comments} currentUser={currentUser ? { id: currentUser.id, name: currentUser.name } : null} isAdmin={isAdmin(currentUser)} />
-      <footer className="platform-footer">自动交易具有风险。购买和下载源码不代表任何收益承诺，请先完成编译、代码审查、回测和模拟账户验证。</footer>
+      <SiteFooter notice="自动交易具有风险。购买和下载源码不代表任何收益承诺，请先完成编译、代码审查、回测和模拟账户验证。" />
     </main>
   );
 }

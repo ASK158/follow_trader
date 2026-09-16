@@ -109,7 +109,9 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
     }).catch(() => undefined);
     return () => cancelAnimationFrame(frame);
   }, []);
-  useEffect(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, streamedReply, status]);
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, streamedReply, status]);
   useEffect(() => {
     if (!isDiagramReady) return;
     const timeout = window.setTimeout(() => setIsDiagramReady(false), 4_200);

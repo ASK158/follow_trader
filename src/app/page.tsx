@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignalCard } from "@/components/signal-card";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { TypewriterTitle } from "@/components/typewriter-title";
 import { QuantVisualCanvas } from "@/components/quant-visual-canvas";
@@ -34,10 +35,7 @@ export default async function Home() {
           <div className="signals-grid">{signals.map((signal, index) => <SignalCard key={signal.id} signal={signal} index={index + 1} />)}</div>
         </section>
 
-        <footer className="editorial-footer">
-          <b>SIGMA 信号 · 数据洞察 / DATA WITH CONTEXT</b>
-          <p>仅作信息展示，不构成投资建议。历史表现不代表未来结果。</p>
-        </footer>
+        <SiteFooter notice="仅作信息展示，不构成投资建议。历史表现不代表未来结果。" />
       </div>
       <Link href="/agent" className="agent-float" aria-label="打开 AI 写 MT5 策略"><i>Σ</i><span><b>AI 写策略</b><small>生成 MQL5 代码</small></span><strong>→</strong></Link>
     </main>

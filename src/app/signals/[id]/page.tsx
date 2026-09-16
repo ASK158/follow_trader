@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountViewerDialog } from "@/components/account-viewer-dialog";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { SignalDetails } from "@/components/signal-details";
 import { getSignal } from "@/lib/signal-data";
@@ -38,7 +39,7 @@ export default async function SignalPage({ params }: { params: Promise<{ id: str
         <div><span>累计收益率</span><b className="positive">+{percent.format(signal.growth)}%</b></div><div><span>年化收益率</span><b className="positive">+{percent.format(annualizedReturn)}%</b></div><div><span>胜率</span><b>{percent.format(signal.winRate)}%</b></div><div><span>最大回撤</span><b className="negative">-{percent.format(signal.maxDrawdown ?? 0)}%</b></div><div><span>运行时长</span><b>{runningMonths} 月</b></div>
       </section>
       <SignalDetails signal={signal} />
-      <footer className="data-footer">仅作信息展示，不构成投资建议。历史表现不代表未来结果。</footer>
+      <SiteFooter notice="仅作信息展示，不构成投资建议。历史表现不代表未来结果。" />
     </main>
   );
 }

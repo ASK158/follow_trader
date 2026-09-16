@@ -21,10 +21,10 @@ export function TypewriterTitle({
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    // Start with typing animation from beginning after mount
+    // 保持服务端与首次客户端渲染一致，随后再启动动画。
     const startTimeout = setTimeout(() => {
       setCharCount(0);
+      setMounted(true);
     }, 1200);
 
     return () => clearTimeout(startTimeout);
