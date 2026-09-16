@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type NavSection = "signals" | "marketplace" | "favorites" | "agent" | "tutorials" | "observation" | "developer";
 
@@ -55,6 +56,7 @@ export function SiteNavMenu({ active, signedIn }: Props) {
         <Link href={signedIn ? "/developer" : "/developer/login"} className={active === "developer" ? "active" : ""} aria-current={active === "developer" ? "page" : undefined} onClick={closeMenu}>
           {signedIn ? "个人中心" : "注册 / 登录"}
         </Link>
+        <ThemeToggle mobile />
       </nav>
     </div>
   );

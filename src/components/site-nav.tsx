@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteNavMenu } from "@/components/site-nav-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { getCurrentDeveloper } from "@/lib/marketplace/auth";
 
 type NavSection = "signals" | "marketplace" | "favorites" | "agent" | "tutorials" | "observation" | "developer";
@@ -27,6 +28,7 @@ export async function SiteNav({ active }: { active: NavSection }) {
         ))}
       </div>
       <div className="site-nav-account">
+        <ThemeToggle />
         <Link href="/observation" className={`site-system-state${active === "observation" ? " active" : ""}`} aria-current={active === "observation" ? "page" : undefined}><i />观摩空间</Link>
         <Link href={currentUser ? "/developer" : "/developer/login"} className={active === "developer" ? "active" : ""} aria-current={active === "developer" ? "page" : undefined}>
           <span>{currentUser ? "个人中心" : "注册/登录"}</span><small>{currentUser ? "我的" : "登录"}</small>
