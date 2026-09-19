@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { getPlatformSettings } from "@/lib/platform-settings";
 
 type FooterColumn = { title: string; links: Array<{ href: string; label: string }> };
@@ -85,7 +86,7 @@ export async function SiteFooter({ notice }: { notice?: string }) {
           <i aria-hidden="true">·</i>
           <Link href="/risk-disclosure">风险披露</Link>
         </span>
-        <span>自动交易具有风险，历史表现不代表未来收益。</span>
+        <span className="site-footer-theme"><span>界面主题</span><ThemeToggle /></span>
       </div>
     </footer>
   );

@@ -11,6 +11,8 @@
 - Agent 工作台内置 Monaco 编辑器、基础风险检测、账户云端草稿（浏览器离线回退）和 `.mq5` 下载。
 - `/marketplace` 为 EA / 指标商城：商品统一使用 Gas 积分定价，登录用户可收藏、购买、评论和提交作品，管理员审核通过后自动上架；已购评论带有标识。商城不包含内置演示策略。
 - 统一账户仅分为用户和管理员：用户可使用 Gas 消费及上架作品，管理员可管理用户、分配积分、查看消费流水、审核作品、管理评论并查看审计记录。
+- 每个用户都可设置头像、唯一用户名、昵称、简介和联系方式，并拥有公开主页；个人中心提供关注/粉丝、私信、收藏夹、商城作品、观摩账号、订单、Gas 与安全设置入口。商城产品和观摩详情支持系统分享或复制链接，不提供动态信息流和个人主页分享。
+- 个人中心支持通过 NOWPayments Custody 使用 USDT-TRC20 充值 Gas：单笔 2～500 USDT，按 `1 USDT = 1 Gas`、两位小数自动入账；IPN 实时更新并由每日任务补充对账，平台不提供 Gas 提现、转让或自动退款。
 - 账户支持邮箱验证、密码找回/修改、TOTP 二次验证和登录设备撤销；会话令牌只以 SHA-256 摘要落库。
 - 登录、注册、密码恢复、评论和订单使用持久化限流，写操作执行同源请求校验。
 
@@ -21,6 +23,8 @@
 Agent 的 API 密钥只允许保存在服务端，不得增加 `NEXT_PUBLIC_` 前缀。管理员可在 `/admin/finance` 在线验证并配置兼容 OpenAI Chat Completions 的 API 地址、模型和密钥；密钥使用 `AUTH_ENCRYPTION_KEY` 经 AES-256-GCM 加密后存入服务器数据库，且不会回显到浏览器。未设置后台配置时，服务端环境变量 `AI_API_KEY`、`AI_CHAT_COMPLETIONS_URL` 和 `AI_MODEL` 作为回退。所有用户统一使用运营方配置的模型服务。Agent 需要登录使用，普通用户每日 30 次调用，管理员每日 200 次；草稿同步至账户并在浏览器保留离线副本。运行于 Windows 且本机安装 MetaTrader 5 时，Agent 每次生成完整 EA 后会自动调用 MetaEditor 进行编译并展示日志。编译失败时，系统最多将错误日志和当前完整源码交给 AI 自动修复 2 次；每个版本与编译日志均在“编译验证”中可查看。默认编译器路径是 `C:\Program Files\MetaTrader 5\MetaEditor64.exe`，可通过 `MQL5_METAEDITOR_PATH` 覆盖。编译通过不等于回测或实盘安全验证。
 
 生产环境必须设置 `AUTH_ENCRYPTION_KEY`（64 个十六进制字符），并建议分别设置 `AUTH_AUDIT_PEPPER` 与 `AUTH_RATE_LIMIT_PEPPER`。注册后系统发送 24 小时有效、仅可使用一次的邮箱验证链接；未验证账户不能登录。账户验证与密码重置邮件可直接通过 SMTP 发送，需设置 `SMTP_HOST`、`SMTP_PORT`、`SMTP_SECURE`、`SMTP_USER`、`SMTP_PASS` 和 `SMTP_FROM`。也可改用 `EMAIL_WEBHOOK_URL` 邮件网关，网关接收 `{ to, template, actionUrl }` JSON，并可使用 `EMAIL_WEBHOOK_TOKEN` Bearer 鉴权。两种方式同时配置时优先使用 Webhook。未配置邮件服务时消息保留在 SQLite outbox，开发环境会在注册结果和服务日志中显示操作链接。
+
+USDT 充值需要配置仅服务端可见的 `NOWPAYMENTS_API_KEY`、`NOWPAYMENTS_IPN_SECRET` 和公网 HTTPS `NOWPAYMENTS_IPN_CALLBACK_URL`。NOWPayments 后台须启用 Custody、将 Primary balance 设为 USDTTRC20，并开启提现钱包/IP 白名单与 2FA。用户支付经过 `finished` 状态及服务端 API 二次核验后才会入账；少付、错币、重复入金进入人工处理。部署维护任务后，每日 03:15 自动核对所有未完成充值。Custody 提现只在 NOWPayments 后台人工批量执行到专用隔离钱包，应用不保存提现权限或钱包私钥。
 
 常用验证命令：`npm run lint`、`npm test`、`npm run build` 和 `npm audit`。
 

@@ -14,17 +14,13 @@ export default async function FavoritesPage() {
   const [cookieStore, user] = await Promise.all([cookies(), getCurrentUser()]);
   const favoriteIds = getFavoriteProductIds(user ? `user:${user.id}` : cookieStore.get("marketplace_visitor")?.value);
   const products = getCatalogProducts().filter((product) => favoriteIds.has(product.id));
+  const content = <><header className="favorites-header"><span className="panel-code">SAVED PRODUCTS</span><h1>收藏夹</h1><p>集中查看已收藏的 EA、指标与其他交易工具。账户收藏默认仅本人可见，可在隐私设置中选择公开。</p></header>{products.length > 0 ? <section className="market-grid" aria-label="已收藏商品">{products.map((product) => <MarketplaceCard key={product.id} product={product} isFavorite />)}</section> : <section className="favorites-empty"><b>收藏夹还是空的</b><p>在商品卡片点击“♡ 收藏”，商品会保存在这里。</p><Link href="/marketplace">浏览商城 →</Link></section>}</>;
 
   return (
     <main className="platform-shell marketplace-shell">
       <SiteNav active="favorites" />
       <div className="platform-breadcrumb"><Link href="/marketplace">← 返回交易工具市场</Link><span>MY FAVORITES</span></div>
-      <header className="favorites-header"><span className="panel-code">SAVED PRODUCTS</span><h1>收藏夹</h1><p>集中查看已收藏的 EA、指标与其他交易工具。</p></header>
-      {products.length > 0 ? (
-        <section className="market-grid" aria-label="已收藏商品">{products.map((product) => <MarketplaceCard key={product.id} product={product} isFavorite />)}</section>
-      ) : (
-        <section className="favorites-empty"><b>收藏夹还是空的</b><p>在商品卡片点击“♡ 收藏”，商品会保存在这里。</p><Link href="/marketplace">浏览商城 →</Link></section>
-      )}
+      {content}
       <SiteFooter notice="收藏夹仅保存当前账户或浏览器中的已收藏商品。" />
     </main>
   );

@@ -27,6 +27,7 @@ export default async function OrdersPage({ searchParams }: Props) {
     <main className="platform-shell developer-shell">
       <SiteNav active="developer" />
       <div className="platform-breadcrumb"><Link href="/developer">← 返回个人中心</Link><span>MY ORDERS</span></div>
+      <section className="personal-center-content">
       <header className="dev-form-header"><span className="panel-code">PURCHASE HISTORY</span><h1>我的订单</h1><p>当前余额：<b>{formatGa(user.gaBalance)}</b>。查看 Gas 消费记录并重新下载交付文件。</p></header>
       <section className="dev-product-list" aria-label="我的订单列表">
         <nav className="order-subtabs" aria-label="订单分类">
@@ -38,6 +39,7 @@ export default async function OrdersPage({ searchParams }: Props) {
         ) : (
           agentRequests.length ? agentRequests.map((record) => <article className="dev-product-row" key={record.requestId}><div className="dev-product-info"><b>{agentActionMeta[record.action]}</b><p>{record.requestId} · {agentSourceMeta[record.source]} · {agentStatusMeta[record.status]}{record.source === "gas" && record.status === "committed" ? ` · 实扣 ${formatGa(record.gasAmount)}` : record.source === "gas" && record.reservedGasAmount > 0 ? ` · 预授权 ${formatGa(record.reservedGasAmount)}` : ""}</p><small>{new Date(record.createdAt).toLocaleString("zh-CN")}</small></div></article>) : <div className="dev-empty"><b>还没有 Sigma-ai 消费记录</b><p>在 AI 实验室使用 Agent 生成策略、对话或修改产生的消费记录会显示在这里。</p><Link href="/agent">前往 AI 实验室 →</Link></div>
         )}
+      </section>
       </section>
     </main>
   );

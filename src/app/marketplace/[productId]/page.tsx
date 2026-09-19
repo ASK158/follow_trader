@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductComments } from "@/components/product-comments";
 import { PurchasePanel } from "@/components/purchase-panel";
+import { ShareButton } from "@/components/share-button";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { getCurrentDeveloper, isAdmin } from "@/lib/marketplace/auth";
@@ -32,7 +33,7 @@ export default async function ProductDetailPage({ params }: Props) {
       <div className="platform-breadcrumb"><Link href="/marketplace">← 返回交易工具市场</Link><span>{product.category} / {product.platform}</span></div>
       <header className="product-detail-header">
         <div className="product-cover product-cover-large" style={{ "--product-accent": product.accent } as React.CSSProperties}><span>{product.type}</span><b>{product.name}</b><small>{product.platform} · {product.origin === "community" && product.isTemplate ? "TEMPLATE GUIDE" : "SOURCE INCLUDED"}</small><i>Σ</i></div>
-        <div className="product-intro"><span className="panel-code">{product.type} / {product.category} / V{product.version}{product.origin === "community" ? " / 社区作品" : " / 官方演示"}</span><h1>{product.name}</h1><p>{product.tagline}</p><div className="product-meta"><span>{product.views} 次浏览</span><span>{product.favorites} 次收藏</span><span>更新于 {product.updatedAt}</span></div>{product.origin === "community" ? <div className="product-description rte-content" dangerouslySetInnerHTML={{ __html: descriptionHtml }} /> : <p className="product-description">{product.description}</p>}<small>开发者：{product.developer}</small></div>
+        <div className="product-intro"><span className="panel-code">{product.type} / {product.category} / V{product.version}{product.origin === "community" ? " / 社区作品" : " / 官方演示"}</span><h1>{product.name}</h1><p>{product.tagline}</p><div className="product-meta"><span>{product.views} 次浏览</span><span>{product.favorites} 次收藏</span><span>更新于 {product.updatedAt}</span></div>{product.origin === "community" ? <div className="product-description rte-content" dangerouslySetInnerHTML={{ __html: descriptionHtml }} /> : <p className="product-description">{product.description}</p>}<div className="content-owner-row"><small>发布者：{product.developerUsername ? <Link href={`/u/${product.developerUsername}`}>{product.developer}</Link> : product.developer}</small><ShareButton title={product.name} text={product.tagline} /></div></div>
       </header>
       <div className="product-detail-grid">
         <div className="product-content">

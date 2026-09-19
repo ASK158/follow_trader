@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { DeveloperLogoutButton } from "@/components/developer-logout-button";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
+import { UserAvatar } from "@/components/user-avatar";
 import { listUserAgentBillingRequests } from "@/lib/agent/billing";
-import { getCurrentDeveloper, isAdmin } from "@/lib/marketplace/auth";
+import { getCurrentDeveloper } from "@/lib/marketplace/auth";
 import { formatGa } from "@/lib/marketplace/currency";
 import { listUserOrders } from "@/lib/marketplace/orders";
 import { listDeveloperProducts, type ProductStatus } from "@/lib/marketplace/products";
+import { getPublicProfile } from "@/lib/marketplace/social";
 import { listUserObservationAccounts } from "@/lib/observation-accounts";
 
 export const metadata: Metadata = { title: "个人中心 | Sigma Bot", description: "管理账户以及你上架的 EA、指标与其他工具。" };
@@ -25,7 +26,13 @@ const agentActionMeta = { chat: "AI 对话", modify: "AI 修改", generate: "AI 
 const agentSourceMeta = { free: "免费额度", gas: "Gas 扣费", admin: "管理员通道" } as const;
 const agentStatusMeta = { committed: "已结算", reserved: "处理中", released: "已退还" } as const;
 
-type DashboardTab = "products" | "accounts" | "orders";
+const tabMeta = {
+  products: { code: "MARKETPLACE WORKS", title: "商城作品", description: "管理已提交的 EA、指标与工具，查看审核状态和公开页面。", actionHref: "/developer/new", actionLabel: "+ 提交商城作品" },
+  accounts: { code: "OBSERVATION ACCOUNTS", title: "观摩账号", description: "管理公开展示的 MT4 / MT5 只读观摩账号。", actionHref: "/developer/observation/new", actionLabel: "+ 提交观摩账号" },
+  orders: { code: "PURCHASE HISTORY", title: "订单与消费", description: "查看商城订单、交付文件和 Sigma-ai 使用记录。", actionHref: "/account/orders", actionLabel: "查看完整订单" },
+} as const;
+
+type DashboardTab = "overview" | "products" | "accounts" | "orders";
 type OrderTab = "shop" | "agent";
 type Props = { searchParams: Promise<{ submitted?: string; submittedAccount?: string; tab?: string; orderTab?: string }> };
 
@@ -33,7 +40,7 @@ export default async function DeveloperDashboardPage({ searchParams }: Props) {
   const developer = await getCurrentDeveloper();
   if (!developer) redirect("/developer/login");
   const query = await searchParams;
-  const tab: DashboardTab = query.tab === "accounts" || query.tab === "orders" ? query.tab : "products";
+  const tab: DashboardTab = query.tab === "products" || query.tab === "accounts" || query.tab === "orders" ? query.tab : "overview";
   const orderTab: OrderTab = query.orderTab === "agent" ? "agent" : "shop";
   const products = listDeveloperProducts(developer.id);
   const observationAccounts = listUserObservationAccounts(developer.id);
@@ -41,29 +48,20 @@ export default async function DeveloperDashboardPage({ searchParams }: Props) {
   const agentRequests = listUserAgentBillingRequests(developer.id);
   const submitted = query.submitted === "1";
   const submittedAccount = query.submittedAccount === "1";
+  const profile = getPublicProfile(developer.username, developer);
   return (
     <main className="platform-shell developer-shell">
       <SiteNav active="developer" />
-      <header className="platform-hero dev-hero">
-        <div><span className="panel-code">USER DASHBOARD</span><h1>个人中心</h1><p>欢迎，{developer.name}（{developer.email}）。当前余额：<b>{formatGa(developer.gaBalance)}</b>。在这里管理作品、观摩账号和订单。</p></div>
-        <div className="dev-hero-actions">
-          <Link href="/developer/new" className="dev-primary-action">+ 提交新作品</Link>
-          <Link href="/developer/observation/new" className="dev-secondary-action">+ 提交观摩空间账号</Link>
-          <Link href="/account" className="dev-secondary-action">账户与安全</Link>
-          {isAdmin(developer) && <Link href="/admin/review" className="dev-secondary-action">审核队列</Link>}
-          {isAdmin(developer) && <Link href="/admin/tutorials" className="dev-secondary-action">教程管理</Link>}
-          {isAdmin(developer) && <Link href="/admin/users" className="dev-secondary-action">用户与审计</Link>}
-          {isAdmin(developer) && <Link href="/admin/finance" className="dev-secondary-action">Gas 财务中心</Link>}
-          <DeveloperLogoutButton />
-        </div>
-      </header>
+      <section className="personal-center-content">
+      {tab === "overview" ? <header className="personal-dashboard-header">
+        <UserAvatar name={developer.name} src={profile?.avatarUrl ?? null} size={76} />
+        <div className="personal-dashboard-identity"><span className="panel-code">PERSONAL CENTER</span><h1>欢迎回来，{developer.name}</h1><p>@{developer.username} · 所有用户均可提交商城作品与观摩账号</p></div>
+        <div className="personal-dashboard-balance"><small>可用 Gas</small><b>{formatGa(developer.gaBalance)}</b><Link href="/account/recharge">充值 →</Link></div>
+        <div className="personal-dashboard-header-actions"><Link href={`/u/${developer.username}`} className="dev-primary-action">查看个人主页</Link></div>
+      </header> : <header className="personal-section-header"><div><span className="panel-code">{tabMeta[tab].code}</span><h1>{tabMeta[tab].title}</h1><p>{tabMeta[tab].description}</p></div><Link href={tabMeta[tab].actionHref} className="dev-primary-action">{tabMeta[tab].actionLabel}</Link></header>}
       {submitted && <p className="dev-notice">✓ 作品已提交，进入审核队列。审核通过后将自动上架。</p>}
       {submittedAccount && <p className="dev-notice">✓ 观摩账号已提交并上架到观摩空间。</p>}
-      <nav className="dashboard-tabs" aria-label="个人中心内容">
-        <Link href="/developer" className={tab === "products" ? "active" : ""} aria-current={tab === "products" ? "page" : undefined}>我的作品 <span>{products.length}</span></Link>
-        <Link href="/developer?tab=accounts" className={tab === "accounts" ? "active" : ""} aria-current={tab === "accounts" ? "page" : undefined}>我的观摩账号 <span>{observationAccounts.length}</span></Link>
-        <Link href="/developer?tab=orders" className={tab === "orders" ? "active" : ""} aria-current={tab === "orders" ? "page" : undefined}>我的订单 <span>{orders.length + agentRequests.length}</span></Link>
-      </nav>
+      {tab === "overview" && <><section className="profile-stats" aria-label="个人中心概览"><div><b>{profile?.followerCount ?? 0}</b><span>粉丝</span></div><div><b>{profile?.followingCount ?? 0}</b><span>关注</span></div><div><b>{products.length}</b><span>商城作品</span></div><div><b>{observationAccounts.length}</b><span>观摩账号</span></div><div><b>{profile?.favoriteCount ?? 0}</b><span>作品被收藏</span></div><div><b>{profile?.viewCount ?? 0}</b><span>内容总浏览</span></div></section><div className="dashboard-overview-grid"><section className="dashboard-overview-section"><header><span className="panel-code">CREATE</span><h2>创作与发布</h2><p>选择内容类型，提交后可在头像菜单中查看和管理。</p></header><div className="dashboard-overview-actions"><Link href="/developer/new"><b>提交商城作品 <i>→</i></b><span>发布 EA、指标或其他交易工具。</span></Link><Link href="/developer/observation/new"><b>提交观摩账号 <i>→</i></b><span>展示 MT4 / MT5 只读观摩账户。</span></Link></div></section></div></>}
       {tab === "products" && <section className="dev-product-list" aria-label="我的作品列表">
         {products.length === 0 ? (
           <div className="dev-empty"><b>还没有作品</b><p>点击「提交新作品」上传 EA / 指标文件，或发布无需策略文件的模板策略，填写商品信息后进入审核。</p></div>
@@ -113,6 +111,7 @@ export default async function DeveloperDashboardPage({ searchParams }: Props) {
           ))
         )}
       </section>}
+      </section>
       <SiteFooter notice="作品修改后会重新进入审核；观摩账号仅应提交只读密码；订单交付文件可在订单标签页重新下载。" />
     </main>
   );

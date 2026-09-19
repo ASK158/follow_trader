@@ -16,6 +16,8 @@ export type CommunityProduct = MarketplaceProduct & {
 
 export type CatalogProduct = MarketplaceProduct & {
   origin: "official" | "community";
+  developerId?: string;
+  developerUsername?: string;
   status?: ProductStatus;
   isTemplate?: boolean;
   views: number;
@@ -172,6 +174,11 @@ export function getFavoriteProductIds(visitorId: string | undefined): Set<string
   return new Set(rows.map((row) => row.product_id));
 }
 
+export function getUserFavoriteProductIds(userId: string): Set<string> {
+  const rows = getMarketplaceDb().prepare("SELECT product_id FROM product_favorites WHERE user_id = ?").all(userId) as Array<{ product_id: string }>;
+  return new Set(rows.map((row) => row.product_id));
+}
+
 export function setProductFavorite(visitorId: string, productId: string, favorite: boolean): number {
   const db = getMarketplaceDb();
   if (favorite) {
@@ -202,7 +209,8 @@ export function getCatalogProducts(): CatalogProduct[] {
   const official: CatalogProduct[] = marketplaceProducts.map((product) => withCatalogMetrics(product, "official", metrics.get(product.id)));
   const community: CatalogProduct[] = listProductsByStatus("approved").map((product) => ({
     ...withCatalogMetrics(product, "community", metrics.get(product.id)),
-    developer: getDeveloperName(product.developerId),
+    ...getDeveloperIdentity(product.developerId),
+    developerId: product.developerId,
     status: product.status,
   }));
   return [...community, ...official];
@@ -212,13 +220,18 @@ export function getCatalogProduct(id: string): CatalogProduct | null {
   const metrics = getMetrics().get(id);
   const community = getProductById(id);
   if (community && community.status === "approved") {
-    return { ...withCatalogMetrics(community, "community", metrics), developer: getDeveloperName(community.developerId), status: community.status };
+    return { ...withCatalogMetrics(community, "community", metrics), ...getDeveloperIdentity(community.developerId), developerId: community.developerId, status: community.status };
   }
   const official = marketplaceProducts.find((product) => product.id === id);
   return official ? withCatalogMetrics(official, "official", metrics) : null;
 }
 
-function getDeveloperName(developerId: string): string {
-  const row = getMarketplaceDb().prepare("SELECT name FROM developers WHERE id = ?").get(developerId) as { name: string } | undefined;
-  return row?.name ?? "社区开发者";
+export function listPublicUserProducts(userId: string): CatalogProduct[] {
+  const ids = new Set(listDeveloperProducts(userId).filter((product) => product.status === "approved").map((product) => product.id));
+  return getCatalogProducts().filter((product) => ids.has(product.id));
+}
+
+function getDeveloperIdentity(developerId: string): { developer: string; developerUsername?: string } {
+  const row = getMarketplaceDb().prepare("SELECT name, username FROM developers WHERE id = ?").get(developerId) as { name: string; username: string | null } | undefined;
+  return { developer: row?.name ?? "社区用户", developerUsername: row?.username ?? undefined };
 }

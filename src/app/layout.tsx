@@ -33,11 +33,11 @@ export const viewport = {
   ],
 };
 
-const themeScript = `(function(){try{var m=localStorage.getItem("sigma-theme");if(m!=="light"&&m!=="dark"&&m!=="system")m="system";var d=m==="dark"||(m==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themeMode=m;r.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
+const themeScript = `(function(){try{var m=localStorage.getItem("sigma-theme");if(m!=="light"&&m!=="dark")m=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";var d=m==="dark";var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themeMode=m;r.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN" data-theme="light" data-theme-mode="system" suppressHydrationWarning>
+    <html lang="zh-CN" data-theme="light" data-theme-mode="light" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

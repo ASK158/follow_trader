@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ObservationComments } from "@/components/observation-comments";
+import { ShareButton } from "@/components/share-button";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { getCurrentUser, isAdmin } from "@/lib/marketplace/auth";
@@ -28,7 +29,7 @@ export default async function ObservationDetailPage({ params }: Props) {
       <SiteNav active="observation" />
       <div className="platform-breadcrumb"><Link href="/observation">← 返回观摩空间</Link><span>{account.platform} / {account.accountType}</span></div>
       <header className="observation-detail-header">
-        <div><span className="panel-code">OBSERVATION ACCOUNT / {account.platform}</span><h1>{account.title}</h1><p>由 {account.ownerName} 提交 · 更新于 {new Date(account.updatedAt).toLocaleDateString("zh-CN")}</p></div>
+        <div><span className="panel-code">OBSERVATION ACCOUNT / {account.platform}</span><h1>{account.title}</h1><p>由 <Link href={`/u/${account.ownerUsername}`}>{account.ownerName}</Link> 提交 · 更新于 {new Date(account.updatedAt).toLocaleDateString("zh-CN")}</p><ShareButton title={account.title} text={`${account.platform} ${account.accountType}观摩账号`} /></div>
         <span className={`observation-type ${account.accountType === "真实账号" ? "live" : "demo"}`}><i />{account.accountType}</span>
       </header>
       <div className="observation-detail-grid">

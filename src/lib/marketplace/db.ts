@@ -216,6 +216,41 @@ export function getMarketplaceDb(): Database.Database {
       is_hidden INTEGER NOT NULL DEFAULT 0
     );
     CREATE INDEX IF NOT EXISTS idx_observation_comments_account ON observation_comments(account_id, created_at DESC);
+    CREATE TABLE IF NOT EXISTS crypto_recharges (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      provider TEXT NOT NULL DEFAULT 'nowpayments' CHECK (provider = 'nowpayments'),
+      asset TEXT NOT NULL DEFAULT 'USDT' CHECK (asset = 'USDT'),
+      network TEXT NOT NULL DEFAULT 'TRC20' CHECK (network = 'TRC20'),
+      amount_cents INTEGER NOT NULL CHECK (amount_cents BETWEEN 200 AND 50000),
+      gas_cents INTEGER NOT NULL DEFAULT 0 CHECK (gas_cents >= 0),
+      provider_payment_id TEXT UNIQUE,
+      provider_parent_payment_id TEXT,
+      pay_address TEXT,
+      pay_amount TEXT,
+      actually_paid TEXT,
+      provider_status TEXT,
+      status TEXT NOT NULL DEFAULT 'creating' CHECK (status IN ('creating', 'waiting', 'confirming', 'confirmed', 'sending', 'review_required', 'credited', 'expired', 'failed', 'cancelled')),
+      ga_transaction_id TEXT UNIQUE,
+      expires_at TEXT,
+      credited_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_crypto_recharges_user ON crypto_recharges(user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_crypto_recharges_status ON crypto_recharges(status, updated_at);
+    CREATE TABLE IF NOT EXISTS crypto_webhook_events (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL DEFAULT 'nowpayments' CHECK (provider = 'nowpayments'),
+      provider_payment_id TEXT,
+      signature TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'received' CHECK (status IN ('received', 'processed', 'failed')),
+      error TEXT,
+      received_at TEXT NOT NULL,
+      processed_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_crypto_webhook_payment ON crypto_webhook_events(provider_payment_id, received_at DESC);
   `);
   const addColumn = (table: string, column: string, definition: string) => {
     const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
@@ -233,6 +268,17 @@ export function getMarketplaceDb(): Database.Database {
   addColumn("developers", "agent_free_eligible", "INTEGER NOT NULL DEFAULT 1 CHECK (agent_free_eligible IN (0, 1))");
   addColumn("developers", "registration_risk_score", "INTEGER NOT NULL DEFAULT 0 CHECK (registration_risk_score >= 0)");
   addColumn("developers", "registration_risk_flags", "TEXT NOT NULL DEFAULT '[]'");
+  addColumn("developers", "username", "TEXT");
+  addColumn("developers", "avatar_filename", "TEXT");
+  addColumn("developers", "bio", "TEXT NOT NULL DEFAULT ''");
+  addColumn("developers", "contact", "TEXT NOT NULL DEFAULT ''");
+  addColumn("developers", "website_url", "TEXT NOT NULL DEFAULT ''");
+  addColumn("developers", "location", "TEXT NOT NULL DEFAULT ''");
+  addColumn("developers", "contact_visibility", "TEXT NOT NULL DEFAULT 'signed_in' CHECK (contact_visibility IN ('public', 'signed_in', 'followers', 'private'))");
+  addColumn("developers", "followers_visibility", "TEXT NOT NULL DEFAULT 'public' CHECK (followers_visibility IN ('public', 'followers', 'private'))");
+  addColumn("developers", "following_visibility", "TEXT NOT NULL DEFAULT 'public' CHECK (following_visibility IN ('public', 'followers', 'private'))");
+  addColumn("developers", "favorites_visibility", "TEXT NOT NULL DEFAULT 'private' CHECK (favorites_visibility IN ('public', 'private'))");
+  addColumn("developers", "message_permission", "TEXT NOT NULL DEFAULT 'followers' CHECK (message_permission IN ('everyone', 'followers', 'mutual', 'none'))");
   addColumn("sessions", "token_hash", "TEXT");
   addColumn("sessions", "created_at", "TEXT");
   addColumn("sessions", "last_seen_at", "TEXT");
@@ -243,11 +289,49 @@ export function getMarketplaceDb(): Database.Database {
   addColumn("product_favorites", "user_id", "TEXT REFERENCES developers(id) ON DELETE CASCADE");
   addColumn("product_comments", "is_hidden", "INTEGER NOT NULL DEFAULT 0");
   addColumn("product_comments", "moderation_note", "TEXT");
+  const usersWithoutUsername = db.prepare("SELECT id FROM developers WHERE username IS NULL OR username = ''").all() as Array<{ id: string }>;
+  const assignUsername = db.prepare("UPDATE developers SET username = ? WHERE id = ?");
+  for (const user of usersWithoutUsername) assignUsername.run(`user_${user.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12).toLowerCase()}`, user.id);
   db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_developers_username ON developers(username COLLATE NOCASE) WHERE username IS NOT NULL;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash) WHERE token_hash IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(developer_id, expires_at DESC);
     CREATE INDEX IF NOT EXISTS idx_orders_buyer_user ON orders(buyer_user_id, created_at DESC);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_favorites_user_product ON product_favorites(user_id, product_id) WHERE user_id IS NOT NULL;
+    CREATE TABLE IF NOT EXISTS user_follows (
+      follower_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      following_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (follower_id, following_id),
+      CHECK (follower_id <> following_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_user_follows_following ON user_follows(following_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_user_follows_follower ON user_follows(follower_id, created_at DESC);
+    CREATE TABLE IF NOT EXISTS direct_conversations (
+      id TEXT PRIMARY KEY,
+      user_a_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      user_b_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE (user_a_id, user_b_id),
+      CHECK (user_a_id < user_b_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_direct_conversations_a ON direct_conversations(user_a_id, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_direct_conversations_b ON direct_conversations(user_b_id, updated_at DESC);
+    CREATE TABLE IF NOT EXISTS direct_messages (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL REFERENCES direct_conversations(id) ON DELETE CASCADE,
+      sender_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      content TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_direct_messages_conversation ON direct_messages(conversation_id, created_at ASC);
+    CREATE TABLE IF NOT EXISTS direct_message_reads (
+      conversation_id TEXT NOT NULL REFERENCES direct_conversations(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      last_read_at TEXT NOT NULL,
+      PRIMARY KEY (conversation_id, user_id)
+    );
     CREATE TABLE IF NOT EXISTS ga_transactions (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
@@ -307,6 +391,69 @@ export function getMarketplaceDb(): Database.Database {
       CREATE INDEX idx_ga_transactions_created ON ga_transactions(created_at DESC);
       CREATE UNIQUE INDEX idx_ga_transactions_purchase_order ON ga_transactions(order_id, type) WHERE order_id IS NOT NULL;
       INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES ('agent-gas-ledger-v1', '${now}');
+      COMMIT;
+      PRAGMA foreign_keys = ON;
+    `);
+  }
+  const rechargeLedgerSchema = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'ga_transactions'").get() as { sql: string };
+  if (!rechargeLedgerSchema.sql.includes("'crypto_recharge'")) {
+    db.exec(`
+      PRAGMA foreign_keys = OFF;
+      BEGIN;
+      ALTER TABLE ga_transactions RENAME TO ga_transactions_legacy;
+      CREATE TABLE ga_transactions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+        actor_user_id TEXT REFERENCES developers(id) ON DELETE SET NULL,
+        type TEXT NOT NULL CHECK (type IN ('admin_grant', 'admin_deduct', 'purchase', 'refund', 'agent_charge', 'agent_refund', 'crypto_recharge')),
+        amount REAL NOT NULL CHECK (amount != 0),
+        balance_after REAL NOT NULL CHECK (balance_after >= 0),
+        order_id TEXT REFERENCES orders(id) ON DELETE SET NULL,
+        reason TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      INSERT INTO ga_transactions SELECT * FROM ga_transactions_legacy;
+      DROP TABLE ga_transactions_legacy;
+      CREATE INDEX idx_ga_transactions_user ON ga_transactions(user_id, created_at DESC);
+      CREATE INDEX idx_ga_transactions_created ON ga_transactions(created_at DESC);
+      CREATE UNIQUE INDEX idx_ga_transactions_purchase_order ON ga_transactions(order_id, type) WHERE order_id IS NOT NULL;
+      INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES ('crypto-recharge-ledger-v1', '${now}');
+      COMMIT;
+      PRAGMA foreign_keys = ON;
+    `);
+  }
+  const rechargeSchema = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'crypto_recharges'").get() as { sql: string };
+  if (rechargeSchema.sql.includes("BETWEEN 500 AND 50000")) {
+    db.exec(`
+      PRAGMA foreign_keys = OFF;
+      BEGIN;
+      ALTER TABLE crypto_recharges RENAME TO crypto_recharges_legacy;
+      CREATE TABLE crypto_recharges (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+        provider TEXT NOT NULL DEFAULT 'nowpayments' CHECK (provider = 'nowpayments'),
+        asset TEXT NOT NULL DEFAULT 'USDT' CHECK (asset = 'USDT'),
+        network TEXT NOT NULL DEFAULT 'TRC20' CHECK (network = 'TRC20'),
+        amount_cents INTEGER NOT NULL CHECK (amount_cents BETWEEN 200 AND 50000),
+        gas_cents INTEGER NOT NULL DEFAULT 0 CHECK (gas_cents >= 0),
+        provider_payment_id TEXT UNIQUE,
+        provider_parent_payment_id TEXT,
+        pay_address TEXT,
+        pay_amount TEXT,
+        actually_paid TEXT,
+        provider_status TEXT,
+        status TEXT NOT NULL DEFAULT 'creating' CHECK (status IN ('creating', 'waiting', 'confirming', 'confirmed', 'sending', 'review_required', 'credited', 'expired', 'failed', 'cancelled')),
+        ga_transaction_id TEXT UNIQUE,
+        expires_at TEXT,
+        credited_at TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      INSERT INTO crypto_recharges SELECT * FROM crypto_recharges_legacy;
+      DROP TABLE crypto_recharges_legacy;
+      CREATE INDEX idx_crypto_recharges_user ON crypto_recharges(user_id, created_at DESC);
+      CREATE INDEX idx_crypto_recharges_status ON crypto_recharges(status, updated_at);
+      INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES ('crypto-recharge-minimum-2-v1', '${now}');
       COMMIT;
       PRAGMA foreign_keys = ON;
     `);

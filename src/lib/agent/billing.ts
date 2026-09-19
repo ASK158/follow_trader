@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { getMarketplaceDb } from "@/lib/marketplace/db";
+import { roundGas } from "@/lib/marketplace/currency";
 import { getAgentMaximumPreauthorization, getPlatformSettings, type AgentAction } from "@/lib/platform-settings";
 
 export type AgentPricing = {
@@ -37,10 +38,6 @@ export class DuplicateAgentRequestError extends Error {
 }
 
 type BillingUserRow = { ga_balance: number; role: "user" | "admin"; agent_free_eligible: number; used_count: number };
-
-function roundGas(value: number): number {
-  return Math.round((value + Number.EPSILON) * 10_000) / 10_000;
-}
 
 function pricing(): AgentPricing {
   const settings = getPlatformSettings();

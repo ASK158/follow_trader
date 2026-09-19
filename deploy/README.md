@@ -80,7 +80,6 @@ chmod 600 .env
 ```dotenv
 CRON_SECRET=<使用 openssl rand -hex 32 生成的随机值>
 DOMAIN=signal.example.com
-ACME_EMAIL=ops@example.com
 MQL5_SESSION_COOKIE=<可选，仅服务器保存的完整 Cookie 请求头值>
 AI_API_KEY=<AI 服务密钥，仅服务器保存>
 AI_CHAT_COMPLETIONS_URL=https://api.deepseek.com/chat/completions

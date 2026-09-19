@@ -3,7 +3,7 @@
 .developer-shell > .site-footer { margin-top: auto; }
 .developer-shell .dev-hero { align-items: center; }
 .dev-hero-actions { display: grid; gap: 10px; min-width: 220px; }
-.dev-primary-action, .dev-secondary-action, .dev-logout { display: block; padding: 13px 18px; border: 1px solid var(--tech-ink); font: 700 11px "Cascadia Code", Consolas, monospace; text-align: center; cursor: pointer; }
+.dev-primary-action, .dev-secondary-action, .dev-logout { display: block; padding: 13px 18px; border: 1px solid var(--tech-ink); font: 700 12px "Cascadia Code", Consolas, monospace; text-align: center; cursor: pointer; }
 .dev-primary-action { color: #fff; border-color: var(--tech-red); background: var(--tech-red); }
 .dev-primary-action:hover { background: var(--tech-red-dark); }
 .dev-secondary-action { color: var(--tech-ink); background: var(--tech-paper-raised); }
@@ -11,61 +11,61 @@
 .dev-logout { color: var(--tech-muted); background: transparent; }
 .dev-logout:hover { color: var(--tech-red); border-color: var(--tech-red); }
 
-.dev-notice { margin: 0; padding: 14px 36px; border-bottom: 1px solid var(--tech-rule); color: var(--tech-green); background: #2f5d3a14; font-size: 12px; font-weight: 700; }
+.dev-notice { margin: 0; padding: 14px 36px; border-bottom: 1px solid var(--tech-rule); color: var(--tech-green); background: #2f5d3a14; font-size: 13px; font-weight: 700; }
 .dashboard-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--tech-ink); background: #fffaf3a8; }
-.dashboard-tabs a { position: relative; padding: 17px 20px; border-right: 1px solid var(--tech-rule); color: var(--tech-muted); font-size: 12px; font-weight: 750; text-align: center; }
+.dashboard-tabs a { position: relative; padding: 17px 20px; border-right: 1px solid var(--tech-rule); color: var(--tech-muted); font-size: 13px; font-weight: 750; text-align: center; }
 .dashboard-tabs a:last-child { border-right: 0; }
 .dashboard-tabs a::after { position: absolute; right: 20%; bottom: -1px; left: 20%; height: 3px; background: var(--tech-red); content: ""; opacity: 0; }
 .dashboard-tabs a:hover,.dashboard-tabs a.active { color: var(--tech-red); background: var(--tech-paper-raised); }
 .dashboard-tabs a.active::after { opacity: 1; }
-.dashboard-tabs span { display: inline-grid; min-width: 20px; height: 20px; margin-left: 6px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font: 700 8px "Cascadia Code", Consolas, monospace; }
+.dashboard-tabs span { display: inline-grid; min-width: 20px; height: 20px; margin-left: 6px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font: 700 10px "Cascadia Code", Consolas, monospace; }
 
 /* 我的订单：商城订单 / Sigma-ai 订单 子分类 */
 .order-subtabs { display: flex; flex-wrap: wrap; gap: 8px; }
-.order-subtabs a { padding: 9px 16px; border: 1px solid var(--tech-rule); color: var(--tech-muted); background: var(--tech-paper-raised); font: 700 11px "Cascadia Code", Consolas, monospace; }
+.order-subtabs a { padding: 9px 16px; border: 1px solid var(--tech-rule); color: var(--tech-muted); background: var(--tech-paper-raised); font: 700 12px "Cascadia Code", Consolas, monospace; }
 .order-subtabs a:hover { border-color: var(--tech-red); color: var(--tech-red); }
 .order-subtabs a.active { border-color: var(--tech-ink); color: #fff; background: var(--tech-ink); }
-.order-subtabs span { display: inline-grid; min-width: 18px; height: 18px; margin-left: 6px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font: 700 8px "Cascadia Code", Consolas, monospace; }
+.order-subtabs span { display: inline-grid; min-width: 18px; height: 18px; margin-left: 6px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font: 700 10px "Cascadia Code", Consolas, monospace; }
 
 /* 登录 / 注册 */
 .dev-auth-section { display: grid; place-items: center; padding: 48px 36px 56px; }
 .dev-auth-card { width: min(460px, 100%); padding: 28px; border: 1px solid var(--tech-ink); border-top: 5px solid var(--tech-red); background: var(--tech-paper-raised); box-shadow: 7px 7px 0 #b4162b18; }
-.dev-auth-card > small { display: block; margin-top: 14px; color: var(--tech-muted); font-size: 9px; line-height: 1.6; }
+.dev-auth-card > small { display: block; margin-top: 14px; color: var(--tech-muted); font-size: 12px; line-height: 1.6; }
 .dev-auth-tabs { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 20px; border: 1px solid var(--tech-rule); }
-.dev-auth-tabs button { padding: 11px; border: 0; color: var(--tech-muted); background: transparent; font: 700 11px inherit; cursor: pointer; }
+.dev-auth-tabs button { padding: 11px; border: 0; color: var(--tech-muted); background: transparent; font: 700 13px inherit; cursor: pointer; }
 .dev-auth-tabs button.active { color: #fff; background: var(--tech-red); }
 
 /* 表单 */
 .dev-form { display: grid; gap: 16px; }
-.dev-form label { display: grid; gap: 7px; color: var(--tech-ink); font-size: 11px; font-weight: 700; }
-.dev-form label small { color: var(--tech-muted); font-weight: 400; }
-.dev-form input, .dev-form select, .dev-form textarea { padding: 11px 12px; border: 1px solid var(--tech-rule); border-radius: 0; color: var(--tech-ink); background: var(--tech-paper); font: 400 12px inherit; }
+.dev-form label { display: grid; gap: 7px; color: var(--tech-ink); font-size: 12px; font-weight: 700; }
+.dev-form label small { color: var(--tech-muted); font-weight: 400; font-size: 11px; }
+.dev-form input, .dev-form select, .dev-form textarea { padding: 11px 12px; border: 1px solid var(--tech-rule); border-radius: 0; color: var(--tech-ink); background: var(--tech-paper); font: 400 13px inherit; }
 .dev-form input:focus, .dev-form select:focus, .dev-form textarea:focus { border-color: var(--tech-red); outline: none; }
 .dev-form input[type="color"] { height: 42px; padding: 4px; cursor: pointer; }
 .dev-form textarea { resize: vertical; line-height: 1.7; }
-.dev-form > button, .dev-form-section .dev-form > button { padding: 14px; border: 0; color: #fff; background: var(--tech-red); font: 700 12px inherit; cursor: pointer; }
+.dev-form > button, .dev-form-section .dev-form > button { padding: 14px; border: 0; color: #fff; background: var(--tech-red); font: 700 13px inherit; cursor: pointer; }
 .dev-form > button:hover:not(:disabled) { background: var(--tech-red-dark); }
 .dev-form > button:disabled { opacity: .6; cursor: wait; }
-.dev-form > small { color: var(--tech-muted); font-size: 9px; line-height: 1.6; }
-.dev-form-error { margin: 0; padding: 10px 12px; border: 1px solid var(--tech-red); color: var(--tech-red); background: #b4162b10; font-size: 11px; }
+.dev-form > small { color: var(--tech-muted); font-size: 11px; line-height: 1.6; }
+.dev-form-error { margin: 0; padding: 10px 12px; border: 1px solid var(--tech-red); color: var(--tech-red); background: #b4162b10; font-size: 12px; }
 
 .dev-form-header { padding: 30px 36px 0; }
 .dev-form-header h1 { margin: 10px 0 8px; font-size: clamp(30px, 4vw, 44px); letter-spacing: -.05em; }
-.dev-form-header p { max-width: 640px; margin: 0; color: var(--tech-muted); font-size: 12px; line-height: 1.7; }
+.dev-form-header p { max-width: 640px; margin: 0; color: var(--tech-muted); font-size: 13px; line-height: 1.7; }
 .dev-form-section { padding: 26px 36px 44px; }
 .dev-form-section .dev-form { max-width: 860px; }
 .dev-product-form fieldset { display: grid; gap: 14px; margin: 0; padding: 20px; border: 1px solid var(--tech-rule); }
-.dev-product-form legend { padding: 0 8px; color: var(--tech-red); font: 700 9px "Cascadia Code", Consolas, monospace; letter-spacing: .12em; }
-.dev-product-form fieldset > small { color: var(--tech-muted); font-size: 9px; }
+.dev-product-form legend { padding: 0 8px; color: var(--tech-red); font-size: 12px; font-weight: 700; letter-spacing: .05em; }
+.dev-product-form fieldset > small { color: var(--tech-muted); font-size: 11px; }
 .dev-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
 .dev-gallery-row { display: grid; grid-template-columns: 1fr 130px 1fr 36px; gap: 8px; align-items: center; }
 .dev-gallery-row button { height: 40px; border: 1px solid var(--tech-rule); color: var(--tech-red); background: transparent; font-size: 16px; cursor: pointer; }
 .dev-gallery-row button:disabled { opacity: .3; cursor: not-allowed; }
-.dev-add-row { padding: 9px; border: 1px dashed var(--tech-rule); color: var(--tech-muted); background: transparent; font: 700 10px inherit; cursor: pointer; }
+.dev-add-row { padding: 9px; border: 1px dashed var(--tech-rule); color: var(--tech-muted); background: transparent; font: 700 12px inherit; cursor: pointer; }
 .dev-add-row:hover:not(:disabled) { border-color: var(--tech-red); color: var(--tech-red); }
 .tutorial-admin-actions { display: flex; gap: 10px; padding: 24px 36px 0; }
 .tutorial-form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.tutorial-form-actions button { padding: 12px 18px; border: 1px solid var(--tech-red); color: var(--tech-red); background: transparent; font: 700 11px inherit; cursor: pointer; }
+.tutorial-form-actions button { padding: 12px 18px; border: 1px solid var(--tech-red); color: var(--tech-red); background: transparent; font: 700 12px inherit; cursor: pointer; }
 .tutorial-form-actions button[name="status"][value="published"] { color: #fff; background: var(--tech-red); }
 .tutorial-form-actions .tutorial-delete-button { margin-left: auto; border-color: var(--tech-ink); color: var(--tech-ink); }
 .tutorial-form-actions button:disabled { cursor: wait; opacity: .55; }
@@ -74,7 +74,7 @@
 .dev-product-list { display: grid; gap: 14px; padding: 28px 36px 44px; }
 .dev-empty { padding: 60px 20px; border: 1px dashed var(--tech-rule); text-align: center; }
 .dev-empty b { font-size: 18px; }
-.dev-empty p { margin: 10px auto 0; max-width: 420px; color: var(--tech-muted); font-size: 11px; line-height: 1.7; }
+.dev-empty p { margin: 10px auto 0; max-width: 420px; color: var(--tech-muted); font-size: 13px; line-height: 1.7; }
 .dev-product-row { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: 20px; padding: 16px; border: 1px solid var(--tech-rule); background: #faf6ef; align-items: center; }
 .dev-product-cover { min-height: 120px; }
 .dev-product-cover > b { font-size: 16px; }
@@ -82,66 +82,80 @@
 .dev-product-info { display: grid; gap: 7px; min-width: 0; }
 .dev-product-info > div { display: flex; align-items: center; gap: 10px; }
 .dev-product-info b { font-size: 16px; }
-.dev-product-info p { margin: 0; color: var(--tech-muted); font-size: 11px; }
-.dev-product-info small { color: var(--tech-muted); font: 700 9px "Cascadia Code", Consolas, monospace; }
-.dev-product-info details { font-size: 10px; color: var(--tech-muted); }
+.dev-product-info p { margin: 0; color: var(--tech-muted); font-size: 13px; }
+.dev-product-info small { color: var(--tech-muted); font: 700 11px "Cascadia Code", Consolas, monospace; }
+.dev-product-info details { font-size: 12px; color: var(--tech-muted); }
 .dev-product-info details summary { cursor: pointer; color: var(--tech-red); font-weight: 700; }
 .dev-product-info details ul { margin: 8px 0; padding-left: 18px; }
 .dev-review-note { padding: 8px 10px; border-left: 3px solid var(--tech-red); background: #b4162b0d; }
-.dev-status { padding: 4px 8px; font: 700 9px "Cascadia Code", Consolas, monospace; }
+.dev-status { padding: 4px 8px; font: 700 11px "Cascadia Code", Consolas, monospace; }
 .status-pending { color: #996219; border: 1px solid #996219; background: #99621914; }
 .status-approved { color: var(--tech-green); border: 1px solid var(--tech-green); background: #2f5d3a14; }
 .status-rejected { color: var(--tech-red); border: 1px solid var(--tech-red); background: #b4162b14; }
 .dev-product-actions { display: grid; gap: 8px; }
-.dev-product-actions a, .dev-product-actions button { padding: 9px 14px; border: 1px solid var(--tech-rule); color: var(--tech-ink); background: transparent; font: 700 10px "Cascadia Code", Consolas, monospace; text-align: center; cursor: pointer; }
+.dev-product-actions a, .dev-product-actions button { padding: 9px 14px; border: 1px solid var(--tech-rule); color: var(--tech-ink); background: transparent; font: 700 12px "Cascadia Code", Consolas, monospace; text-align: center; cursor: pointer; }
 .dev-product-actions a:hover { border-color: var(--tech-red); color: var(--tech-red); }
 .observation-mini-cover { position: relative; display: grid; min-height: 120px; place-content: center; gap: 7px; overflow: hidden; border-left: 5px solid var(--tech-green); color: #fff; background: radial-gradient(circle at 75% 25%, #ffffff22, transparent 24%), linear-gradient(145deg, #171719, #28745a); text-align: center; }
 .observation-mini-cover span { font: 800 25px "Cascadia Code", Consolas, monospace; }
-.observation-mini-cover b { font-size: 10px; }
-.observation-mini-cover i { position: absolute; top: 12px; right: 13px; color: #55d4a1; font-size: 9px; font-style: normal; }
+.observation-mini-cover b { font-size: 12px; }
+.observation-mini-cover i { position: absolute; top: 12px; right: 13px; color: #55d4a1; font-size: 11px; font-style: normal; }
 .dashboard-order-row { grid-template-columns: minmax(0, 1fr) auto; }
-.dashboard-download { padding: 10px 15px; color: #fff; background: var(--tech-red); font-size: 10px; font-weight: 700; }
+.dashboard-download { padding: 10px 15px; color: #fff; background: var(--tech-red); font-size: 12px; font-weight: 700; }
 
 /* Gas 财务中心 */
 .finance-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 28px 36px 10px; }
 .finance-summary article { display: grid; gap: 8px; padding: 20px; border: 1px solid var(--tech-rule); border-top: 3px solid var(--tech-red); background: var(--tech-paper-raised); }
-.finance-summary small, .finance-summary span { color: var(--tech-muted); font-size: 10px; }
+.finance-summary small, .finance-summary span { color: var(--tech-muted); font-size: 12px; }
 .finance-summary b { font-size: 22px; }
 .finance-section-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; padding: 34px 36px 0; }
 .finance-section-heading h2 { margin: 7px 0 0; }
-.finance-section-heading p { margin: 0; color: var(--tech-muted); font-size: 10px; }
+.finance-section-heading p { margin: 0; color: var(--tech-muted); font-size: 12px; }
 .finance-user-list { display: grid; gap: 10px; padding: 18px 36px 12px; }
 .finance-user-row { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(420px, 1.2fr); gap: 20px; align-items: center; padding: 16px; border: 1px solid var(--tech-rule); background: #faf6ef; }
-.ga-balance { padding: 4px 8px; border: 1px solid var(--tech-green); color: var(--tech-green); font: 700 10px "Cascadia Code", Consolas, monospace; }
+.ga-balance { padding: 4px 8px; border: 1px solid var(--tech-green); color: var(--tech-green); font: 700 11px "Cascadia Code", Consolas, monospace; }
 .finance-adjust-form { display: grid; grid-template-columns: 90px 120px minmax(150px, 1fr) 100px; gap: 8px; }
-.finance-adjust-form input, .finance-adjust-form select, .finance-adjust-form button { min-width: 0; padding: 10px; border: 1px solid var(--tech-rule); background: var(--tech-paper); font: 600 10px inherit; }
+.finance-adjust-form input, .finance-adjust-form select, .finance-adjust-form button { min-width: 0; padding: 10px; border: 1px solid var(--tech-rule); background: var(--tech-paper); font: 600 12px inherit; }
 .finance-adjust-form button { border-color: var(--tech-red); color: #fff; background: var(--tech-red); cursor: pointer; }
 .finance-adjust-form button:disabled { opacity: .55; cursor: wait; }
 .finance-table-wrap { margin: 18px 36px 12px; overflow-x: auto; border: 1px solid var(--tech-rule); background: var(--tech-paper-raised); }
-.finance-table { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 10px; }
+.finance-table { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 12px; }
 .finance-table th, .finance-table td { padding: 12px 14px; border-bottom: 1px solid var(--tech-rule); text-align: left; vertical-align: top; }
-.finance-table th { color: var(--tech-muted); background: var(--tech-paper); font: 700 9px "Cascadia Code", Consolas, monospace; letter-spacing: .06em; }
-.finance-table td small { display: block; margin-top: 4px; color: var(--tech-muted); }
+.finance-table th { color: var(--tech-muted); background: var(--tech-paper); font: 700 11px "Cascadia Code", Consolas, monospace; letter-spacing: .06em; }
+.finance-table td small { display: block; margin-top: 4px; color: var(--tech-muted); font-size: 11px; }
 .ga-positive { color: var(--tech-green); font-weight: 700; }
 .ga-negative { color: var(--tech-red); font-weight: 700; }
 .finance-settings-card { display: grid; grid-template-columns: minmax(220px, .65fr) minmax(0, 1.35fr); gap: 28px; margin: 26px 36px 0; padding: 24px; border: 1px solid var(--tech-ink); border-top: 5px solid var(--tech-red); background: var(--tech-paper-raised); }
 .finance-settings-card h2 { margin: 8px 0 10px; }
-.finance-settings-card > div > p { color: var(--tech-muted); font-size: 10px; line-height: 1.7; }
+.finance-settings-card > div > p { color: var(--tech-muted); font-size: 12px; line-height: 1.7; }
 .finance-settings-form { display: grid; gap: 14px; }
 .finance-settings-form fieldset { margin: 0; padding: 16px; border: 1px solid var(--tech-rule); }
-.finance-settings-form legend { padding: 0 7px; color: var(--tech-red); font-size: 10px; font-weight: 800; }
-.finance-settings-form label { display: grid; gap: 6px; color: var(--tech-ink); font-size: 10px; font-weight: 700; }
-.finance-settings-form label small { color: var(--tech-muted); font-weight: 400; line-height: 1.5; }
+.finance-settings-form legend { padding: 0 7px; color: var(--tech-red); font-size: 12px; font-weight: 800; }
+.finance-settings-form label { display: grid; gap: 6px; color: var(--tech-ink); font-size: 12px; font-weight: 700; }
+.finance-settings-form label small { color: var(--tech-muted); font-weight: 400; font-size: 11px; line-height: 1.5; }
 .finance-settings-form input { min-width: 0; padding: 10px; border: 1px solid var(--tech-rule); background: var(--tech-paper); }
-.finance-settings-form > button { justify-self: end; min-width: 180px; padding: 12px 18px; border: 0; color: #fff; background: var(--tech-red); font-weight: 800; cursor: pointer; }
+.finance-settings-form > button { justify-self: end; min-width: 180px; padding: 12px 18px; border: 0; color: #fff; background: var(--tech-red); font-weight: 800; font-size: 13px; cursor: pointer; }
 .finance-settings-form > button:disabled { opacity: .55; cursor: wait; }
+
+/* USDT 充值 */
+.recharge-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(320px, 1.15fr); gap: 18px; padding: 28px 36px 4px; }
+.recharge-card { align-content: start; padding: 24px; border: 1px solid var(--tech-ink); border-top: 5px solid var(--tech-red); background: var(--tech-paper-raised); }
+.recharge-card h2 { margin: 8px 0; }
+.recharge-card p { color: var(--tech-muted); font-size: 13px; line-height: 1.7; }
+.recharge-payment { display: grid; gap: 14px; justify-items: start; }
+.recharge-payment img { width: 200px; height: 200px; padding: 8px; background: #fff; border: 1px solid var(--tech-rule); }
+.recharge-payment code { width: 100%; padding: 12px; overflow-wrap: anywhere; border: 1px solid var(--tech-rule); background: var(--tech-paper); font-size: 12px; }
+.recharge-payment .dev-secondary-action { width: 100%; }
+.recharge-amount { display: grid; gap: 4px; }
+.recharge-amount small { color: var(--tech-muted); font-size: 12px; }
+.recharge-amount b { font-size: 24px; }
+.recharge-warning { margin: 0; padding: 10px 12px; border-left: 3px solid var(--tech-red); color: var(--tech-red)!important; background: #b4162b0c; font-size: 12px; }
 
 /* 审核 */
 .dev-review-row { grid-template-columns: 200px minmax(0, 1fr) 280px; }
 .review-panel { display: grid; gap: 10px; }
-.review-panel textarea { padding: 10px; border: 1px solid var(--tech-rule); border-radius: 0; background: var(--tech-paper); font: 400 11px inherit; resize: vertical; }
+.review-panel textarea { padding: 10px; border: 1px solid var(--tech-rule); border-radius: 0; background: var(--tech-paper); font: 400 12px inherit; resize: vertical; }
 .review-panel > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.review-panel button { padding: 11px; border: 0; color: #fff; background: var(--tech-green); font: 700 10px inherit; cursor: pointer; }
+.review-panel button { padding: 11px; border: 0; color: #fff; background: var(--tech-green); font: 700 12px inherit; cursor: pointer; }
 .review-panel button.review-reject { background: var(--tech-red); }
 .review-panel button:disabled { opacity: .6; cursor: wait; }
 
@@ -181,6 +195,7 @@
   .finance-section-heading { align-items: start; flex-direction: column; padding-inline: 20px; }
   .finance-table-wrap { margin-inline: 20px; }
   .finance-settings-card { grid-template-columns: 1fr; margin-inline: 20px; }
+  .recharge-layout { grid-template-columns: 1fr; padding-inline: 20px; }
   /* 平板竖屏下缩窄外边距 */
   .dev-form-header, .dev-form-section, .dev-notice, .dev-product-list { padding-inline: 20px; }
   .tutorial-admin-actions { padding-inline: 20px; }

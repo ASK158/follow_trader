@@ -2,22 +2,24 @@
 :root {
   --tech-paper: #fbf8f3;
   --tech-paper-raised: #fffdf9;
-  --tech-ink: #3b3530;
-  --tech-muted: #887f76;
-  --tech-rule: #e7ded4;
-  --tech-red: #c66a76;
-  --tech-red-dark: #a44d59;
-  --tech-green: #28745a;
+  --tech-ink: #2b2520;
+  --tech-muted: #6b6259;
+  --tech-rule: #ded5cb;
+  --tech-red: #b94e5c;
+  --tech-red-dark: #983e4a;
+  --tech-green: #236750;
 }
 
 body {
   color: var(--tech-ink);
   background: #f1ede7;
-  font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;
+  font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body::before {
-  opacity: .1;
+  opacity: .05;
   filter: grayscale(1);
 }
 

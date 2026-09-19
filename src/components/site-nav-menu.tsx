@@ -2,24 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 type NavSection = "signals" | "marketplace" | "favorites" | "agent" | "tutorials" | "observation" | "developer";
 
 type Props = {
   active: NavSection;
   signedIn: boolean;
+  username?: string;
 };
 
 const items: Array<{ key: NavSection; href: string; label: string }> = [
   { key: "signals", href: "/", label: "策略信号中心" },
   { key: "marketplace", href: "/marketplace", label: "EA / 指标商城" },
-  { key: "agent", href: "/agent", label: "AI 实验室" },
-  { key: "tutorials", href: "/tutorials", label: "教程" },
   { key: "observation", href: "/observation", label: "观摩空间" },
+  { key: "tutorials", href: "/tutorials", label: "教程" },
+  { key: "agent", href: "/agent", label: "AI 实验室" },
 ];
 
-export function SiteNavMenu({ active, signedIn }: Props) {
+export function SiteNavMenu({ active, signedIn, username }: Props) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -53,10 +53,8 @@ export function SiteNavMenu({ active, signedIn }: Props) {
             {item.label}
           </Link>
         ))}
-        <Link href={signedIn ? "/developer" : "/developer/login"} className={active === "developer" ? "active" : ""} aria-current={active === "developer" ? "page" : undefined} onClick={closeMenu}>
-          {signedIn ? "个人中心" : "注册 / 登录"}
-        </Link>
-        <ThemeToggle mobile />
+        <Link href={signedIn && username ? `/u/${username}` : "/developer/login"} className={active === "developer" ? "active" : ""} aria-current={active === "developer" ? "page" : undefined} onClick={closeMenu}>{signedIn ? "个人主页" : "注册 / 登录"}</Link>
+        {signedIn && <><Link href="/account/profile" onClick={closeMenu}>个人资料</Link><Link href="/account" onClick={closeMenu}>账户与安全</Link></>}
       </nav>
     </div>
   );

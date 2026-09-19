@@ -1,8 +1,3 @@
-{
-	# Caddy 使用 Let's Encrypt 的 ACME 服务为 ${DOMAIN} 自动申请和续期 HTTPS 证书。
-	email {$ACME_EMAIL}
-}
-
 {$DOMAIN} {
 	encode zstd gzip
 

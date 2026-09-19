@@ -21,6 +21,8 @@ let registrationRisk: typeof import("../src/lib/auth/registration-risk");
 let tutorialStore: typeof import("../src/lib/tutorials");
 let observationStore: typeof import("../src/lib/observation-accounts");
 let observationComments: typeof import("../src/lib/observation-comments");
+let social: typeof import("../src/lib/marketplace/social");
+let messages: typeof import("../src/lib/marketplace/messages");
 
 test.before(async () => {
   security = await import("../src/lib/auth/security");
@@ -37,6 +39,8 @@ test.before(async () => {
   tutorialStore = await import("../src/lib/tutorials");
   observationStore = await import("../src/lib/observation-accounts");
   observationComments = await import("../src/lib/observation-comments");
+  social = await import("../src/lib/marketplace/social");
+  messages = await import("../src/lib/marketplace/messages");
 });
 
 test.after(() => {
@@ -246,4 +250,25 @@ test("观摩账号校验、加密保存并支持评论", () => {
 
   form.set("accountNumber", "invalid-account");
   assert.match(observationStore.validateObservationForm(form).error ?? "", /数字/);
+});
+
+test("用户公开资料、关注关系和私信会话使用统一账户", () => {
+  const db = database.getMarketplaceDb();
+  db.prepare("UPDATE developers SET username = 'alpha_user', bio = '量化策略作者', message_permission = 'followers' WHERE id = 'user-1'").run();
+  db.prepare("UPDATE developers SET username = 'admin_user' WHERE id = 'admin-1'").run();
+  social.setFollowing("admin-1", "user-1", true);
+  const profile = social.getPublicProfile("ALPHA_USER", null);
+  assert.equal(profile?.name, "User");
+  assert.equal(profile?.followerCount, 1);
+  assert.equal(profile?.contact, null);
+  assert.equal(social.listRelations("user-1", "followers")[0]?.username, "admin_user");
+  assert.equal(social.searchProfiles("ALPHA", "admin-1")[0]?.id, "user-1");
+
+  const conversationId = messages.getOrCreateConversation("admin-1", "user-1");
+  assert.equal(messages.getOrCreateConversation("user-1", "admin-1"), conversationId);
+  const sent = messages.sendMessage(conversationId, "admin-1", "你好，这是一条测试私信");
+  assert.equal(messages.getConversation(conversationId, "user-1")?.messages[0]?.id, sent.id);
+  assert.equal(messages.listConversations("user-1")[0]?.unreadCount, 1);
+  messages.markConversationRead(conversationId, "user-1");
+  assert.equal(messages.listConversations("user-1")[0]?.unreadCount, 0);
 });

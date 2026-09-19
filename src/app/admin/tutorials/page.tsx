@@ -17,7 +17,7 @@ export default async function AdminTutorialsPage({ searchParams }: { searchParam
   return (
     <main className="platform-shell developer-shell">
       <SiteNav active="developer" />
-      <div className="platform-breadcrumb"><Link href="/developer">← 返回个人中心</Link><span>ADMIN / TUTORIALS</span></div>
+      <div className="platform-breadcrumb"><Link href="/admin">← 返回管理员中心</Link><span>ADMIN / TUTORIALS</span></div>
       <header className="dev-form-header"><span className="panel-code">CONTENT MANAGEMENT</span><h1>教程管理</h1><p>创建图文教程或绑定 YouTube、Bilibili、TikTok 视频。草稿仅管理员可见，发布后立即展示在教程中心。</p></header>
       <div className="tutorial-admin-actions"><Link href="/admin/tutorials/new" className="dev-primary-action">＋ 上传新教程</Link><Link href="/tutorials" className="dev-secondary-action">查看教程中心 →</Link></div>
       {saved && <p className="dev-notice">✓ 教程已保存。</p>}

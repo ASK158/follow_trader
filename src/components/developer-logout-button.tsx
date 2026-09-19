@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function DeveloperLogoutButton() {
+export function DeveloperLogoutButton({ className = "dev-logout" }: { className?: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -18,5 +18,5 @@ export function DeveloperLogoutButton() {
     }
   }
 
-  return <button type="button" className="dev-logout" onClick={logout} disabled={pending}>退出登录</button>;
+  return <button type="button" className={className} onClick={logout} disabled={pending}>{pending ? "正在退出…" : "退出登录"}</button>;
 }

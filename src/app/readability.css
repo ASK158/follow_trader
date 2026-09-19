@@ -1,6 +1,6 @@
 /* Readability layer: preserve the editorial identity while making business content scannable. */
 :root {
-  --type-micro: 10px;
+  --type-micro: 11px;
   --type-caption: 12px;
   --type-ui: 14px;
   --type-title: 20px;
@@ -8,26 +8,31 @@
 }
 
 .site-nav-tabs a,
-.site-nav-account > a { font-size: 14px; }
+.site-nav-account > a { font-size: 14px; font-weight: 600; }
+.account-menu-trigger b { font-size: 13px; font-weight: 600; }
+.account-menu-panel > section a span { font-size: 13px; }
+.account-menu-panel section small { font-size: 11px; }
+.account-menu-balance small { font-size: 12px !important; font-weight: 600; color: #5e564e; }
+.account-menu-balance b { font-size: 17px !important; font-weight: 800; }
 .site-brand b { font-size: 13px; }
 .site-system-state,
 .site-nav-account > .site-system-state { font-size: 11px; }
-.platform-hero p { color: #685f57; font-size: 15px; }
-.market-hero-stats span { color: #685f57; font-size: 12px; }
-.market-main-tabs a { font-size: 13px; }
+.platform-hero p { color: #574e46; font-size: 15px; }
+.market-hero-stats span { color: #574e46; font-size: 12px; }
+.market-main-tabs a { font-size: 13px; font-weight: 600; }
 .market-subcategory-title,
 .market-sub-tabs a { font-size: 12px; }
 .market-search > label,
-.market-sort-group label { color: #685f57; font-size: 11px; }
+.market-sort-group label { color: #574e46; font-size: 12px; }
 .market-search input { font-size: 14px; }
 .market-search button,
 .market-search a,
 .market-sort-group select,
 .market-toolbar-actions a { font-size: 12px; }
-.market-sort-group > span { color: #685f57; font-size: 11px; }
+.market-sort-group > span { color: #574e46; font-size: 12px; }
 .market-card h2 { font-size: var(--type-title); }
-.market-card p { color: #685f57; font-size: 13px; line-height: 1.65; }
-.product-rating { color: #685f57; font-size: 12px; }
+.market-card p { color: #574e46; font-size: 13px; line-height: 1.65; }
+.product-rating { color: #574e46; font-size: 12px; }
 .market-card footer a { font-size: 12px; }
 .platform-footer { font-size: 12px; }
 .product-description,
@@ -39,12 +44,18 @@
 .purchase-panel li,
 .tutorial-card p,
 .article-layout > aside a,
-.observation-card p { font-size: 12px; }
+.observation-card p { font-size: 13px; }
+.observation-card dt,
+.observation-card dd,
+.observation-access-panel dt,
+.observation-access-panel dd { font-size: 12px; }
+.observation-card footer a,
+.observation-empty a { font-size: 12px; }
 .tutorial-card-body > div span,
-.product-shot figcaption { font-size: 10px; }
+.product-shot figcaption { font-size: 11px; }
 .tutorial-action,
 .platform-breadcrumb,
-.panel-code { font-size: 10px; }
+.panel-code { font-size: 11px; }
 .dev-primary-action,
 .dev-secondary-action,
 .dev-logout,
@@ -54,12 +65,12 @@
 .dev-form textarea,
 .dev-product-info p,
 .dev-product-actions a,
-.dev-product-actions button { font-size: 12px; }
+.dev-product-actions button { font-size: 13px; }
 .dev-form-header p,
 .dev-empty p { font-size: 13px; }
 .dev-form > small,
 .dev-product-form fieldset > small,
-.dev-product-info small { font-size: 10px; }
+.dev-product-info small { font-size: 11px; }
 
 :where(a, button, input, select, textarea):focus-visible {
   outline: 3px solid var(--focus-ring);
@@ -96,6 +107,8 @@
 @media (max-width: 1120px) {
   .theme-toggle:not(.theme-toggle--mobile) { min-width: 48px; padding-inline: 10px; }
   .theme-toggle:not(.theme-toggle--mobile) b { display: none; }
+  .site-footer-theme .theme-toggle:not(.theme-toggle--mobile) { min-width: 112px; }
+  .site-footer-theme .theme-toggle:not(.theme-toggle--mobile) b { display: block; }
 }
 
 @media (max-width: 700px) {

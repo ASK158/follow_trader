@@ -10,6 +10,7 @@ export type ObservationAccount = {
   id: string;
   ownerId: string;
   ownerName: string;
+  ownerUsername: string;
   title: string;
   platform: ObservationPlatform;
   accountType: ObservationAccountType;
@@ -30,7 +31,7 @@ export type ObservationAccountInput = Pick<ObservationAccount, "title" | "platfo
 };
 
 type ObservationRow = {
-  id: string; owner_id: string; owner_name: string; title: string; platform: ObservationPlatform;
+  id: string; owner_id: string; owner_name: string; owner_username: string; title: string; platform: ObservationPlatform;
   account_type: ObservationAccountType; account_number: string; server_name: string; investor_password: string;
   description: string; views: number; comment_count: number; created_at: string; updated_at: string;
 };
@@ -41,6 +42,7 @@ function rowToAccount(row: ObservationRow): ObservationAccount {
     id: row.id,
     ownerId: row.owner_id,
     ownerName: row.owner_name,
+    ownerUsername: row.owner_username,
     title: row.title,
     platform: row.platform,
     accountType: row.account_type,
@@ -56,7 +58,7 @@ function rowToAccount(row: ObservationRow): ObservationAccount {
 }
 
 const selectAccounts = `
-  SELECT accounts.*, developers.name AS owner_name,
+  SELECT accounts.*, developers.name AS owner_name, developers.username AS owner_username,
     (SELECT COUNT(*) FROM observation_comments comments WHERE comments.account_id = accounts.id AND comments.is_hidden = 0) AS comment_count
   FROM observation_accounts accounts
   JOIN developers ON developers.id = accounts.owner_id

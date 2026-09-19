@@ -8,10 +8,24 @@ import { mergeVisitorFavoritesIntoUser } from "./products";
 
 export type UserRole = "user" | "admin";
 export type UserStatus = "active" | "suspended";
+export type ProfileVisibility = "public" | "signed_in" | "followers" | "private";
+export type RelationVisibility = "public" | "followers" | "private";
+export type MessagePermission = "everyone" | "followers" | "mutual" | "none";
 export type User = {
   id: string;
   email: string;
   name: string;
+  username: string;
+  avatarUrl: string | null;
+  bio: string;
+  contact: string;
+  websiteUrl: string;
+  location: string;
+  contactVisibility: ProfileVisibility;
+  followersVisibility: RelationVisibility;
+  followingVisibility: RelationVisibility;
+  favoritesVisibility: "public" | "private";
+  messagePermission: MessagePermission;
   gaBalance: number;
   role: UserRole;
   status: UserStatus;
@@ -26,6 +40,9 @@ export type Developer = User;
 
 type UserRow = {
   id: string; email: string; password_hash: string; name: string; role: UserRole; status: UserStatus;
+  username: string | null; avatar_filename: string | null; bio: string; contact: string; website_url: string; location: string;
+  contact_visibility: ProfileVisibility; followers_visibility: RelationVisibility; following_visibility: RelationVisibility;
+  favorites_visibility: "public" | "private"; message_permission: MessagePermission;
   ga_balance: number;
   email_verified_at: string | null; totp_secret: string | null; totp_enabled: number;
   created_at: string; last_login_at: string | null;
@@ -56,16 +73,26 @@ async function verifyPassword(password: string, stored: string): Promise<boolean
 }
 
 function toUser(row: UserRow): User {
-  return { id: row.id, email: row.email, name: row.name, gaBalance: row.ga_balance, role: row.role, status: row.status, emailVerified: Boolean(row.email_verified_at), mfaEnabled: Boolean(row.totp_enabled), createdAt: row.created_at, lastLoginAt: row.last_login_at };
+  return {
+    id: row.id, email: row.email, name: row.name, username: row.username ?? `user_${row.id.slice(0, 12)}`,
+    avatarUrl: row.avatar_filename ? `/api/users/${row.id}/avatar` : null,
+    bio: row.bio ?? "", contact: row.contact ?? "", websiteUrl: row.website_url ?? "", location: row.location ?? "",
+    contactVisibility: row.contact_visibility ?? "signed_in", followersVisibility: row.followers_visibility ?? "public",
+    followingVisibility: row.following_visibility ?? "public", favoritesVisibility: row.favorites_visibility ?? "private",
+    messagePermission: row.message_permission ?? "followers",
+    gaBalance: row.ga_balance, role: row.role, status: row.status, emailVerified: Boolean(row.email_verified_at),
+    mfaEnabled: Boolean(row.totp_enabled), createdAt: row.created_at, lastLoginAt: row.last_login_at,
+  };
 }
 
 export async function registerUser(email: string, password: string, name: string): Promise<{ user?: User; error?: string }> {
   const db = getMarketplaceDb();
   if (db.prepare("SELECT id FROM developers WHERE email = ?").get(email)) return { error: "无法使用该邮箱完成注册" };
   const id = randomBytes(12).toString("hex");
+  const username = `user_${id.slice(0, 12)}`;
   const now = new Date().toISOString();
   try {
-    db.prepare("INSERT INTO developers (id, email, password_hash, name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'user', 'active', ?, ?)").run(id, email, await hashPassword(password), name, now, now);
+    db.prepare("INSERT INTO developers (id, email, password_hash, name, username, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'user', 'active', ?, ?)").run(id, email, await hashPassword(password), name, username, now, now);
   } catch {
     return { error: "无法使用该邮箱完成注册" };
   }

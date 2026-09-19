@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { getMarketplaceDb } from "./db";
 
-export type GaTransactionType = "admin_grant" | "admin_deduct" | "purchase" | "refund" | "agent_charge" | "agent_refund";
+export type GaTransactionType = "admin_grant" | "admin_deduct" | "purchase" | "refund" | "agent_charge" | "agent_refund" | "crypto_recharge";
 
 export type GaTransaction = {
   id: string;
@@ -19,6 +19,7 @@ export type GaTransaction = {
 
 export type FinanceSummary = {
   totalBalance: number;
+  totalRecharged: number;
   totalGranted: number;
   totalSpent: number;
   agentSpent: number;
@@ -103,6 +104,7 @@ export function getFinanceSummary(): FinanceSummary {
   const row = getMarketplaceDb().prepare(`
     SELECT
       (SELECT COALESCE(SUM(ga_balance), 0) FROM developers) AS total_balance,
+      (SELECT COALESCE(SUM(gas_cents), 0) / 100.0 FROM crypto_recharges WHERE status = 'credited') AS total_recharged,
       (SELECT COALESCE(SUM(amount), 0) FROM ga_transactions WHERE type = 'admin_grant') AS total_granted,
       (SELECT COALESCE(-SUM(amount), 0) FROM ga_transactions WHERE type = 'purchase')
         + (SELECT COALESCE(SUM(gas_amount), 0) FROM agent_billing_requests WHERE status = 'committed' AND source = 'gas') AS total_spent,
@@ -114,9 +116,10 @@ export function getFinanceSummary(): FinanceSummary {
       (SELECT COUNT(*) FROM agent_billing_requests WHERE status = 'committed' AND action = 'generate') AS agent_generate_request_count,
       (SELECT COUNT(*) FROM orders WHERE status = 'confirmed') AS confirmed_order_count,
       (SELECT COALESCE(SUM(amount), 0) FROM orders WHERE status = 'confirmed') AS confirmed_order_volume
-  `).get() as { total_balance: number; total_granted: number; total_spent: number; agent_spent: number; agent_paid_request_count: number; agent_free_request_count: number; agent_chat_request_count: number; agent_modify_request_count: number; agent_generate_request_count: number; confirmed_order_count: number; confirmed_order_volume: number };
+  `).get() as { total_balance: number; total_recharged: number; total_granted: number; total_spent: number; agent_spent: number; agent_paid_request_count: number; agent_free_request_count: number; agent_chat_request_count: number; agent_modify_request_count: number; agent_generate_request_count: number; confirmed_order_count: number; confirmed_order_volume: number };
   return {
     totalBalance: row.total_balance,
+    totalRecharged: row.total_recharged,
     totalGranted: row.total_granted,
     totalSpent: row.total_spent,
     agentSpent: row.agent_spent,

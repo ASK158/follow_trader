@@ -1,6 +1,7 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# 每日 02:30 备份并上传异地存储；每日 08:00 同步交易信号。
+# 每日 02:30 备份并上传异地存储；03:15 对账充值；每日 08:00 同步交易信号。
 30 2 * * * root /usr/local/sbin/signal-web-backup >> /var/log/signal-web-backup.log 2>&1
+15 3 * * * root /usr/local/sbin/signal-web-reconcile-recharges >> /var/log/signal-web-recharge-reconcile.log 2>&1
 0 8 * * * root /usr/local/sbin/signal-web-sync >> /var/log/signal-web-sync.log 2>&1

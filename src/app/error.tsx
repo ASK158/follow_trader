@@ -47,7 +47,6 @@ export default function Error({ error, retry }: { error: Error & { digest?: stri
             <i aria-hidden="true">·</i>
             <Link href="/risk-disclosure">风险披露</Link>
           </span>
-          <span>自动交易具有风险，历史表现不代表未来收益。</span>
         </div>
       </footer>
     </main>

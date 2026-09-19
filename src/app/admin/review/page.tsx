@@ -21,7 +21,7 @@ export default async function AdminReviewPage() {
   return (
     <main className="platform-shell developer-shell">
       <SiteNav active="developer" />
-      <div className="platform-breadcrumb"><Link href="/developer">← 返回个人中心</Link><span>REVIEW QUEUE · {pending.length}</span></div>
+      <div className="platform-breadcrumb"><Link href="/admin">← 返回管理员中心</Link><span>REVIEW QUEUE · {pending.length}</span></div>
       <header className="dev-form-header"><span className="panel-code">ADMIN REVIEW</span><h1>上架审核队列</h1><p>审核开发者提交的作品。通过后自动上架商城；驳回需填写原因，开发者可修改后重新提交。</p></header>
       <section className="dev-product-list" aria-label="待审核作品">
         {pending.length === 0 ? (
