@@ -89,7 +89,7 @@ export function AccountMenu({ name, username, avatarUrl, gaBalance, isAdmin = fa
         onClick={() => setOpen((value) => !value)}
       >
         <UserAvatar name={name} src={avatarUrl} size={34} />
-        <span><b>{name}</b></span>
+        <span className="account-menu-name"><b>{name}</b></span>
         <i aria-hidden="true">⌄</i>
       </button>
       <Link href="/messages" className="site-message-link" aria-label={unreadCount ? `消息，${unreadCount} 条未读` : "消息"} title="消息">
