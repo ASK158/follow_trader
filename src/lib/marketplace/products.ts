@@ -18,6 +18,7 @@ export type CatalogProduct = MarketplaceProduct & {
   origin: "official" | "community";
   developerId?: string;
   developerUsername?: string;
+  developerAvatarUrl?: string | null;
   status?: ProductStatus;
   isTemplate?: boolean;
   views: number;
@@ -231,7 +232,11 @@ export function listPublicUserProducts(userId: string): CatalogProduct[] {
   return getCatalogProducts().filter((product) => ids.has(product.id));
 }
 
-function getDeveloperIdentity(developerId: string): { developer: string; developerUsername?: string } {
-  const row = getMarketplaceDb().prepare("SELECT name, username FROM developers WHERE id = ?").get(developerId) as { name: string; username: string | null } | undefined;
-  return { developer: row?.name ?? "社区用户", developerUsername: row?.username ?? undefined };
+function getDeveloperIdentity(developerId: string): { developer: string; developerUsername?: string; developerAvatarUrl: string | null } {
+  const row = getMarketplaceDb().prepare("SELECT name, username, avatar_filename FROM developers WHERE id = ?").get(developerId) as { name: string; username: string | null; avatar_filename: string | null } | undefined;
+  return {
+    developer: row?.name ?? "社区用户",
+    developerUsername: row?.username ?? undefined,
+    developerAvatarUrl: row?.avatar_filename ? `/api/users/${developerId}/avatar` : null,
+  };
 }

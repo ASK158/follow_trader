@@ -37,7 +37,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
     <div className="platform-breadcrumb"><Link href="/marketplace">← 返回交易工具市场</Link><span>PERSONAL PROFILE</span></div>
     <header className="profile-header">
       <UserAvatar name={profile.name} src={profile.avatarUrl} size={136} />
-      <div className="profile-intro"><span className="panel-code">SIGMA MEMBER</span><h1>{profile.name}</h1><b className="profile-username">@{profile.username}</b><p>{profile.bio || "这位用户还没有填写个人简介。"}</p>{profile.location && <small>所在地：{profile.location}</small>}{profile.contact && <small>联系方式：{profile.contact}</small>}{profile.websiteUrl && <a href={profile.websiteUrl} target="_blank" rel="noreferrer">个人网站 ↗</a>}</div>
+      <div className="profile-intro"><span className="panel-code">SIGMA MEMBER</span><h1>{profile.name}</h1><p>{profile.bio || "这位用户还没有填写个人简介。"}</p>{profile.location && <small>所在地：{profile.location}</small>}{profile.contact && <small>联系方式：{profile.contact}</small>}{profile.websiteUrl && <a href={profile.websiteUrl} target="_blank" rel="noreferrer">个人网站 ↗</a>}</div>
       <div className="profile-actions">{isSelf ? <Link href="/account/profile" className="profile-primary-button">编辑资料</Link> : <><FollowButton userId={profile.id} initialFollowing={profile.isFollowing} initialCount={profile.followerCount} />{profile.canMessage && <MessageUserButton userId={profile.id} />}</>}</div>
     </header>
     <section className="profile-stats" aria-label="公开统计">
@@ -49,7 +49,7 @@ export default async function PublicProfilePage({ params, searchParams }: Props)
     {activeTab === "products" && (products.length ? <section className="market-grid">{products.map((product) => <MarketplaceCard key={product.id} product={product} isFavorite={viewerFavorites.has(product.id)} />)}</section> : <section className="profile-empty">还没有已上架的商城作品</section>)}
     {activeTab === "observation" && <section className="profile-content-list">{observations.length ? observations.map((account) => <Link href={`/observation/${account.id}`} key={account.id} className="profile-content-card"><span>{account.platform} · {account.accountType}</span><b>{account.title}</b><p>{account.summary}</p><small>{account.views} 次浏览 · {account.commentCount} 条评论</small></Link>) : <div className="profile-empty">还没有公开观摩账号</div>}</section>}
     {activeTab === "favorites" && <section className="market-grid">{favoriteProducts.length ? favoriteProducts.map((product) => <MarketplaceCard key={product.id} product={product} isFavorite={viewerFavorites.has(product.id)} />) : <div className="profile-empty">公开收藏夹为空</div>}</section>}
-    {activeTab === "about" && <section className="profile-about"><h2>关于 {profile.name}</h2><p>{profile.bio || "暂未填写个人简介。"}</p><dl><div><dt>用户名</dt><dd>@{profile.username}</dd></div><div><dt>加入时间</dt><dd>{new Date(profile.createdAt).toLocaleDateString("zh-CN")}</dd></div>{profile.location && <div><dt>地区</dt><dd>{profile.location}</dd></div>}</dl></section>}
+    {activeTab === "about" && <section className="profile-about"><h2>关于 {profile.name}</h2><p>{profile.bio || "暂未填写个人简介。"}</p><dl><div><dt>加入时间</dt><dd>{new Date(profile.createdAt).toLocaleDateString("zh-CN")}</dd></div>{profile.location && <div><dt>地区</dt><dd>{profile.location}</dd></div>}</dl></section>}
     <SiteFooter notice="个人主页仅展示用户主动公开的信息、已上架商城作品和公开观摩账号。" />
   </main>;
 }

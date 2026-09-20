@@ -8,7 +8,6 @@ type NavSection = "signals" | "marketplace" | "favorites" | "agent" | "tutorials
 type Props = {
   active: NavSection;
   signedIn: boolean;
-  username?: string;
 };
 
 const items: Array<{ key: NavSection; href: string; label: string }> = [
@@ -19,7 +18,7 @@ const items: Array<{ key: NavSection; href: string; label: string }> = [
   { key: "agent", href: "/agent", label: "AI 实验室" },
 ];
 
-export function SiteNavMenu({ active, signedIn, username }: Props) {
+export function SiteNavMenu({ active, signedIn }: Props) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -53,8 +52,7 @@ export function SiteNavMenu({ active, signedIn, username }: Props) {
             {item.label}
           </Link>
         ))}
-        <Link href={signedIn && username ? `/u/${username}` : "/developer/login"} className={active === "developer" ? "active" : ""} aria-current={active === "developer" ? "page" : undefined} onClick={closeMenu}>{signedIn ? "个人主页" : "注册 / 登录"}</Link>
-        {signedIn && <><Link href="/account/profile" onClick={closeMenu}>个人资料</Link><Link href="/account" onClick={closeMenu}>账户与安全</Link></>}
+        {!signedIn && <Link href="/developer/login" className={active === "developer" ? "active" : ""} aria-current={active === "developer" ? "page" : undefined} onClick={closeMenu}>注册 / 登录</Link>}
       </nav>
     </div>
   );

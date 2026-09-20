@@ -11,6 +11,7 @@ export type ObservationAccount = {
   ownerId: string;
   ownerName: string;
   ownerUsername: string;
+  ownerAvatarUrl: string | null;
   title: string;
   platform: ObservationPlatform;
   accountType: ObservationAccountType;
@@ -31,7 +32,7 @@ export type ObservationAccountInput = Pick<ObservationAccount, "title" | "platfo
 };
 
 type ObservationRow = {
-  id: string; owner_id: string; owner_name: string; owner_username: string; title: string; platform: ObservationPlatform;
+  id: string; owner_id: string; owner_name: string; owner_username: string; owner_avatar: string | null; title: string; platform: ObservationPlatform;
   account_type: ObservationAccountType; account_number: string; server_name: string; investor_password: string;
   description: string; views: number; comment_count: number; created_at: string; updated_at: string;
 };
@@ -43,6 +44,7 @@ function rowToAccount(row: ObservationRow): ObservationAccount {
     ownerId: row.owner_id,
     ownerName: row.owner_name,
     ownerUsername: row.owner_username,
+    ownerAvatarUrl: row.owner_avatar ? `/api/users/${row.owner_id}/avatar` : null,
     title: row.title,
     platform: row.platform,
     accountType: row.account_type,
@@ -58,7 +60,7 @@ function rowToAccount(row: ObservationRow): ObservationAccount {
 }
 
 const selectAccounts = `
-  SELECT accounts.*, developers.name AS owner_name, developers.username AS owner_username,
+  SELECT accounts.*, developers.name AS owner_name, developers.username AS owner_username, developers.avatar_filename AS owner_avatar,
     (SELECT COUNT(*) FROM observation_comments comments WHERE comments.account_id = accounts.id AND comments.is_hidden = 0) AS comment_count
   FROM observation_accounts accounts
   JOIN developers ON developers.id = accounts.owner_id

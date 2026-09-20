@@ -1,12 +1,9 @@
 import "server-only";
-import { ProxyAgent, fetch } from "undici";
 import type { AgentAttachment, AgentMessage, AgentProgramType } from "./types";
 import { getAgentModelConfig } from "./model-config";
+import { fetchAgentProvider } from "./provider";
 
 export { getAgentModelConfig } from "./model-config";
-
-const proxyUrl = process.env.HTTPS_PROXY ?? process.env.HTTP_PROXY;
-const dispatcher = proxyUrl ? new ProxyAgent(proxyUrl) : undefined;
 
 export const agentSystemPrompt = `你是熟悉 MT5、MQL5、量化策略与技术指标开发的中文助手。你既能解答一般问题，也能根据创建需求生成结构明确、可审查的 MT5 Expert Advisor 或 MQL5 自定义指标。
 
@@ -114,29 +111,26 @@ function withAttachments(messages: AgentMessage[], attachments: AgentAttachment[
   });
 }
 
-async function* streamCompletion(messages: AgentMessage[], systemPrompt: string, attachments: AgentAttachment[] = []): AsyncGenerator<string> {
+export type AgentModelRequestContext = { signal?: AbortSignal; requestId?: string; conversationId?: string | null; userId?: string };
+
+async function* streamCompletion(messages: AgentMessage[], systemPrompt: string, attachments: AgentAttachment[] = [], context: AgentModelRequestContext = {}): AsyncGenerator<string> {
   const config = getAgentModelConfig();
-  const response = await fetch(config.endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.apiKey}`,
-    },
-    body: JSON.stringify({
+  const response = await fetchAgentProvider({
+    endpoint: config.endpoint,
+    model: config.model,
+    apiKey: config.apiKey,
+    signal: context.signal,
+    requestId: context.requestId,
+    conversationId: context.conversationId,
+    userId: context.userId,
+    body: {
       model: config.model,
       messages: [{ role: "system", content: systemPrompt }, ...withAttachments(messages, attachments)],
       stream: true,
       temperature: 0.2,
-    }),
-    signal: AbortSignal.timeout(180_000),
-    ...(dispatcher ? { dispatcher } : {}),
+    },
   });
 
-  if (!response.ok) {
-    const detail = (await response.text()).slice(0, 500);
-    const attachmentHint = attachments.length && response.status === 400 ? "；当前 AI 模型可能不支持所选图片或文档，请更换支持多模态/文件输入的模型" : "";
-    throw new Error(`模型服务返回 ${response.status}${detail ? `：${detail}` : ""}${attachmentHint}`);
-  }
   if (!response.body) throw new Error("模型服务没有返回响应流");
 
   const reader = response.body.getReader();
@@ -164,14 +158,14 @@ async function* streamCompletion(messages: AgentMessage[], systemPrompt: string,
   }
 }
 
-export function streamModelCompletion(messages: AgentMessage[], attachments: AgentAttachment[] = []): AsyncGenerator<string> {
-  return streamCompletion(messages, agentSystemPrompt, attachments);
+export function streamModelCompletion(messages: AgentMessage[], attachments: AgentAttachment[] = [], context: AgentModelRequestContext = {}): AsyncGenerator<string> {
+  return streamCompletion(messages, agentSystemPrompt, attachments, context);
 }
 
-export function streamModificationCompletion(prompt: string, attachments: AgentAttachment[] = []): AsyncGenerator<string> {
-  return streamCompletion([{ role: "user", content: prompt }], modificationSystemPrompt, attachments);
+export function streamModificationCompletion(prompt: string, attachments: AgentAttachment[] = [], context: AgentModelRequestContext = {}): AsyncGenerator<string> {
+  return streamCompletion([{ role: "user", content: prompt }], modificationSystemPrompt, attachments, context);
 }
 
-export function streamRepairCompletion(prompt: string, programType: AgentProgramType): AsyncGenerator<string> {
-  return streamCompletion([{ role: "user", content: prompt }], repairSystemPrompt(programType));
+export function streamRepairCompletion(prompt: string, programType: AgentProgramType, context: AgentModelRequestContext = {}): AsyncGenerator<string> {
+  return streamCompletion([{ role: "user", content: prompt }], repairSystemPrompt(programType), [], context);
 }

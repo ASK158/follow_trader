@@ -44,5 +44,6 @@ test("旧 Agent 计费表可升级到小数价格和价格快照结构", async (
   const columns = db.prepare("PRAGMA table_info(agent_billing_requests)").all() as Array<{ name: string }>;
   assert.ok(columns.some((column) => column.name === "reserved_gas_amount"));
   assert.ok(columns.some((column) => column.name === "pricing_json"));
-  assert.equal((db.prepare("SELECT COUNT(*) AS count FROM platform_settings").get() as { count: number }).count, 12);
+  assert.equal((db.prepare("SELECT value FROM platform_settings WHERE key = 'agent_retention_days'").get() as { value: string }).value, "365");
+  assert.ok((db.prepare("SELECT COUNT(*) AS count FROM platform_settings").get() as { count: number }).count >= 13);
 });

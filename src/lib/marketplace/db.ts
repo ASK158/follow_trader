@@ -150,6 +150,83 @@ export function getMarketplaceDb(): Database.Database {
       request_count INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (user_id, usage_date)
     );
+    CREATE TABLE IF NOT EXISTS agent_conversations (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      summary_text TEXT NOT NULL DEFAULT '',
+      message_count INTEGER NOT NULL DEFAULT 0,
+      last_message_preview TEXT NOT NULL DEFAULT '',
+      retention_days INTEGER NOT NULL DEFAULT 365 CHECK (retention_days IN (30, 90, 365, 36500)),
+      expires_at TEXT,
+      deleted_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_conversations_user ON agent_conversations(user_id, deleted_at, updated_at DESC, id DESC);
+    CREATE TABLE IF NOT EXISTS agent_messages (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL REFERENCES agent_conversations(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      seq INTEGER NOT NULL,
+      request_id TEXT,
+      role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
+      content TEXT NOT NULL,
+      attachments_json TEXT NOT NULL DEFAULT '[]',
+      artifact_json TEXT,
+      model_content TEXT,
+      status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'failed', 'cancelled')),
+      provider_latency_ms INTEGER,
+      compile_latency_ms INTEGER,
+      created_at TEXT NOT NULL,
+      completed_at TEXT,
+      UNIQUE (conversation_id, seq),
+      UNIQUE (request_id, role)
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_messages_conversation ON agent_messages(conversation_id, seq DESC);
+    CREATE INDEX IF NOT EXISTS idx_agent_messages_user ON agent_messages(user_id, created_at DESC);
+    CREATE TABLE IF NOT EXISTS agent_compile_jobs (
+      id TEXT PRIMARY KEY,
+      request_id TEXT NOT NULL,
+      conversation_id TEXT REFERENCES agent_conversations(id) ON DELETE SET NULL,
+      user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      strategy_name TEXT NOT NULL,
+      code_text TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'running', 'completed', 'failed', 'cancelled')),
+      result_json TEXT,
+      last_error TEXT,
+      queued_at TEXT NOT NULL,
+      started_at TEXT,
+      finished_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_compile_jobs_status ON agent_compile_jobs(status, queued_at);
+    CREATE TABLE IF NOT EXISTS agent_compile_slots (
+      slot_number INTEGER PRIMARY KEY,
+      job_id TEXT UNIQUE REFERENCES agent_compile_jobs(id) ON DELETE SET NULL,
+      claimed_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS agent_provider_circuits (
+      circuit_key TEXT PRIMARY KEY,
+      failure_count INTEGER NOT NULL DEFAULT 0,
+      state TEXT NOT NULL DEFAULT 'closed' CHECK (state IN ('closed', 'open', 'half-open')),
+      opened_until INTEGER,
+      probe_started_at INTEGER,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS agent_request_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      request_id TEXT NOT NULL,
+      conversation_id TEXT,
+      user_id TEXT,
+      event_type TEXT NOT NULL,
+      duration_ms INTEGER,
+      input_tokens INTEGER,
+      output_tokens INTEGER,
+      metadata TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_request_events_created ON agent_request_events(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_agent_request_events_request ON agent_request_events(request_id, id);
     CREATE TABLE IF NOT EXISTS platform_settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL,
@@ -354,6 +431,7 @@ export function getMarketplaceDb(): Database.Database {
     agent_modify_cost: "0.5",
     agent_generate_cost: "1",
     agent_minimum_gas_to_start: "1",
+    agent_retention_days: "365",
     registration_ip_daily_limit: "3",
     registration_device_30d_limit: "2",
     registration_risk_threshold: "50",
@@ -512,6 +590,41 @@ export function getMarketplaceDb(): Database.Database {
     `);
   }
   addColumn("agent_billing_requests", "pricing_json", "TEXT NOT NULL DEFAULT '{}'");
+  const agentBillingForeignKeys = db.prepare("PRAGMA foreign_key_list(agent_billing_requests)").all() as Array<{ table: string }>;
+  if (agentBillingForeignKeys.some((foreignKey) => foreignKey.table === "ga_transactions_legacy")) {
+    db.exec(`
+      PRAGMA foreign_keys = OFF;
+      BEGIN;
+      ALTER TABLE agent_billing_requests RENAME TO agent_billing_requests_legacy;
+      CREATE TABLE agent_billing_requests (
+        request_id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+        source TEXT NOT NULL CHECK (source IN ('free', 'gas', 'admin')),
+        status TEXT NOT NULL DEFAULT 'reserved' CHECK (status IN ('reserved', 'committed', 'released')),
+        action TEXT NOT NULL DEFAULT 'generate' CHECK (action IN ('chat', 'modify', 'generate')),
+        reserved_gas_amount REAL NOT NULL DEFAULT 0 CHECK (reserved_gas_amount >= 0),
+        gas_amount REAL NOT NULL DEFAULT 0 CHECK (gas_amount >= 0),
+        pricing_json TEXT NOT NULL DEFAULT '{}',
+        charge_transaction_id TEXT REFERENCES ga_transactions(id) ON DELETE SET NULL,
+        refund_transaction_id TEXT REFERENCES ga_transactions(id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      INSERT INTO agent_billing_requests (
+        request_id, user_id, source, status, action, reserved_gas_amount, gas_amount, pricing_json,
+        charge_transaction_id, refund_transaction_id, created_at, updated_at
+      )
+      SELECT request_id, user_id, source, status, action, reserved_gas_amount, gas_amount, pricing_json,
+        charge_transaction_id, refund_transaction_id, created_at, updated_at
+      FROM agent_billing_requests_legacy;
+      DROP TABLE agent_billing_requests_legacy;
+      CREATE INDEX idx_agent_billing_user ON agent_billing_requests(user_id, created_at DESC);
+      CREATE INDEX idx_agent_billing_status ON agent_billing_requests(status, created_at);
+      INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES ('agent-billing-ledger-foreign-key-v1', '${now}');
+      COMMIT;
+      PRAGMA foreign_keys = ON;
+    `);
+  }
   db.prepare("UPDATE developers SET updated_at = COALESCE(updated_at, created_at)").run();
   const emailVerificationMigration = db.prepare("SELECT 1 FROM schema_migrations WHERE name = 'email-verification-v1'").get();
   if (!emailVerificationMigration) {

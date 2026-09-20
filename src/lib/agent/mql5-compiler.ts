@@ -14,7 +14,8 @@ function extractCount(log: string, kind: "error" | "warning"): number {
   return summary ? Number(summary[1]) : 0;
 }
 
-export async function compileMql5(code: string, strategyName: string): Promise<Mql5Compilation> {
+export async function compileMql5(code: string, strategyName: string, signal?: AbortSignal): Promise<Mql5Compilation> {
+  if (signal?.aborted) throw new DOMException("请求已取消", "AbortError");
   if (process.platform !== "win32" || !existsSync(/* turbopackIgnore: true */ editorPath)) {
     return { status: "unavailable", summary: "当前运行环境未检测到 MetaEditor，未执行编译验证。", errors: 0, warnings: 0, log: "" };
   }
@@ -35,12 +36,19 @@ export async function compileMql5(code: string, strategyName: string): Promise<M
         callback();
       };
       const child = spawn(/* turbopackIgnore: true */ editorPath, [`/compile:${sourcePath}`, `/log:${logPath}`], { windowsHide: true, stdio: "ignore" });
+      const abort = () => {
+        child.kill();
+        finish(() => reject(new DOMException("请求已取消", "AbortError")));
+      };
       const timer = setTimeout(() => {
         child.kill();
         finish(() => reject(new Error("MetaEditor 编译超时（60 秒）")));
       }, 60_000);
+      signal?.addEventListener("abort", abort, { once: true });
+      if (signal?.aborted) abort();
       child.once("error", (error) => finish(() => reject(error)));
       child.once("exit", () => {
+        signal?.removeEventListener("abort", abort);
         finish(resolve);
       });
     });

@@ -10,6 +10,8 @@ import { Mt5InputParameters } from "./mt5-input-parameters";
 import { StrategyFlow } from "./strategy-flow";
 import { StrategyNodeEditor } from "./strategy-node-editor";
 import type { AgentBillingStatus } from "@/lib/agent/billing";
+import { agentDraftsKey, clearLegacyAgentDrafts, readUserDrafts } from "@/lib/agent/client-drafts";
+import { UserAvatar } from "./user-avatar";
 
 type UiMessage = AgentMessage & {
   id: string;
@@ -28,21 +30,18 @@ type PendingChange = {
   specSummary?: string;
 };
 
-const DRAFTS_KEY = "sigma-agent-drafts-v1";
 const MAX_ATTACHMENTS = 3;
 const MAX_ATTACHMENT_BYTES = 5_000_000;
 const MAX_TOTAL_ATTACHMENT_BYTES = 8_000_000;
 const TEXT_DOCUMENT_EXTENSIONS = new Set(["txt", "md", "markdown", "csv", "json", "xml", "mq4", "mq5", "mqh", "js", "jsx", "ts", "tsx", "py", "ini", "log"]);
 const examples = ["用 EMA20/EMA50 金叉死叉交易 EURUSD H1，单笔风险 1%", "创建一个 MT5 自定义 RSI 背离指标，在副图绘制信号并弹窗提醒", "写一个布林带突破 EA，加入点差过滤、移动止损和每日亏损上限"];
 
-function readDrafts(): SavedDraft[] {
+function readDrafts(userId: string): SavedDraft[] {
   if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(DRAFTS_KEY) ?? "[]") as SavedDraft[];
-  } catch {
-    return [];
-  }
+  return readUserDrafts<SavedDraft>(localStorage, userId);
 }
+
+type ConversationSummary = { id: string; title: string; summary: string; messageCount: number; lastMessagePreview: string; retentionDays: number; createdAt: string; updatedAt: string };
 
 function safeFilename(name: string) {
   return `${name.trim().replace(/[\\/:*?"<>|\s]+/g, "_").replace(/^_+|_+$/g, "") || "strategy"}.mq5`;
@@ -98,7 +97,7 @@ function summarizeSpecChanges(previous: StrategySpec, next: StrategySpec, fallba
   return changes.length ? changes.slice(0, 5).join("；") : fallback;
 }
 
-export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillingStatus }) {
+export function AgentWorkbench({ initialBilling, userId, userName, userAvatarUrl }: { initialBilling: AgentBillingStatus; userId: string; userName: string; userAvatarUrl: string | null }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [modelMessages, setModelMessages] = useState<AgentMessage[]>([]);
@@ -113,6 +112,10 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
   const [isGenerating, setIsGenerating] = useState(false);
   const [drafts, setDrafts] = useState<SavedDraft[]>([]);
   const [draftId, setDraftId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [conversationCursor, setConversationCursor] = useState<string | null>(null);
+  const [messageCursor, setMessageCursor] = useState<number | null>(null);
   const [isDiagramReady, setIsDiagramReady] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
   const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
@@ -126,14 +129,16 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
-      setDrafts(readDrafts());
+      clearLegacyAgentDrafts(localStorage);
+      setDrafts(readDrafts(userId));
       localStorage.removeItem("sigma-agent-model-config-v1");
     });
     void fetch("/api/agent/drafts").then((response) => response.ok ? response.json() : null).then((result) => {
       if (result?.drafts) setDrafts(result.drafts as SavedDraft[]);
     }).catch(() => undefined);
+    void refreshConversations();
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [userId]);
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamedReply, status]);
@@ -147,6 +152,48 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
   }, []);
 
   const displayedCode = streamedCode || artifact?.code || "// 在左侧描述需求，生成的完整 MQL5 EA 或自定义指标将流式显示在这里。";
+  async function refreshConversations(cursor?: string | null) {
+    const response = await fetch(`/api/agent/conversations?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
+    if (!response.ok) return;
+    const result = await response.json() as { conversations?: ConversationSummary[]; nextCursor?: string | null };
+    setConversations((current) => cursor ? [...current, ...(result.conversations ?? [])] : result.conversations ?? []);
+    setConversationCursor(result.nextCursor ?? null);
+  }
+
+  async function loadConversation(id: string) {
+    if (isGenerating) return;
+    const response = await fetch(`/api/agent/conversations/${id}?limit=100`);
+    if (!response.ok) { setError("无法加载该会话"); return; }
+    const result = await response.json() as { conversation: ConversationSummary; messages: Array<{ id: string; role: "user" | "assistant" | "system"; content: string; attachments?: UiMessage["attachments"]; artifact?: AgentArtifact | null }>; nextBeforeSeq?: number | null };
+    const visible = result.messages.filter((message) => message.role !== "system").map((message) => ({ id: message.id, role: message.role as "user" | "assistant", content: message.content, attachments: message.attachments }));
+    const latestArtifact = [...result.messages].reverse().find((message) => message.artifact)?.artifact ?? null;
+    setConversationId(id); setDraftId(null); setMessages(visible); setModelMessages(visible.map(({ role, content }) => ({ role, content })));
+    setMessageCursor(result.nextBeforeSeq ?? null);
+    setArtifact(latestArtifact); setPendingChange(null); setError(""); setStatus(`已打开：${result.conversation.title}`);
+  }
+
+  async function loadOlderMessages() {
+    if (!conversationId || messageCursor === null) return;
+    const response = await fetch(`/api/agent/conversations/${conversationId}?limit=50&beforeSeq=${messageCursor}`);
+    if (!response.ok) return;
+    const result = await response.json() as { messages: Array<{ id: string; role: "user" | "assistant" | "system"; content: string; attachments?: UiMessage["attachments"] }>; nextBeforeSeq?: number | null };
+    const older = result.messages.filter((message) => message.role !== "system").map((message) => ({ id: message.id, role: message.role as "user" | "assistant", content: message.content, attachments: message.attachments }));
+    setMessages((current) => [...older, ...current]);
+    setModelMessages((current) => [...older.map(({ role, content }) => ({ role, content })), ...current]);
+    setMessageCursor(result.nextBeforeSeq ?? null);
+  }
+
+  async function deleteConversation(id: string) {
+    if (!window.confirm("确定删除这个会话吗？会话将在 7 天后永久清理。")) return;
+    const response = await fetch(`/api/agent/conversations/${id}`, { method: "DELETE" });
+    if (!response.ok) return;
+    if (conversationId === id) startNewConversation();
+    await refreshConversations();
+  }
+
+  function startNewConversation() {
+    setMessages([]); setModelMessages([]); setArtifact(null); setPendingChange(null); setSelectedNodeId(null); setDraftId(null); setConversationId(null); setMessageCursor(null); setAttachments([]); setError(""); setStatus("已新建会话");
+  }
   async function addFiles(files: File[]) {
     if (!files.length || isGenerating) return;
     setError("");
@@ -213,7 +260,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
       const response = await fetch("/api/agent/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requestId: createClientUuid(), messages: currentStrategy ? [{ role: "user", content }] : nextModelMessages, ...(selectedAttachments.length ? { attachments: selectedAttachments } : {}), ...(currentStrategy ? { currentStrategy, hasPendingChange: Boolean(pendingChange), requestedSpec } : {}) }),
+        body: JSON.stringify({ requestId: createClientUuid(), conversationId: conversationId ?? undefined, messages: currentStrategy ? [{ role: "user", content }] : nextModelMessages, ...(selectedAttachments.length ? { attachments: selectedAttachments } : {}), ...(currentStrategy ? { currentStrategy, hasPendingChange: Boolean(pendingChange), requestedSpec } : {}) }),
         signal: controller.signal,
       });
       if (!response.ok) {
@@ -237,6 +284,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
         for (const line of lines) {
           if (!line.trim()) continue;
           const event = JSON.parse(line) as AgentStreamEvent;
+          if (event.type === "conversation") setConversationId(event.conversationId);
           if (event.type === "status") setStatus(event.message);
           if (event.type === "billing") setBilling({ freeRemaining: event.freeRemaining, freeEligible: event.freeEligible, gasBalance: event.gasBalance, isAdmin: event.isAdmin, pricing: event.pricing });
           if (event.type === "reply-delta") setStreamedReply((current) => current + event.delta);
@@ -262,6 +310,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
         setMessages((current) => [...current, { id: createClientUuid(), role: "assistant", content: finalAnswer }]);
         setModelMessages([...nextModelMessages, { role: "assistant", content: finalModelContent }]);
         setStatus("已回答问题，未修改当前策略");
+        void refreshConversations();
         return;
       }
       if (!finalArtifact) throw new Error("生成已结束，但没有收到完整策略");
@@ -277,6 +326,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
       setMessages((current) => [...current, { id: createClientUuid(), role: "assistant", content: finalArtifact!.reply }]);
       setModelMessages([...nextModelMessages, { role: "assistant", content: finalModelContent }]);
       setStatus(finalArtifact.changes?.length ? `已局部更新 ${finalArtifact.changes.length} 个代码块，并完成策略验证` : "策略、代码和逻辑图已生成");
+      void refreshConversations();
     } catch (caught) {
       if (controller.signal.aborted) {
         setStatus("生成已停止");
@@ -340,7 +390,7 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
     const title = artifact?.spec.name ?? firstUserMessage?.slice(0, 36) ?? "Agent 对话";
     const draft: SavedDraft = { id, title, artifact, messages, modelMessages, updatedAt: now };
     const next = [draft, ...drafts.filter((item) => item.id !== id)].slice(0, 20);
-    localStorage.setItem(DRAFTS_KEY, JSON.stringify(next));
+    localStorage.setItem(agentDraftsKey(userId), JSON.stringify(next));
     setDrafts(next);
     setDraftId(id);
     try {
@@ -397,17 +447,19 @@ export function AgentWorkbench({ initialBilling }: { initialBilling: AgentBillin
       <aside className="agent-sidebar">
         <div><span className="agent-kicker">AI MQL5 ARCHITECT</span><h1>MT5 程序 Agent</h1><p>通过多轮对话，把交易想法转化为结构化 EA 或自定义指标、逻辑图和可编辑的 MQL5 源码。</p></div>
         <div className="agent-billing-card"><span>{billing.isAdmin ? "管理员免计费" : billing.freeEligible ? `免费 ${billing.freeRemaining}/${billing.pricing.freeUsageLimit} 次 · ${billing.gasBalance} Gas` : `无免费额度 · ${billing.gasBalance} Gas`}</span><small>{billing.isAdmin ? "调用仍会记录用量与审计" : `对话 ${billing.pricing.chatCost} · 修改 ${billing.pricing.modifyCost} · 完整生成 ${billing.pricing.generateCost} Gas；免费用尽后需至少 ${billing.pricing.minimumGasToStart} Gas 才能发起`}</small></div>
-        <button className="new-chat-button" onClick={() => { setMessages([]); setModelMessages([]); setArtifact(null); setPendingChange(null); setSelectedNodeId(null); setDraftId(null); setAttachments([]); setError(""); setStatus("已新建会话"); }} disabled={isGenerating}>＋ 新建对话</button>
-        <div className="draft-list"><span>我的云端草稿</span>{drafts.length ? drafts.map((draft) => <button key={draft.id} className={draft.id === draftId ? "active" : ""} onClick={() => loadDraft(draft)}><b>{draft.title}</b><small>{new Date(draft.updatedAt).toLocaleString("zh-CN")}</small></button>) : <p>保存后的策略会显示在这里</p>}</div>
-        <div className="agent-note">草稿与当前账户同步；浏览器中同时保留离线副本。</div>
+        <button className="new-chat-button" onClick={startNewConversation} disabled={isGenerating}>＋ 新建对话</button>
+        <div className="draft-list"><span>跨设备会话</span>{conversations.length ? conversations.map((item) => <div key={item.id}><button className={item.id === conversationId ? "active" : ""} onClick={() => void loadConversation(item.id)}><b>{item.title}</b><small>{new Date(item.updatedAt).toLocaleString("zh-CN")}</small></button><div className="agent-conversation-actions"><a href={`/api/agent/conversations/${item.id}/export`} title="导出会话">导出</a><button type="button" onClick={() => void deleteConversation(item.id)} title="删除会话">删除</button></div></div>) : <p>发送消息后会自动保存</p>}{conversationCursor ? <button className="agent-load-more" onClick={() => void refreshConversations(conversationCursor)}>加载更多会话</button> : null}</div>
+        {drafts.length ? <div className="draft-list"><span>当前账户的离线草稿</span>{drafts.map((draft) => <button key={draft.id} className={draft.id === draftId ? "active" : ""} onClick={() => loadDraft(draft)}><b>{draft.title}</b><small>{new Date(draft.updatedAt).toLocaleString("zh-CN")}</small></button>)}</div> : null}
+        {conversationId ? <label className="agent-note">保留策略 <select value={conversations.find((item) => item.id === conversationId)?.retentionDays ?? 365} onChange={(event) => { const retentionDays = Number(event.target.value); void fetch(`/api/agent/conversations/${conversationId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ retentionDays }) }).then(() => refreshConversations()); }}><option value="30">30 天</option><option value="90">90 天</option><option value="365">365 天</option><option value="36500">永久</option></select></label> : <div className="agent-note">会话自动保存并与当前账户同步；离线草稿按账户隔离。</div>}
       </aside>
 
       <section className="agent-chat-panel">
         <header><div><b>需求对话</b><small>{status}</small></div><span className={isGenerating ? "agent-live active" : "agent-live"}><i />{isGenerating ? "生成中" : "就绪"}</span></header>
         <div className="agent-messages">
+          {messageCursor !== null ? <button className="agent-load-more" onClick={() => void loadOlderMessages()}>加载更早消息</button> : null}
           {!messages.length && !streamedReply && <div className="agent-welcome"><span>Σ</span><h2>描述你的 EA 或指标</h2><p>请先说明要生成 EA 还是自定义指标，并尽量写明品种、周期、规则、显示方式或风险要求。</p><div>{examples.map((example) => <button key={example} onClick={() => void submit(example)}>{example}</button>)}</div></div>}
-          {messages.map((message) => <article key={message.id} className={`chat-message ${message.role}`}><span>{message.role === "user" ? "你" : "AI"}</span><div className="chat-message-body"><p>{message.content}</p>{message.attachments?.length ? <div className="message-attachments">{message.attachments.map((item, index) => <span key={`${item.name}-${index}`}>{item.kind === "image" ? "▧" : "▤"} {item.name}</span>)}</div> : null}</div></article>)}
-          {streamedReply && <article className="chat-message assistant"><span>AI</span><p>{streamedReply}<i className="typing-cursor" /></p></article>}
+          {messages.map((message) => <article key={message.id} className={`chat-message ${message.role}`}><div className="chat-avatar"><UserAvatar name={message.role === "user" ? userName : "Sigma AI"} src={message.role === "user" ? userAvatarUrl : null} size={28} /></div><div className="chat-message-body"><p>{message.content}</p>{message.attachments?.length ? <div className="message-attachments">{message.attachments.map((item, index) => <span key={`${item.name}-${index}`}>{item.kind === "image" ? "▧" : "▤"} {item.name}</span>)}</div> : null}</div></article>)}
+          {streamedReply && <article className="chat-message assistant"><div className="chat-avatar"><UserAvatar name="Sigma AI" src={null} size={28} /></div><p>{streamedReply}<i className="typing-cursor" /></p></article>}
           {error && <div className="agent-error"><b>{errorTitle}</b><span>{error}</span></div>}
           <div ref={chatEndRef} />
         </div>

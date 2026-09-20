@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import type { User } from "@/lib/marketplace/auth";
@@ -68,6 +69,15 @@ export function ProfileSettings({ user }: { user: User }) {
 
   return <div className="profile-settings-layout">
     {message && <p className="dev-notice" role="status">{message}</p>}
+    <section className="profile-settings-card">
+      <span className="panel-code">ACCOUNT IDENTITY</span><h2>账户信息</h2>
+      <div className="profile-account-email">
+        <span><small>注册邮箱</small><strong>{user.email}</strong></span>
+        <span className={user.emailVerified ? "verified" : "unverified"}>{user.emailVerified ? "已验证" : "未验证"}</span>
+      </div>
+      <small className="profile-account-note">注册邮箱仅自己可见，不会展示在公开个人主页。</small>
+      {!user.emailVerified && <Link href="/account/resend-verification" className="profile-account-action">重新发送验证邮件</Link>}
+    </section>
     <section className="profile-settings-card">
       <span className="panel-code">PROFILE IMAGE</span><h2>头像</h2>
       <div className="avatar-editor-row">

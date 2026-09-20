@@ -11,6 +11,7 @@ fi
 
 install -m 750 "${PROJECT_DIR}/deploy/scripts/sync-signals.sh" /usr/local/sbin/signal-web-sync
 install -m 750 "${PROJECT_DIR}/deploy/scripts/reconcile-recharges.sh" /usr/local/sbin/signal-web-reconcile-recharges
+install -m 750 "${PROJECT_DIR}/deploy/scripts/cleanup-agent.sh" /usr/local/sbin/signal-web-cleanup-agent
 install -m 750 "${PROJECT_DIR}/deploy/scripts/backup-signal-data.sh" /usr/local/sbin/signal-web-backup
 install -m 750 "${PROJECT_DIR}/deploy/scripts/restore-signal-data.sh" /usr/local/sbin/signal-web-restore
 install -m 644 "${PROJECT_DIR}/deploy/signal-web.cron" /etc/cron.d/signal-web

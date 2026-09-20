@@ -18,7 +18,7 @@ export async function SiteNav({ active }: { active: NavSection }) {
   const unreadCount = currentUser ? listConversations(currentUser.id).reduce((total, conversation) => total + conversation.unreadCount, 0) : 0;
   return (
     <nav className="site-nav" aria-label="主功能导航">
-      <SiteNavMenu active={active} signedIn={Boolean(currentUser)} username={currentUser?.username} />
+      <SiteNavMenu active={active} signedIn={Boolean(currentUser)} />
       <Link href="/" className="site-brand" aria-label="Sigma Bot 首页">
         <span>Σ</span><b>SIGMA BOT</b>
       </Link>

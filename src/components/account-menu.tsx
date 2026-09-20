@@ -100,7 +100,7 @@ export function AccountMenu({ name, username, avatarUrl, gaBalance, isAdmin = fa
         <div className="account-menu-panel" role="menu" aria-label="个人中心目录">
           <header>
             <UserAvatar name={name} src={avatarUrl} size={46} />
-            <span><b>{name}</b><small>@{username}</small></span>
+            <span><b>{name}</b></span>
             <div className="account-menu-balance"><small>Gas 余额</small><b>{formatGa(gaBalance)}</b></div>
             <Link href="/account/recharge" onClick={() => setOpen(false)}>充值</Link>
           </header>

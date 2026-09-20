@@ -55,7 +55,7 @@ export default async function DeveloperDashboardPage({ searchParams }: Props) {
       <section className="personal-center-content">
       {tab === "overview" ? <header className="personal-dashboard-header">
         <UserAvatar name={developer.name} src={profile?.avatarUrl ?? null} size={76} />
-        <div className="personal-dashboard-identity"><span className="panel-code">PERSONAL CENTER</span><h1>欢迎回来，{developer.name}</h1><p>@{developer.username} · 所有用户均可提交商城作品与观摩账号</p></div>
+        <div className="personal-dashboard-identity"><span className="panel-code">PERSONAL CENTER</span><h1>欢迎回来，{developer.name}</h1><p>所有用户均可提交商城作品与观摩账号</p></div>
         <div className="personal-dashboard-balance"><small>可用 Gas</small><b>{formatGa(developer.gaBalance)}</b><Link href="/account/recharge">充值 →</Link></div>
         <div className="personal-dashboard-header-actions"><Link href={`/u/${developer.username}`} className="dev-primary-action">查看个人主页</Link></div>
       </header> : <header className="personal-section-header"><div><span className="panel-code">{tabMeta[tab].code}</span><h1>{tabMeta[tab].title}</h1><p>{tabMeta[tab].description}</p></div><Link href={tabMeta[tab].actionHref} className="dev-primary-action">{tabMeta[tab].actionLabel}</Link></header>}

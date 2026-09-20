@@ -37,13 +37,15 @@ export function consumeRateLimit(scope: string, identifier: string, limit: numbe
   const db = getMarketplaceDb();
   const key = sha256(`${process.env.AUTH_RATE_LIMIT_PEPPER ?? "sigma-local"}:${identifier.toLowerCase()}`);
   const now = Date.now();
-  const row = db.prepare("SELECT count, reset_at FROM auth_rate_limits WHERE scope = ? AND identifier_hash = ?").get(scope, key) as { count: number; reset_at: number } | undefined;
-  if (!row || row.reset_at <= now) {
-    db.prepare("INSERT INTO auth_rate_limits (scope, identifier_hash, count, reset_at) VALUES (?, ?, 1, ?) ON CONFLICT(scope, identifier_hash) DO UPDATE SET count = 1, reset_at = excluded.reset_at").run(scope, key, now + windowMs);
-    return { limited: false, retryAfter: 0 };
-  }
-  db.prepare("UPDATE auth_rate_limits SET count = count + 1 WHERE scope = ? AND identifier_hash = ?").run(scope, key);
-  return { limited: row.count >= limit, retryAfter: Math.max(1, Math.ceil((row.reset_at - now) / 1000)) };
+  return db.transaction(() => {
+    const row = db.prepare("SELECT count, reset_at FROM auth_rate_limits WHERE scope = ? AND identifier_hash = ?").get(scope, key) as { count: number; reset_at: number } | undefined;
+    if (!row || row.reset_at <= now) {
+      db.prepare("INSERT INTO auth_rate_limits (scope, identifier_hash, count, reset_at) VALUES (?, ?, 1, ?) ON CONFLICT(scope, identifier_hash) DO UPDATE SET count = 1, reset_at = excluded.reset_at").run(scope, key, now + windowMs);
+      return { limited: false, retryAfter: 0 };
+    }
+    db.prepare("UPDATE auth_rate_limits SET count = count + 1 WHERE scope = ? AND identifier_hash = ?").run(scope, key);
+    return { limited: row.count >= limit, retryAfter: Math.max(1, Math.ceil((row.reset_at - now) / 1000)) };
+  })();
 }
 
 export function clearRateLimit(scope: string, identifier: string): void {

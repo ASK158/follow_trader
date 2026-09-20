@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
+import { UserAvatar } from "@/components/user-avatar";
 import { getCurrentUser } from "@/lib/marketplace/auth";
 import { listObservationAccounts } from "@/lib/observation-accounts";
 
@@ -21,10 +22,10 @@ export default async function ObservationPage() {
         {accounts.length ? accounts.map((account) => (
           <article className="observation-card" key={account.id}>
             <header><span>{account.platform}</span><em className={account.accountType === "真实账号" ? "live" : "demo"}><i />{account.accountType}</em></header>
-            <h2>{account.title}</h2>
+            <div className="card-title-row"><h2>{account.title}</h2><Link href={`/u/${account.ownerUsername}`} className="card-author-link observation-author-link" aria-label={`查看 ${account.ownerName} 的个人主页`}><UserAvatar name={account.ownerName} src={account.ownerAvatarUrl} size={30} /><b>{account.ownerName}</b></Link></div>
             <p>{account.summary}</p>
             <dl><div><dt>服务器</dt><dd>{account.serverName}</dd></div><div><dt>账号</dt><dd>{account.accountNumber}</dd></div></dl>
-            <footer><small>{account.ownerName} · {account.views} 次浏览 · {account.commentCount} 条评论</small><Link href={`/observation/${account.id}`}>进入观摩 →</Link></footer>
+            <footer><small>{account.views} 次浏览 · {account.commentCount} 条评论</small><Link href={`/observation/${account.id}`}>进入观摩 →</Link></footer>
           </article>
         )) : <div className="dev-empty observation-empty"><b>暂时还没有观摩账号</b><p>登录后可在个人中心提交第一个 MT4 / MT5 观摩账号。</p><Link href={user ? "/developer/observation/new" : "/developer/login?next=/developer/observation/new"}>{user ? "提交观摩账号 →" : "登录后提交 →"}</Link></div>}
       </section>

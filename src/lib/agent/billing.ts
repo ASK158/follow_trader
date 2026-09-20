@@ -183,6 +183,13 @@ export function releaseStaleAgentReservations(userId: string, maxAgeMs = 30 * 60
   return rows.length;
 }
 
+export function releaseAllStaleAgentReservations(maxAgeMs = 30 * 60 * 1000): number {
+  const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
+  const rows = getMarketplaceDb().prepare("SELECT request_id, user_id FROM agent_billing_requests WHERE status = 'reserved' AND created_at < ?").all(cutoff) as Array<{ request_id: string; user_id: string }>;
+  for (const row of rows) releaseAgentUsage(row.user_id, row.request_id);
+  return rows.length;
+}
+
 export type AgentBillingRecord = {
   requestId: string;
   source: "free" | "gas" | "admin";

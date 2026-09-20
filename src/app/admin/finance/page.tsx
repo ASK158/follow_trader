@@ -12,6 +12,7 @@ import { listFinanceOrders } from "@/lib/marketplace/orders";
 import { getAdminAgentModelConfig } from "@/lib/agent/model-config";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { listAdminRecharges } from "@/lib/payments/recharges";
+import { getAgentOperationsSummary } from "@/lib/agent/metrics";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Gas 财务中心 | Sigma Bot" };
@@ -34,6 +35,7 @@ export default async function AdminFinancePage() {
   const summary = getFinanceSummary();
   const platformSettings = getPlatformSettings();
   const agentModelConfig = getAdminAgentModelConfig();
+  const agentOps = getAgentOperationsSummary(24);
   return (
     <main className="platform-shell developer-shell">
       <SiteNav active="developer" />
@@ -46,6 +48,13 @@ export default async function AdminFinancePage() {
         <article><small>累计消费</small><b>{formatGa(summary.totalSpent)}</b></article>
         <article><small>Agent 用量</small><b>{summary.agentFreeRequestCount + summary.agentPaidRequestCount} 次</b><span>对话 {summary.agentChatRequestCount} · 修改 {summary.agentModifyRequestCount} · 完整生成 {summary.agentGenerateRequestCount}</span><span>免费 {summary.agentFreeRequestCount} · 付费 {summary.agentPaidRequestCount} · {formatGa(summary.agentSpent)}</span></article>
         <article><small>已确认订单</small><b>{summary.confirmedOrderCount}</b><span>{formatGa(summary.confirmedOrderVolume)}</span></article>
+      </section>
+      <div className="finance-section-heading"><div><span className="panel-code">AGENT OPERATIONS · 24H</span><h2>AI 运行监控</h2></div><p>请求、Provider、编译队列与熔断器实时聚合</p></div>
+      <section className="finance-summary" aria-label="AI 运行监控">
+        <article><small>请求 / 成功率</small><b>{agentOps.requests} / {(agentOps.successRate * 100).toFixed(1)}%</b><span>失败 {agentOps.failed} · 取消 {agentOps.cancelled}</span></article>
+        <article><small>Provider 平均耗时</small><b>{Math.round(agentOps.provider_latency_ms)} ms</b><span>输出约 {agentOps.output_tokens} Tokens</span></article>
+        <article><small>编译成功率</small><b>{(agentOps.compilationSuccessRate * 100).toFixed(1)}%</b><span>{agentOps.compilationTotal} 个已完成编译任务 · 平均 {Math.round(agentOps.compile_latency_ms)} ms</span></article>
+        <article><small>队列 / 熔断</small><b>{(agentOps.queue as Array<{ status: string; count: number }>).filter((item) => item.status === "queued" || item.status === "running").reduce((total, item) => total + item.count, 0)} 个处理中</b><span>{(agentOps.circuits as Array<{ state: string }>).filter((item) => item.state !== "closed").length} 个异常 Provider</span></article>
       </section>
       <AdminAgentModelConfig initialConfig={agentModelConfig} />
       <AdminPlatformSettings settings={platformSettings} />

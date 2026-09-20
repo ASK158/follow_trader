@@ -213,6 +213,7 @@ export type AgentArtifact = {
 };
 
 export type AgentStreamEvent =
+  | { type: "conversation"; conversationId: string }
   | { type: "status"; message: string }
   | { type: "billing"; freeRemaining: number; freeEligible: boolean; gasBalance: number; isAdmin: boolean; pricing: { freeUsageLimit: number; chatCost: number; modifyCost: number; generateCost: number; minimumGasToStart: number }; charged: boolean; action?: "chat" | "modify" | "generate" }
   | { type: "reply-delta"; delta: string }

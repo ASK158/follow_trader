@@ -5,6 +5,7 @@ import { ObservationComments } from "@/components/observation-comments";
 import { ShareButton } from "@/components/share-button";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
+import { UserAvatar } from "@/components/user-avatar";
 import { getCurrentUser, isAdmin } from "@/lib/marketplace/auth";
 import { getObservationAccount, incrementObservationViews } from "@/lib/observation-accounts";
 import { listObservationComments } from "@/lib/observation-comments";
@@ -27,9 +28,9 @@ export default async function ObservationDetailPage({ params }: Props) {
   return (
     <main className="platform-shell observation-shell">
       <SiteNav active="observation" />
-      <div className="platform-breadcrumb"><Link href="/observation">← 返回观摩空间</Link><span>{account.platform} / {account.accountType}</span></div>
+      <div className="platform-breadcrumb"><Link href="/observation" className="platform-back-link"><svg className="back-link-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5M8.5 12H20" /></svg><span>观摩空间</span></Link><span>{account.platform} / {account.accountType}</span></div>
       <header className="observation-detail-header">
-        <div><span className="panel-code">OBSERVATION ACCOUNT / {account.platform}</span><h1>{account.title}</h1><p>由 <Link href={`/u/${account.ownerUsername}`}>{account.ownerName}</Link> 提交 · 更新于 {new Date(account.updatedAt).toLocaleDateString("zh-CN")}</p><ShareButton title={account.title} text={`${account.platform} ${account.accountType}观摩账号`} /></div>
+        <div><span className="panel-code">OBSERVATION ACCOUNT / {account.platform}</span><h1>{account.title}</h1><div className="observation-detail-owner"><Link href={`/u/${account.ownerUsername}`} className="content-author-link"><UserAvatar name={account.ownerName} src={account.ownerAvatarUrl} size={42} /><span><small>提交者</small><b>{account.ownerName}</b></span></Link><small>更新于 {new Date(account.updatedAt).toLocaleDateString("zh-CN")}</small></div><ShareButton title={account.title} text={`${account.platform} ${account.accountType}观摩账号`} /></div>
         <span className={`observation-type ${account.accountType === "真实账号" ? "live" : "demo"}`}><i />{account.accountType}</span>
       </header>
       <div className="observation-detail-grid">

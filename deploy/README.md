@@ -84,9 +84,14 @@ MQL5_SESSION_COOKIE=<可选，仅服务器保存的完整 Cookie 请求头值>
 AI_API_KEY=<AI 服务密钥，仅服务器保存>
 AI_CHAT_COMPLETIONS_URL=https://api.deepseek.com/chat/completions
 AI_MODEL=deepseek-chat
+AGENT_PROVIDER_TIMEOUT_MS=60000
+AGENT_PROVIDER_MAX_ATTEMPTS=3
+AGENT_PROVIDER_CIRCUIT_FAILURES=5
+AGENT_PROVIDER_CIRCUIT_OPEN_MS=60000
+AGENT_COMPILE_CONCURRENCY=1
 ```
 
-`AI_API_KEY`、`AI_CHAT_COMPLETIONS_URL` 与 `AI_MODEL` 用于 AI 实验室的初始配置和运行时回退。部署并创建管理员后，也可在 `/admin/finance` 在线验证并保存配置，无需重建服务；后台 API Key 使用 `AUTH_ENCRYPTION_KEY` 加密保存且不会回显。密钥不得写入源码、镜像、日志或发送至浏览器。
+`AI_API_KEY`、`AI_CHAT_COMPLETIONS_URL` 与 `AI_MODEL` 用于 AI 实验室的初始配置和运行时回退。`AGENT_PROVIDER_*` 控制单次超时、重试和熔断，`AGENT_COMPILE_CONCURRENCY` 控制跨进程共享的 MetaEditor 编译槽位，生产环境建议保持为 1。部署并创建管理员后，也可在 `/admin/finance` 在线验证并保存模型配置、查看近 24 小时运行指标；后台 API Key 使用 `AUTH_ENCRYPTION_KEY` 加密保存且不会回显。密钥不得写入源码、镜像、日志或发送至浏览器。
 
 生成同步密钥：
 
@@ -181,7 +186,7 @@ vi .env.backup
 sudo PROJECT_DIR=/opt/signal-web ./deploy/scripts/install-maintenance.sh
 ```
 
-默认计划为每日 02:30 备份、08:00 同步；宿主机同步与备份日志由 logrotate 每日轮转并保留 30 份。手动执行一次备份并同时确认异地对象存在：
+默认计划为每日 02:30 备份、03:15 充值对账、03:45 回收 Agent 过期预授权和卡死编译任务并执行数据保留策略、08:00 同步；宿主机同步与备份日志由 logrotate 每日轮转并保留 30 份。手动执行一次备份并同时确认异地对象存在：
 
 ```bash
 sudo /usr/local/sbin/signal-web-backup

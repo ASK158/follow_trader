@@ -18,7 +18,7 @@ export default async function AgentPage() {
   return (
     <main className="agent-shell">
       <SiteNav active="agent" />
-      <AgentWorkbench initialBilling={billing} />
+      <AgentWorkbench initialBilling={billing} userId={user.id} userName={user.name} userAvatarUrl={user.avatarUrl} />
     </main>
   );
 }

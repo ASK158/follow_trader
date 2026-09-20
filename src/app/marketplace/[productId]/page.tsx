@@ -6,6 +6,7 @@ import { PurchasePanel } from "@/components/purchase-panel";
 import { ShareButton } from "@/components/share-button";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
+import { UserAvatar } from "@/components/user-avatar";
 import { getCurrentDeveloper, isAdmin } from "@/lib/marketplace/auth";
 import { listProductComments } from "@/lib/marketplace/comments";
 import { getCatalogProduct, incrementProductViews } from "@/lib/marketplace/products";
@@ -30,10 +31,10 @@ export default async function ProductDetailPage({ params }: Props) {
   return (
     <main className="platform-shell product-shell">
       <SiteNav active="marketplace" />
-      <div className="platform-breadcrumb"><Link href="/marketplace">← 返回交易工具市场</Link><span>{product.category} / {product.platform}</span></div>
+      <div className="platform-breadcrumb"><Link href="/marketplace" className="platform-back-link"><svg className="back-link-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5M8.5 12H20" /></svg><span>交易工具市场</span></Link><span>{product.category} / {product.platform}</span></div>
       <header className="product-detail-header">
         <div className="product-cover product-cover-large" style={{ "--product-accent": product.accent } as React.CSSProperties}><span>{product.type}</span><b>{product.name}</b><small>{product.platform} · {product.origin === "community" && product.isTemplate ? "TEMPLATE GUIDE" : "SOURCE INCLUDED"}</small><i>Σ</i></div>
-        <div className="product-intro"><span className="panel-code">{product.type} / {product.category} / V{product.version}{product.origin === "community" ? " / 社区作品" : " / 官方演示"}</span><h1>{product.name}</h1><p>{product.tagline}</p><div className="product-meta"><span>{product.views} 次浏览</span><span>{product.favorites} 次收藏</span><span>更新于 {product.updatedAt}</span></div>{product.origin === "community" ? <div className="product-description rte-content" dangerouslySetInnerHTML={{ __html: descriptionHtml }} /> : <p className="product-description">{product.description}</p>}<div className="content-owner-row"><small>发布者：{product.developerUsername ? <Link href={`/u/${product.developerUsername}`}>{product.developer}</Link> : product.developer}</small><ShareButton title={product.name} text={product.tagline} /></div></div>
+        <div className="product-intro"><span className="panel-code">{product.type} / {product.category} / V{product.version}{product.origin === "community" ? " / 社区作品" : " / 官方演示"}</span><h1>{product.name}</h1><p>{product.tagline}</p><div className="product-meta"><span>{product.views} 次浏览</span><span>{product.favorites} 次收藏</span><span>更新于 {product.updatedAt}</span></div>{product.origin === "community" ? <div className="product-description rte-content" dangerouslySetInnerHTML={{ __html: descriptionHtml }} /> : <p className="product-description">{product.description}</p>}<div className="content-owner-row">{product.developerUsername ? <Link href={`/u/${product.developerUsername}`} className="content-author-link"><UserAvatar name={product.developer} src={product.developerAvatarUrl ?? null} size={42} /><span><small>发布者</small><b>{product.developer}</b></span></Link> : <small>发布者：{product.developer}</small>}<ShareButton title={product.name} text={product.tagline} /></div></div>
       </header>
       <div className="product-detail-grid">
         <div className="product-content">
