@@ -1,6 +1,7 @@
 FROM node:22.22.0-alpine AS dependencies
 WORKDIR /app
 RUN apk add --no-cache python3 make g++
+RUN npm install --global npm@11.6.2
 COPY package.json package-lock.json ./
 RUN npm ci --prefer-offline
 

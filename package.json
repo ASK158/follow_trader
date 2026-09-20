@@ -2,6 +2,7 @@
   "name": "signal-web",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.6.2",
   "scripts": {
     "dev": "node scripts/run-next.mjs dev --webpack",
     "build": "next build --webpack",
