@@ -63,7 +63,7 @@ export function QuantVisualCanvas() {
         dist: baseDist,
         baseDist,
         size: 1.2 + Math.random() * 2.2,
-        alpha: 0.25 + Math.random() * 0.55,
+        alpha: 0.34 + Math.random() * 0.58,
         color: palette[Math.floor(Math.random() * palette.length)],
         orbitSpeed: (Math.random() - 0.5) * 0.0035,
         phaseOffset: Math.random() * Math.PI * 2,
@@ -162,7 +162,7 @@ export function QuantVisualCanvas() {
 
             const lineAlpha =
               (1 - dist / maxConnDist) *
-              0.22 *
+              0.3 *
               (0.6 + 0.4 * Math.sin(cycleTime + p1.phaseOffset));
 
             ctx.beginPath();
@@ -176,7 +176,7 @@ export function QuantVisualCanvas() {
         // Faint central flux lines
         const distFromCenter = Math.hypot(p1.x - cx, p1.y - cy);
         if (distFromCenter < 120 && i % 3 === 0) {
-          const rayAlpha = (1 - distFromCenter / 120) * 0.12;
+          const rayAlpha = (1 - distFromCenter / 120) * 0.17;
           ctx.beginPath();
           ctx.moveTo(cx, cy);
           ctx.lineTo(p1.x, p1.y);

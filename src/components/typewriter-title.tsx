@@ -66,31 +66,28 @@ export function TypewriterTitle({
   if (!mounted) {
     return (
       <span className="typewriter-title-wrapper">
-        <span>{lines[0]}</span>
-        <br />
-        <span>{lines[1]}</span>
+        {lines.map((line, index) => (
+          <span className="typewriter-title-line" key={`${line}-${index}`}>
+            {line}
+          </span>
+        ))}
       </span>
     );
   }
 
   const currentText = fullText.slice(0, charCount);
   const currentLines = currentText.split("\n");
-  const line1 = currentLines[0] ?? "";
-  const hasLine2 = currentLines.length > 1;
-  const line2 = hasLine2 ? currentLines[1] : "";
-  const cursorOnLine1 = !hasLine2;
 
   return (
     <span className="typewriter-title-wrapper" aria-label={lines.join(" ")}>
-      <span>{line1}</span>
-      {cursorOnLine1 && <span className="typewriter-title-cursor" aria-hidden="true" />}
-      {hasLine2 && (
-        <>
-          <br />
-          <span>{line2}</span>
-          <span className="typewriter-title-cursor" aria-hidden="true" />
-        </>
-      )}
+      {currentLines.map((line, index) => (
+        <span className="typewriter-title-line" key={index}>
+          {line}
+          {index === currentLines.length - 1 && (
+            <span className="typewriter-title-cursor" aria-hidden="true" />
+          )}
+        </span>
+      ))}
     </span>
   );
 }

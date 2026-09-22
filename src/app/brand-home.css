@@ -1,0 +1,756 @@
+/* ==========================================================================
+   Sigma Bot Minimal Brand Homepage Styles
+   Technology-driven, AI-empowered, Community-built
+   ========================================================================== */
+
+.brand-home-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 24px 16px;
+  color: var(--tech-ink);
+  background:
+    radial-gradient(circle at 10% 6%, #c66a7612, transparent 24%),
+    radial-gradient(circle at 90% 12%, #28745a0a, transparent 22%),
+    #f4f0e9;
+}
+
+.brand-home-sheet {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 10px solid var(--tech-red);
+  background: var(--tech-paper);
+  box-shadow: 0 32px 90px #2d262018;
+}
+
+.brand-home-sheet > .site-footer {
+  background: #f5f0e9;
+}
+
+.brand-home-sheet > .site-nav {
+  min-height: 64px;
+}
+
+/* ==========================================================================
+   1. Minimal Hero Section with Dispersive Canvas (聚散离散图)
+   ========================================================================== */
+.brand-hero-minimal {
+  position: relative;
+  min-height: 640px;
+  padding: 80px clamp(28px, 6vw, 84px) 72px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--tech-rule);
+  background:
+    linear-gradient(180deg, #ffffffbb 0%, #fdfbf8ee 100%),
+    linear-gradient(90deg, #3b353005 1px, transparent 1px),
+    linear-gradient(#3b353005 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+.brand-hero-canvas-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 390px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.brand-hero-canvas-wrap canvas {
+  opacity: 0.92;
+}
+
+.brand-hero-content {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  gap: 34px 56px;
+  width: 100%;
+  align-items: center;
+}
+
+.brand-hero-copy {
+  max-width: 820px;
+}
+
+.brand-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--tech-red);
+  font: 800 10px/1 "Cascadia Code", Consolas, monospace;
+  letter-spacing: 0.18em;
+  margin-bottom: 20px;
+}
+
+.brand-hero-tag .tag-line {
+  width: 26px;
+  height: 2px;
+  background: var(--tech-red);
+}
+
+.brand-hero-minimal h1 {
+  margin: 0 0 22px;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.28;
+}
+
+.brand-typewriter-statement .typewriter-title-wrapper {
+  display: block;
+  min-height: 4.2em;
+}
+
+.brand-typewriter-statement .typewriter-title-line {
+  display: block;
+  font-size: clamp(22px, 2.3vw, 33px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+
+.brand-typewriter-statement .typewriter-title-line:first-child {
+  margin-bottom: 20px;
+  color: var(--tech-red);
+  font-size: clamp(48px, 5.4vw, 80px);
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.brand-typewriter-statement .typewriter-title-line:nth-child(2) {
+  white-space: nowrap;
+}
+
+.brand-typewriter-statement .typewriter-title-line:nth-child(3) {
+  margin-top: 4px;
+  color: var(--tech-ink);
+  opacity: 0.92;
+}
+
+.brand-platform-position {
+  max-width: 620px;
+  margin: 0 0 28px;
+  color: var(--tech-muted);
+  font-size: 13.5px;
+  line-height: 1.8;
+}
+
+.brand-quick-links {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.btn-brand-primary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid var(--tech-ink);
+  transition: all 0.18s ease;
+  gap: 14px;
+  color: #ffffff;
+  background: var(--tech-ink);
+  box-shadow: 4px 4px 0 #3b353020;
+}
+
+.btn-brand-primary:hover {
+  background: var(--tech-red);
+  border-color: var(--tech-red);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #c66a7635;
+}
+
+/* ==========================================================================
+   2. Theme Dividers (极简几何网格与微质感分割，去彩色块设计)
+   ========================================================================== */
+.brand-color-divider {
+  position: relative;
+  width: calc(100% - clamp(48px, 10vw, 152px));
+  min-height: 54px;
+  margin: 32px auto;
+  overflow: hidden;
+  border: 1px solid var(--tech-rule);
+  background:
+    linear-gradient(90deg, #3b353008 1px, transparent 1px),
+    linear-gradient(#3b353008 1px, transparent 1px),
+    linear-gradient(135deg, #f7f3ec 0%, #ffffff 50%, #f4ede3 100%);
+  background-size: 24px 24px, 24px 24px, 100% 100%;
+}
+
+.brand-color-divider::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, #c66a7618 50%, transparent 100%);
+  content: "";
+}
+
+.color-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(#3b353012 1px, transparent 1px),
+    linear-gradient(90deg, #3b353012 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.color-orbit {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border: 1px solid #3b35301a;
+  border-radius: 50%;
+}
+
+.color-orbit-one {
+  left: 12%;
+  top: -85px;
+  box-shadow: 0 0 0 24px #c66a760a;
+}
+
+.color-orbit-two {
+  right: 14%;
+  bottom: -95px;
+  box-shadow: 0 0 0 28px #3b353008;
+}
+
+.color-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, #ffffffcc 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+}
+
+/* ==========================================================================
+   Common Section Headers
+   ========================================================================== */
+.brand-block-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 32px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid var(--tech-ink);
+}
+
+.brand-block-header .sub-tag,
+.audiences-intro-pane .sub-tag {
+  color: var(--tech-red);
+  font: 800 10px/1.4 "Cascadia Code", Consolas, monospace;
+  letter-spacing: 0.16em;
+}
+
+.brand-block-header h2,
+.audiences-intro-pane h2 {
+  margin: 8px 0 0;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: clamp(28px, 3vw, 42px);
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.brand-block-header > p {
+  max-width: 440px;
+  margin: 0;
+  color: var(--tech-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* ==========================================================================
+   3. Four Core Capabilities (四大核心功能矩阵 - 突出关键词与入口)
+   ========================================================================== */
+.brand-services-minimal {
+  padding: 72px clamp(24px, 5vw, 76px);
+  background: var(--tech-paper);
+}
+
+.services-grid-minimal {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--tech-ink);
+  border-left: 1px solid var(--tech-ink);
+}
+
+.service-card-minimal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px 22px;
+  border-right: 1px solid var(--tech-ink);
+  border-bottom: 1px solid var(--tech-ink);
+  background: #ffffff;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.service-card-minimal:hover {
+  z-index: 2;
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 #3b3530;
+  border-color: var(--tech-ink);
+}
+
+.card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.card-index {
+  color: var(--tech-red);
+  font: 700 32px/1 Georgia, serif;
+}
+
+.card-en {
+  color: var(--tech-muted);
+  font: 700 8.5px "Cascadia Code", Consolas, monospace;
+  letter-spacing: 0.12em;
+}
+
+.service-card-minimal h3 {
+  margin: 0 0 14px;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--tech-ink);
+}
+
+/* 核心关键词标签 */
+.card-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.kw-badge {
+  padding: 2px 7px;
+  border: 1px solid #e2d9cd;
+  background: #fbf9f5;
+  color: #7a6e63;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.service-card-minimal:hover .kw-badge {
+  border-color: #d69ca3;
+  background: #fff4f5;
+  color: var(--tech-red);
+}
+
+.service-card-minimal p {
+  margin: 0 0 24px;
+  color: var(--tech-muted);
+  font-size: 12.5px;
+  line-height: 1.75;
+}
+
+.card-link {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--tech-rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--tech-ink);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.18s;
+}
+
+.card-link i {
+  font-size: 15px;
+  font-style: normal;
+  transition: transform 0.18s;
+}
+
+.service-card-minimal:hover .card-link {
+  color: var(--tech-red);
+}
+
+.service-card-minimal:hover .card-link i {
+  transform: translate(2px, -2px);
+}
+
+/* ==========================================================================
+   4. Audiences Section (五类人群极简排版)
+   ========================================================================== */
+.brand-audiences-minimal {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  border-top: 1px solid var(--tech-rule);
+  border-bottom: 1px solid var(--tech-rule);
+  background: #f7f3ec;
+}
+
+.audiences-intro-pane {
+  padding: 64px clamp(24px, 5vw, 68px);
+  border-right: 1px solid var(--tech-rule);
+}
+
+.audiences-intro-pane p {
+  max-width: 380px;
+  margin: 20px 0 0;
+  color: var(--tech-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.audiences-list-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+.audience-box {
+  display: grid;
+  grid-template-columns: 48px 180px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--tech-rule);
+  background: transparent;
+  transition: background 0.18s, padding-left 0.18s;
+}
+
+.audience-box:last-child {
+  border-bottom: none;
+}
+
+.audience-box:hover {
+  padding-left: 38px;
+  background: #ffffff;
+}
+
+.aud-code {
+  color: var(--tech-red);
+  font: 800 10px "Cascadia Code", Consolas, monospace;
+}
+
+.audience-box h4 {
+  margin: 0;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tech-ink);
+}
+
+.audience-box p {
+  margin: 0;
+  color: var(--tech-muted);
+  font-size: 12.5px;
+}
+
+/* ==========================================================================
+   5. Three Independent Ecosystems (三大生态分类独立呈现)
+   按各自对应分类呈现：云服务生态、交易服务生态、AI技术生态
+   ========================================================================== */
+.brand-ecosystems-section {
+  padding: 72px clamp(24px, 5vw, 76px);
+  background: #faf8f5;
+  border-bottom: 1px solid var(--tech-rule);
+}
+
+.ecosystem-matrix {
+  overflow: hidden;
+  border: 1px solid var(--tech-ink);
+  border-radius: 0;
+  background: var(--tech-paper);
+  box-shadow: 8px 8px 0 #3b353012;
+}
+
+.ecosystem-row {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  min-height: 112px;
+  border-bottom: 1px solid var(--tech-rule);
+}
+
+.ecosystem-row:last-child {
+  border-bottom: 0;
+}
+
+.ecosystem-row-label {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 28px;
+  border-right: 1px solid var(--tech-rule);
+  background: #f4eee7;
+}
+
+.ecosystem-icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid var(--tech-red);
+  border-radius: 50%;
+}
+
+.ecosystem-icon::before,
+.ecosystem-icon::after {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid var(--tech-red);
+  content: "";
+}
+
+.ecosystem-icon-cloud::before { border-radius: 50%; }
+.ecosystem-icon-trading::before { transform: rotate(45deg); }
+.ecosystem-icon-ai::before { border-radius: 3px; box-shadow: 0 0 10px #c66a7660; }
+.ecosystem-icon::after { inset: 14px; border-radius: 50%; background: var(--tech-red); }
+
+.ecosystem-row-label h3 {
+  margin: 0 0 5px;
+  color: var(--tech-ink);
+  font-size: 15px;
+}
+
+.ecosystem-row-label small {
+  color: var(--tech-muted);
+  font: 700 8px/1.3 "Cascadia Code", Consolas, monospace;
+  letter-spacing: 0.08em;
+}
+
+.ecosystem-brand-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 22px 28px;
+}
+
+.ecosystem-brand {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 9px;
+  border: 1px solid var(--tech-rule);
+  border-radius: 12px;
+  color: var(--tech-ink);
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: border-color 0.18s, color 0.18s, transform 0.18s;
+}
+
+.ecosystem-brand:hover {
+  transform: translateY(-2px);
+  border-color: var(--tech-red);
+  color: var(--tech-red);
+}
+
+.ecosystem-brand-mark {
+  display: inline-flex;
+  width: 27px;
+  height: 27px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #9d5963;
+  font: 800 9px/1 Arial, sans-serif;
+}
+
+.ecosystem-brand-aws .ecosystem-brand-mark { color: #ffac32; background: #26221e; }
+.ecosystem-brand-azure .ecosystem-brand-mark { background: #1676bd; }
+.ecosystem-brand-google .ecosystem-brand-mark { background: #4285f4; }
+.ecosystem-brand-cloudflare .ecosystem-brand-mark { background: #f38020; }
+.ecosystem-brand-alibaba .ecosystem-brand-mark { background: #ff6a00; }
+.ecosystem-brand-ic .ecosystem-brand-mark { background: #2e88c9; }
+.ecosystem-brand-lmax .ecosystem-brand-mark { background: #123c72; font-size: 7px; }
+.ecosystem-brand-swissquote .ecosystem-brand-mark { background: #e85b24; }
+.ecosystem-brand-exness .ecosystem-brand-mark { color: #151515; background: #ffde2f; }
+.ecosystem-brand-oanda .ecosystem-brand-mark { background: #1252a2; }
+.ecosystem-brand-openai .ecosystem-brand-mark { background: #168e7c; }
+.ecosystem-brand-anthropic .ecosystem-brand-mark { color: #241f1a; background: #d8c6ad; }
+.ecosystem-brand-gemini .ecosystem-brand-mark { background: linear-gradient(135deg, #3984f7, #b65ad7); }
+.ecosystem-brand-glm .ecosystem-brand-mark { background: #3859cf; }
+
+.ecosystem-brand-glm {
+  border-color: #637be54d;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+@media (max-width: 1120px) {
+  .brand-hero-content {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+    gap: 24px;
+  }
+  .services-grid-minimal {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 840px) {
+  .brand-home-shell {
+    padding: 0;
+  }
+  .brand-home-sheet {
+    border-width: 6px;
+  }
+  .brand-hero-minimal {
+    padding: 60px 24px 54px;
+    min-height: auto;
+  }
+  .brand-hero-content {
+    grid-template-columns: 1fr;
+  }
+  .brand-hero-canvas-wrap {
+    min-height: 280px;
+  }
+  .brand-quick-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .brand-block-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .brand-audiences-minimal {
+    grid-template-columns: 1fr;
+  }
+  .audiences-intro-pane {
+    border-right: none;
+    border-bottom: 1px solid var(--tech-rule);
+    padding: 44px 24px;
+  }
+  .audience-box {
+    padding: 16px 24px;
+    grid-template-columns: 36px 1fr;
+    gap: 8px;
+    min-height: auto;
+  }
+  .audience-box p {
+    grid-column: 2;
+  }
+  .ecosystem-row {
+    grid-template-columns: 1fr;
+  }
+  .ecosystem-row-label {
+    border-right: 0;
+    border-bottom: 1px solid var(--tech-rule);
+  }
+}
+
+@media (max-width: 600px) {
+  .services-grid-minimal {
+    grid-template-columns: 1fr;
+  }
+  .brand-hero-tag {
+    font-size: 9px;
+  }
+  .brand-typewriter-statement .typewriter-title-line:first-child {
+    font-size: clamp(40px, 13vw, 58px);
+  }
+  .brand-typewriter-statement .typewriter-title-line {
+    font-size: 18px;
+  }
+
+  .brand-typewriter-statement .typewriter-title-line:nth-child(2) {
+    font-size: clamp(14px, 4.25vw, 18px);
+  }
+
+  .brand-platform-position {
+    font-size: 12.5px;
+  }
+  .brand-quick-links {
+    grid-template-columns: 1fr;
+  }
+  .ecosystem-brand-list {
+    padding: 18px;
+  }
+  .ecosystem-brand {
+    flex: 1 1 140px;
+  }
+}
+
+/* ==========================================================================
+   Dark Theme Overrides
+   ========================================================================== */
+html[data-theme="dark"] .brand-home-shell {
+  background: #141312;
+}
+
+html[data-theme="dark"] .brand-home-sheet {
+  background: #181716;
+  border-color: #9c3f4c;
+  box-shadow: 0 32px 90px #00000080;
+}
+
+html[data-theme="dark"] .brand-hero-minimal {
+  background:
+    linear-gradient(180deg, #181716e0 0%, #1a1918 100%),
+    linear-gradient(90deg, #ffffff06 1px, transparent 1px),
+    linear-gradient(#ffffff06 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+html[data-theme="dark"] .brand-color-divider {
+  border-color: #ffffff18;
+}
+
+html[data-theme="dark"] .service-card-minimal {
+  background: #1e1d1b;
+  border-color: #38332d;
+}
+
+html[data-theme="dark"] .kw-badge {
+  background: #262422;
+  border-color: #3d3731;
+  color: #c2b8ae;
+}
+
+html[data-theme="dark"] .brand-audiences-minimal {
+  background: #191817;
+}
+
+html[data-theme="dark"] .audience-box:hover {
+  background: #23211f;
+}
+
+html[data-theme="dark"] .brand-ecosystems-section {
+  background: #161514;
+}
+
+html[data-theme="dark"] .ecosystem-matrix {
+  border-color: #3c3732;
+  background: #1e1d1b;
+  box-shadow: 8px 8px 0 #00000035;
+}
+
+html[data-theme="dark"] .ecosystem-row {
+  border-color: #3c3732;
+}
+
+html[data-theme="dark"] .ecosystem-row-label {
+  border-color: #3c3732;
+  background: #25221f;
+}
+
+html[data-theme="dark"] .ecosystem-row-label h3 {
+  color: #f5f0e9;
+}
+
+html[data-theme="dark"] .ecosystem-brand {
+  border-color: #3c3732;
+  color: #d7cec5;
+  background: #161513;
+}

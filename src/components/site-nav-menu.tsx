@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type NavSection = "signals" | "marketplace" | "favorites" | "agent" | "tutorials" | "observation" | "developer";
+type NavSection = "home" | "signals" | "marketplace" | "favorites" | "agent" | "tutorials" | "observation" | "developer";
 
 type Props = {
   active: NavSection;
@@ -11,7 +11,8 @@ type Props = {
 };
 
 const items: Array<{ key: NavSection; href: string; label: string }> = [
-  { key: "signals", href: "/", label: "策略信号中心" },
+  { key: "home", href: "/", label: "首页" },
+  { key: "signals", href: "/signals", label: "策略信号中心" },
   { key: "marketplace", href: "/marketplace", label: "EA / 指标商城" },
   { key: "observation", href: "/observation", label: "观摩空间" },
   { key: "tutorials", href: "/tutorials", label: "教程" },

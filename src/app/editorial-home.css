@@ -156,13 +156,25 @@
   text-shadow: none;
 }
 
-.editorial-sheet .hero p {
-  max-width: 660px;
-  margin-top: 24px;
-  color: #4e4943;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.65;
+/* 与 EA / 指标商城标题与说明完全统一字体、字重、字距与排版 */
+.editorial-sheet .hero .signal-hero-title {
+  margin: 10px 0 12px;
+  font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-size: clamp(40px, 5vw, 66px);
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+}
+
+.editorial-sheet .hero .signal-hero-description {
+  max-width: 650px;
+  margin: 0;
+  color: var(--tech-muted);
+  font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.75;
 }
 
 .hero-notes {
@@ -622,6 +634,11 @@
   .editorial-sheet .hero p {
     margin-top: 20px;
     font-size: 13px;
+  }
+
+  .editorial-sheet .hero .signal-hero-description {
+    margin: 0;
+    font-size: 14px;
   }
 
   .hero-notes {

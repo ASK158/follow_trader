@@ -17,7 +17,8 @@
 .site-brand b { font-size: 13px; }
 .site-system-state,
 .site-nav-account > .site-system-state { font-size: 11px; }
-.platform-hero p { color: #574e46; font-size: 15px; }
+.platform-hero p,
+.editorial-sheet .hero .signal-hero-description { color: #574e46; font-size: 15px; }
 .market-hero-stats span { color: #574e46; font-size: 12px; }
 .market-main-tabs a { font-size: 13px; font-weight: 600; }
 .market-subcategory-title,

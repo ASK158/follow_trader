@@ -9,7 +9,7 @@ const columns: FooterColumn[] = [
   {
     title: "产品服务",
     links: [
-      { href: "/", label: "策略信号中心" },
+      { href: "/signals", label: "策略信号中心" },
       { href: "/marketplace", label: "EA / 指标商城" },
       { href: "/agent", label: "AI 策略实验室" },
       { href: "/observation", label: "观摩空间" },
@@ -21,14 +21,6 @@ const columns: FooterColumn[] = [
       { href: "/tutorials", label: "量化交易教程" },
       { href: "/tutorials?type=article", label: "图文教程" },
       { href: "/tutorials?type=video", label: "视频教程" },
-    ],
-  },
-  {
-    title: "开发者",
-    links: [
-      { href: "/developer/login", label: "登录 / 注册" },
-      { href: "/developer", label: "开发者中心" },
-      { href: "/developer/new", label: "上架作品" },
     ],
   },
   {

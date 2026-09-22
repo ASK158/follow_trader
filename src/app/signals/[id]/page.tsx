@@ -30,7 +30,7 @@ export default async function SignalPage({ params }: { params: Promise<{ id: str
   return (
     <main className="detail-shell">
       <SiteNav active="signals" />
-      <div className="detail-context-bar"><Link href="/" className="back-link"><svg className="back-link-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5M8.5 12H20" /></svg><span>策略中心</span></Link><span>SIGNAL ANALYTICS / {signal.id}</span></div>
+      <div className="detail-context-bar"><Link href="/signals" className="back-link"><svg className="back-link-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5M8.5 12H20" /></svg><span>策略中心</span></Link><span>SIGNAL ANALYTICS / {signal.id}</span></div>
       <header className="signal-header">
         <div><div className="title-meta"><span className="signal-badge">MT5 / SIGNAL</span><span className={signal.sourceStatus === "live" ? "data-live" : "data-snapshot"}><i />{signal.sourceStatus === "live" ? "实时数据已同步" : "本地快照数据"}</span></div><h1 className="signal-title"><span>{signal.name}</span><small>更新时间：{sourceUpdatedDate}</small></h1><p>{signal.broker} · 监测起始 {new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium" }).format(new Date(signal.startedAt))}</p></div>
         <AccountViewerDialog />

@@ -4,10 +4,10 @@ import { SiteNavMenu } from "@/components/site-nav-menu";
 import { getCurrentDeveloper, isAdmin } from "@/lib/marketplace/auth";
 import { listConversations } from "@/lib/marketplace/messages";
 
-type NavSection = "signals" | "marketplace" | "favorites" | "agent" | "tutorials" | "observation" | "developer";
+type NavSection = "home" | "signals" | "marketplace" | "favorites" | "agent" | "tutorials" | "observation" | "developer";
 
 const items: Array<{ key: NavSection; href: string; label: string; shortLabel: string }> = [
-  { key: "signals", href: "/", label: "策略信号中心", shortLabel: "信号" },
+  { key: "signals", href: "/signals", label: "策略信号中心", shortLabel: "信号" },
   { key: "marketplace", href: "/marketplace", label: "EA / 指标商城", shortLabel: "商城" },
   { key: "observation", href: "/observation", label: "观摩空间", shortLabel: "观摩" },
   { key: "tutorials", href: "/tutorials", label: "教程", shortLabel: "教程" },
