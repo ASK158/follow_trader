@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { QuantVisualCanvas } from "@/components/quant-visual-canvas";
+import { ServicesMatrix } from "@/components/services-matrix";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { TypewriterTitle } from "@/components/typewriter-title";
@@ -16,8 +17,6 @@ const coreServices = [
     index: "01",
     title: "策略信号中心",
     en: "SIGNAL DISCOVERY",
-    href: "/signals",
-    action: "浏览信号",
     keywords: ["持续监测", "收益回撤曲线", "多源聚合"],
     description: "策略信号中心。追踪全球可靠策略信号，提供清晰透明的绩效数据。",
   },
@@ -25,8 +24,6 @@ const coreServices = [
     index: "02",
     title: "交易工具商城",
     en: "TOOL MARKETPLACE",
-    href: "/marketplace",
-    action: "探索工具",
     keywords: ["MT4/MT5 EA", "量化技术指标", "风控辅助脚本"],
     description: "交易工具市场。发现更多的交易工具，分享更多的交易工具——Sigma共享社区。",
   },
@@ -34,8 +31,6 @@ const coreServices = [
     index: "03",
     title: "观摩空间",
     en: "LIVE OBSERVATION",
-    href: "/observation",
-    action: "进入观摩",
     keywords: ["实盘环境", "穿透式记录", "可信账户流"],
     description: "通过不间断运行的真实或模拟账户，展示不可篡改的交易细节与运行表现，打造可验证的信任基石。",
   },
@@ -43,8 +38,6 @@ const coreServices = [
     index: "04",
     title: "AI 实验室",
     en: "AI STRATEGY LAB",
-    href: "/agent",
-    action: "体验 AI 创作",
     keywords: ["自然语言对话", "MQL5 自动生成", "大模型驱动"],
     description: "只需用自然语言描述交易思路，即可快速生成、调试与编译标准 MQL4/MQL5 策略代码，降低量化门槛。",
   },
@@ -144,19 +137,23 @@ export default function HomePage() {
               <p className="brand-platform-position">
                 面向 MT4/MT5 交易者与开发者，集策略发现、交易验证、工具交易和 AI 策略开发于一体的开放平台。
               </p>
+
+              <nav className="brand-quick-links" aria-label="核心功能导航">
+                {quickLinks.map((item, idx) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`btn-brand-primary ${idx === 0 ? "btn-brand-lead" : "btn-brand-ghost"}`}
+                  >
+                    {item.label} <span>→</span>
+                  </Link>
+                ))}
+              </nav>
             </div>
 
             <div className="brand-hero-canvas-wrap" aria-hidden="true">
               <QuantVisualCanvas />
             </div>
-
-            <nav className="brand-quick-links" aria-label="核心功能导航">
-              {quickLinks.map((item) => (
-                <Link key={item.href} href={item.href} className="btn-brand-primary">
-                  {item.label} <span>→</span>
-                </Link>
-              ))}
-            </nav>
           </div>
         </section>
 
@@ -172,35 +169,9 @@ export default function HomePage() {
             <p>覆盖从信号发现、真实验证、工具应用到智能构建的完整交易生命周期。</p>
           </header>
 
-          <div className="services-grid-minimal">
-            {coreServices.map((service) => (
-              <div key={service.index} className="service-card-minimal">
-                <div className="card-top">
-                  <span className="card-index">{service.index}</span>
-                  <span className="card-en">{service.en}</span>
-                </div>
-
-                <h3>{service.title}</h3>
-
-                {/* 突出核心关键词 */}
-                <div className="card-keywords">
-                  {service.keywords.map((kw) => (
-                    <span key={kw} className="kw-badge">{kw}</span>
-                  ))}
-                </div>
-
-                <p>{service.description}</p>
-
-                <Link href={service.href} className="card-link">
-                  <span>{service.action}</span>
-                  <i>↗</i>
-                </Link>
-              </div>
-            ))}
-          </div>
+          {/* 点击卡片展开描述性文本（单卡激活的手风琴矩阵） */}
+          <ServicesMatrix services={coreServices} />
         </section>
-
-        <BrandColorDivider />
 
         {/* 3. 服务五类人群定位（简约网格） */}
         <section className="brand-audiences-minimal" aria-labelledby="audiences-title">
@@ -220,8 +191,6 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-
-        <BrandColorDivider />
 
         {/* 4. 三大生态分类独立呈现 */}
         <section className="brand-ecosystems-section" aria-labelledby="ecosystems-title">

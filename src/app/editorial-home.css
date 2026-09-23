@@ -1,16 +1,12 @@
-/* Editorial homepage — inspired by printed research journals and technical field notes. */
+/* Editorial homepage — inspired by printed research journals and technical field notes.
+   浅色语义变量（--editorial-*）默认值已上移至 theme-tokens.css。 */
 .home-shell {
-  --editorial-red: #c66a76;
-  --editorial-red-dark: #a44d59;
-  --editorial-ink: #3b3530;
-  --editorial-muted: #857b72;
-  --editorial-rule: #ebe3d9;
   position: relative;
   min-height: 100vh;
   padding: 22px 16px 72px;
   overflow: hidden;
   color: var(--editorial-ink);
-  background: #f8f5ef;
+  background: var(--page-bg);
 }
 
 .home-shell::before {
@@ -32,7 +28,7 @@
   min-height: calc(100vh - 94px);
   margin: 0 auto;
   border: 17px solid var(--editorial-red);
-  background: #fdfbf8;
+  background: #fdfdfc;
   box-shadow: 0 28px 80px rgba(45, 38, 32, 0.08);
 }
 
@@ -694,5 +690,5 @@
 .editorial-sheet > .site-footer {
   margin-top: auto;
   flex-shrink: 0;
-  background: #f8f5ef;
+  background: var(--page-bg);
 }

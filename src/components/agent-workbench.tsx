@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createClientUuid } from "@/lib/client-id";
 import { inspectStrategyRisk } from "@/lib/agent/risk-check";
 import { extractMql5InputParameters } from "@/lib/agent/mql5-inputs";
@@ -33,6 +33,45 @@ type PendingChange = {
 const MAX_ATTACHMENTS = 3;
 const MAX_ATTACHMENT_BYTES = 5_000_000;
 const MAX_TOTAL_ATTACHMENT_BYTES = 8_000_000;
+// 工作台三栏（Agent 侧栏 / 需求对话 / 代码产物面板）的可调节宽度
+const PANEL_RESIZER_WIDTH = 7;
+const PANEL_STORAGE_KEY = "sigma-agent-panel-widths-v1";
+const SIDEBAR_MIN_WIDTH = 220;
+const SIDEBAR_MAX_WIDTH = 480;
+const CHAT_MIN_WIDTH = 300;
+const ARTIFACT_MIN_WIDTH = 360;
+const DEFAULT_SIDEBAR_WIDTH = 292;
+
+type PanelWidths = { sidebar: number; chat: number };
+type PanelDragState = { target: "sidebar" | "chat"; startX: number; startSidebar: number; startChat: number; layoutWidth: number };
+
+function readPanelWidths(): PanelWidths | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const parsed = JSON.parse(localStorage.getItem(PANEL_STORAGE_KEY) ?? "") as Partial<PanelWidths> | null;
+    if (!parsed || !Number.isFinite(parsed.sidebar) || !Number.isFinite(parsed.chat)) return null;
+    return { sidebar: Number(parsed.sidebar), chat: Number(parsed.chat) };
+  } catch {
+    return null;
+  }
+}
+
+function clampPanelWidths(widths: PanelWidths, layoutWidth: number): PanelWidths {
+  const fixed = PANEL_RESIZER_WIDTH * 2;
+  const sidebarMax = Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, layoutWidth - fixed - CHAT_MIN_WIDTH - ARTIFACT_MIN_WIDTH));
+  const sidebar = Math.min(Math.max(widths.sidebar, SIDEBAR_MIN_WIDTH), sidebarMax);
+  const chatMax = Math.max(CHAT_MIN_WIDTH, layoutWidth - sidebar - fixed - ARTIFACT_MIN_WIDTH);
+  const chat = Math.min(Math.max(widths.chat, CHAT_MIN_WIDTH), chatMax);
+  return { sidebar: Math.round(sidebar), chat: Math.round(chat) };
+}
+
+function savePanelWidths(widths: PanelWidths) {
+  try {
+    localStorage.setItem(PANEL_STORAGE_KEY, JSON.stringify(widths));
+  } catch {
+    // localStorage 不可用时静默忽略
+  }
+}
 const TEXT_DOCUMENT_EXTENSIONS = new Set(["txt", "md", "markdown", "csv", "json", "xml", "mq4", "mq5", "mqh", "js", "jsx", "ts", "tsx", "py", "ini", "log"]);
 const examples = ["用 EMA20/EMA50 金叉死叉交易 EURUSD H1，单笔风险 1%", "创建一个 MT5 自定义 RSI 背离指标，在副图绘制信号并弹窗提醒", "写一个布林带突破 EA，加入点差过滤、移动止损和每日亏损上限"];
 
@@ -122,10 +161,39 @@ export function AgentWorkbench({ initialBilling, userId, userName, userAvatarUrl
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [billing, setBilling] = useState(initialBilling);
   const [attachments, setAttachments] = useState<AgentAttachment[]>([]);
+  const [previewedAttachment, setPreviewedAttachment] = useState<AgentAttachment | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const copyNoticeTimerRef = useRef<number | null>(null);
+  const layoutRef = useRef<HTMLDivElement | null>(null);
+  const panelDragRef = useRef<PanelDragState | null>(null);
+  const [panelWidths, setPanelWidths] = useState<PanelWidths | null>(null);
+  const [draggingPanel, setDraggingPanel] = useState<"sidebar" | "chat" | null>(null);
+  const [isWideViewport, setIsWideViewport] = useState(false);
+
+  // 三栏宽度调节仅在宽屏启用（与 1180px 断点一致）；挂载时恢复已保存宽度，窗口变化时自动收敛防止溢出。
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1181px)");
+    const syncPanelLayout = () => {
+      const wide = query.matches;
+      setIsWideViewport(wide);
+      if (!wide) return;
+      const layoutWidth = layoutRef.current?.getBoundingClientRect().width ?? 0;
+      if (layoutWidth <= 0) return;
+      setPanelWidths((current) => {
+        const target = current ?? readPanelWidths();
+        return target ? clampPanelWidths(target, layoutWidth) : null;
+      });
+    };
+    syncPanelLayout();
+    query.addEventListener("change", syncPanelLayout);
+    window.addEventListener("resize", syncPanelLayout);
+    return () => {
+      query.removeEventListener("change", syncPanelLayout);
+      window.removeEventListener("resize", syncPanelLayout);
+    };
+  }, []);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -246,6 +314,7 @@ export function AgentWorkbench({ initialBilling, userId, userName, userAvatarUrl
     setModelMessages(nextModelMessages);
     setInput("");
     setAttachments([]);
+    setPreviewedAttachment(null);
     setError("");
     setErrorTitle("生成失败");
     setStreamedCode("");
@@ -441,8 +510,57 @@ export function AgentWorkbench({ initialBilling, userId, userName, userAvatarUrl
     }
   }
 
+  function beginPanelDrag(event: ReactPointerEvent<HTMLDivElement>, target: "sidebar" | "chat") {
+    if (!isWideViewport || event.button !== 0 || !layoutRef.current) return;
+    const layoutWidth = layoutRef.current.getBoundingClientRect().width;
+    const startSidebar = layoutRef.current.querySelector<HTMLElement>(".agent-sidebar")?.getBoundingClientRect().width ?? DEFAULT_SIDEBAR_WIDTH;
+    const startChat = layoutRef.current.querySelector<HTMLElement>(".agent-chat-panel")?.getBoundingClientRect().width ?? CHAT_MIN_WIDTH;
+    panelDragRef.current = { target, startX: event.clientX, startSidebar, startChat, layoutWidth };
+    setDraggingPanel(target);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  function movePanelDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = panelDragRef.current;
+    if (!drag) return;
+    const delta = event.clientX - drag.startX;
+    const next = drag.target === "sidebar"
+      ? { sidebar: drag.startSidebar + delta, chat: drag.startChat }
+      : { sidebar: drag.startSidebar, chat: drag.startChat + delta };
+    setPanelWidths(clampPanelWidths(next, drag.layoutWidth));
+  }
+
+  function endPanelDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!panelDragRef.current) return;
+    panelDragRef.current = null;
+    setDraggingPanel(null);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    setPanelWidths((current) => {
+      if (current) savePanelWidths(current);
+      return current;
+    });
+  }
+
+  function resetPanelWidths() {
+    try {
+      localStorage.removeItem(PANEL_STORAGE_KEY);
+    } catch {
+      // localStorage 不可用时静默忽略
+    }
+    setPanelWidths(null);
+  }
+
+  const panelGridTemplate = isWideViewport && panelWidths
+    ? `${panelWidths.sidebar}px ${PANEL_RESIZER_WIDTH}px ${panelWidths.chat}px ${PANEL_RESIZER_WIDTH}px minmax(${ARTIFACT_MIN_WIDTH}px, 1fr)`
+    : undefined;
+
   return (
-    <div className="agent-layout">
+    <div className="agent-layout" ref={layoutRef} style={panelGridTemplate ? { gridTemplateColumns: panelGridTemplate } : undefined}>
       {copyNotice && <div className="agent-copy-toast" role="status" aria-live="polite">复制代码成功</div>}
       <aside className="agent-sidebar">
         <div><span className="agent-kicker">AI MQL5 ARCHITECT</span><h1>MT5 程序 Agent</h1><p>通过多轮对话，把交易想法转化为结构化 EA 或自定义指标、逻辑图和可编辑的 MQL5 源码。</p></div>
@@ -453,28 +571,34 @@ export function AgentWorkbench({ initialBilling, userId, userName, userAvatarUrl
         {conversationId ? <label className="agent-note">保留策略 <select value={conversations.find((item) => item.id === conversationId)?.retentionDays ?? 365} onChange={(event) => { const retentionDays = Number(event.target.value); void fetch(`/api/agent/conversations/${conversationId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ retentionDays }) }).then(() => refreshConversations()); }}><option value="30">30 天</option><option value="90">90 天</option><option value="365">365 天</option><option value="36500">永久</option></select></label> : <div className="agent-note">会话自动保存并与当前账户同步；离线草稿按账户隔离。</div>}
       </aside>
 
+      <div className={`agent-resizer${draggingPanel === "sidebar" ? " active" : ""}`} role="separator" aria-orientation="vertical" aria-label="拖动调整 Agent 面板宽度，双击恢复默认" title="拖动调整宽度 · 双击恢复默认" onPointerDown={(event) => beginPanelDrag(event, "sidebar")} onPointerMove={movePanelDrag} onPointerUp={endPanelDrag} onPointerCancel={endPanelDrag} onLostPointerCapture={endPanelDrag} onDoubleClick={resetPanelWidths} />
+
       <section className="agent-chat-panel">
         <header><div><b>需求对话</b><small>{status}</small></div><span className={isGenerating ? "agent-live active" : "agent-live"}><i />{isGenerating ? "生成中" : "就绪"}</span></header>
         <div className="agent-messages">
           {messageCursor !== null ? <button className="agent-load-more" onClick={() => void loadOlderMessages()}>加载更早消息</button> : null}
           {!messages.length && !streamedReply && <div className="agent-welcome"><span>Σ</span><h2>描述你的 EA 或指标</h2><p>请先说明要生成 EA 还是自定义指标，并尽量写明品种、周期、规则、显示方式或风险要求。</p><div>{examples.map((example) => <button key={example} onClick={() => void submit(example)}>{example}</button>)}</div></div>}
           {messages.map((message) => <article key={message.id} className={`chat-message ${message.role}`}><div className="chat-avatar"><UserAvatar name={message.role === "user" ? userName : "Sigma AI"} src={message.role === "user" ? userAvatarUrl : null} size={28} /></div><div className="chat-message-body"><p>{message.content}</p>{message.attachments?.length ? <div className="message-attachments">{message.attachments.map((item, index) => <span key={`${item.name}-${index}`}>{item.kind === "image" ? "▧" : "▤"} {item.name}</span>)}</div> : null}</div></article>)}
+          {isGenerating && !streamedReply && <article className="chat-message assistant sigma-waiting"><div className="chat-avatar"><UserAvatar name="Sigma AI" src={null} size={28} /></div><p><i className="sigma-thinking" aria-hidden="true">Σ</i></p></article>}
           {streamedReply && <article className="chat-message assistant"><div className="chat-avatar"><UserAvatar name="Sigma AI" src={null} size={28} /></div><p>{streamedReply}<i className="typing-cursor" /></p></article>}
           {error && <div className="agent-error"><b>{errorTitle}</b><span>{error}</span></div>}
           <div ref={chatEndRef} />
         </div>
         <div className="agent-composer">
           <div className="composer-toolbar"><button type="button" className="attachment-button" onClick={() => fileInputRef.current?.click()} disabled={isGenerating || attachments.length >= MAX_ATTACHMENTS}>＋ 图片/文档</button><button type="button" className="save-conversation-button" onClick={() => void saveDraft()} disabled={(!artifact && !messages.length) || isGenerating}>保存当前对话</button><input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif,.pdf,.doc,.docx,.txt,.md,.csv,.json,.xml,.mq4,.mq5,.mqh,.js,.ts,.py" multiple hidden onChange={(event) => { void addFiles(Array.from(event.target.files ?? [])); event.currentTarget.value = ""; }} /></div>
-          {attachments.length ? <div className="composer-attachments">{attachments.map((item) => <div key={item.id}>{item.kind === "image" ? <span className="attachment-image-preview" style={{ backgroundImage: `url(${item.data})` }} /> : <span>DOC</span>}<b title={item.name}>{item.name}</b><button type="button" aria-label={`移除 ${item.name}`} onClick={() => setAttachments((current) => current.filter((attachment) => attachment.id !== item.id))}>×</button></div>)}</div> : null}
+          {attachments.length ? <div className="composer-attachments">{attachments.map((item) => <div key={item.id} onMouseEnter={() => { if (item.kind === "image") setPreviewedAttachment(item); }} onMouseLeave={() => setPreviewedAttachment((current) => current?.id === item.id ? null : current)} onFocus={() => { if (item.kind === "image") setPreviewedAttachment(item); }} onBlur={() => setPreviewedAttachment((current) => current?.id === item.id ? null : current)}>{item.kind === "image" ? <span className="attachment-image-preview" style={{ backgroundImage: `url(${item.data})` }} /> : <span>DOC</span>}<b title={item.name}>{item.name}</b><button type="button" aria-label={`移除 ${item.name}`} onClick={() => { setAttachments((current) => current.filter((attachment) => attachment.id !== item.id)); setPreviewedAttachment(null); }}>×</button></div>)}</div> : null}
+          {previewedAttachment && previewedAttachment.kind === "image" && <div className="composer-image-preview" aria-hidden="true"><img src={previewedAttachment.data} alt="" /></div>}
           <textarea value={input} onChange={(event) => setInput(event.target.value)} onPaste={(event) => { const images = Array.from(event.clipboardData.files).filter((file) => file.type.startsWith("image/")); if (images.length) { event.preventDefault(); void addFiles(images); } }} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(); } }} placeholder={artifact ? "继续要求修改，也可粘贴截图或附加文档…" : "描述策略规则，或粘贴截图/附加文档…"} rows={3} disabled={isGenerating} />
           <div className="composer-footer"><small>Enter 发送 · Shift + Enter 换行 · 支持粘贴截图</small>{isGenerating ? <button className="stop-button" onClick={() => abortRef.current?.abort()}>停止</button> : <button onClick={() => void submit()} disabled={!input.trim() && !attachments.length}>发送 <span>↑</span></button>}</div>
         </div>
       </section>
 
+      <div className={`agent-resizer${draggingPanel === "chat" ? " active" : ""}`} role="separator" aria-orientation="vertical" aria-label="拖动调整对话区宽度，双击恢复默认" title="拖动调整宽度 · 双击恢复默认" onPointerDown={(event) => beginPanelDrag(event, "chat")} onPointerMove={movePanelDrag} onPointerUp={endPanelDrag} onPointerCancel={endPanelDrag} onLostPointerCapture={endPanelDrag} onDoubleClick={resetPanelWidths} />
+
       <section className="agent-artifact-panel">
         <header><div className="artifact-tabs"><button className={activeTab === "code" ? "active" : ""} onClick={() => setActiveTab("code")}>MQL5 代码</button><button className={`${activeTab === "diagram" ? "active" : ""} ${isDiagramReady ? "diagram-ready" : ""}`} onClick={() => { setActiveTab("diagram"); setIsDiagramReady(false); }}>逻辑图</button><button className={activeTab === "parameters" ? "active" : ""} onClick={() => setActiveTab("parameters")}>参数</button><button className={activeTab === "compile" ? "active" : ""} onClick={() => setActiveTab("compile")}>编译验证{artifact?.compilation.status === "failed" ? <em>!</em> : null}</button><button className={activeTab === "risk" ? "active" : ""} onClick={() => setActiveTab("risk")}>风险告知</button><button className={activeTab === "spec" ? "active" : ""} onClick={() => setActiveTab("spec")}>StrategySpec</button></div><div className="artifact-actions">{activeTab === "code" && <button className="copy-code-button" onClick={() => void copyCode()} disabled={!artifact || isGenerating}>复制代码</button>}<button className="download-button" onClick={downloadCode} disabled={!artifact}>下载 .mq5</button></div></header>
         <div className="artifact-content">
-          {activeTab === "code" && <>{pendingChange && artifact?.changes?.length ? <div className="code-change-summary"><div><b>待确认的局部修改{pendingChange.specSummary ? ` · ${pendingChange.specSummary}` : ""}</b><span>主题色背景标出 {artifact.changes.length} 个已替换代码块；完整源码已重新编译验证。</span></div><div className="code-change-actions"><button onClick={confirmChanges} disabled={isGenerating}>确认修改</button><button onClick={revertChanges} disabled={isGenerating}>撤回</button></div></div> : null}<Mql5Editor value={displayedCode} onChange={updateCode} readOnly={!artifact || isGenerating} highlightedBlocks={pendingChange ? artifact?.changes?.map((change) => change.replace) : []} /></>}
+          {activeTab === "code" && <>{pendingChange && artifact?.changes?.length ? <div className="code-change-summary"><div><b>待确认的局部修改{pendingChange.specSummary ? ` · ${pendingChange.specSummary}` : ""}</b><span>已替换 {artifact.changes.length} 个代码块（编辑器中以主题色底色标出）；完整源码已重新编译验证。</span></div><div className="code-change-actions"><button onClick={confirmChanges} disabled={isGenerating}>确认修改</button><button onClick={revertChanges} disabled={isGenerating}>撤回</button></div></div> : null}<Mql5Editor value={displayedCode} onChange={updateCode} readOnly={!artifact || isGenerating} highlightedBlocks={pendingChange ? artifact?.changes?.map((change) => change.replace) : []} /></>}
           {activeTab === "diagram" && (artifact ? <div className={`strategy-diagram-editor ${selectedNodeId ? "editing" : ""}`}><StrategyFlow diagram={artifact.diagram} selectedNodeId={selectedNodeId} disabled={isGenerating || Boolean(pendingChange)} onNodeSelect={setSelectedNodeId} />{selectedNodeId && artifact.diagram.nodes.find((node) => node.id === selectedNodeId) ? <StrategyNodeEditor key={selectedNodeId} spec={artifact.spec} node={artifact.diagram.nodes.find((node) => node.id === selectedNodeId)!} disabled={isGenerating} onClose={() => setSelectedNodeId(null)} onSubmit={submitDiagramChange} /> : null}{pendingChange && <div className="diagram-locked-note">当前有待确认的代码修改，请先在“MQL5 代码”页确认或撤回。</div>}</div> : <div className="artifact-empty">生成程序后，这里会显示由 StrategySpec 构建的执行逻辑图。</div>)}
           {activeTab === "spec" && (artifact ? <pre className="spec-view">{JSON.stringify(artifact.spec, null, 2)}</pre> : <div className="artifact-empty">尚未生成结构化策略。</div>)}
           {activeTab === "parameters" && (artifact ? <Mt5InputParameters parameters={artifact.inputParameters} /> : <div className="artifact-empty">生成策略后，这里会显示从 MQL5 源码提取的 input 参数。</div>)}

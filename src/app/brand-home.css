@@ -9,10 +9,7 @@
   min-height: 100vh;
   padding: 24px 16px;
   color: var(--tech-ink);
-  background:
-    radial-gradient(circle at 10% 6%, #c66a7612, transparent 24%),
-    radial-gradient(circle at 90% 12%, #28745a0a, transparent 22%),
-    #f4f0e9;
+  background: var(--page-bg);
 }
 
 .brand-home-sheet {
@@ -25,7 +22,7 @@
 }
 
 .brand-home-sheet > .site-footer {
-  background: #f5f0e9;
+  background: #f8f5ee;
 }
 
 .brand-home-sheet > .site-nav {
@@ -42,7 +39,7 @@
   overflow: hidden;
   border-bottom: 1px solid var(--tech-rule);
   background:
-    linear-gradient(180deg, #ffffffbb 0%, #fdfbf8ee 100%),
+    linear-gradient(180deg, #ffffffbb 0%, #fdfdfcee 100%),
     linear-gradient(90deg, #3b353005 1px, transparent 1px),
     linear-gradient(#3b353005 1px, transparent 1px);
   background-size: 100% 100%, 40px 40px, 40px 40px;
@@ -137,10 +134,11 @@
 }
 
 .brand-quick-links {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
+  max-width: 640px;
+  margin-top: 4px;
 }
 
 .btn-brand-primary {
@@ -164,6 +162,35 @@
   background: var(--tech-red);
   border-color: var(--tech-red);
   transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #c66a7635;
+}
+
+/* 主 CTA：旗舰入口，实色红 + 硬投影，确立 1 主层次 */
+.btn-brand-lead {
+  flex: 1 1 220px;
+  background: var(--tech-red);
+  border-color: var(--tech-red);
+  box-shadow: 4px 4px 0 var(--tech-ink);
+}
+
+.btn-brand-lead:hover {
+  background: var(--tech-red-dark);
+  border-color: var(--tech-red-dark);
+  box-shadow: 6px 6px 0 var(--tech-ink);
+}
+
+/* 次 CTA：描边轻量，退为辅助层次 */
+.btn-brand-ghost {
+  flex: 1 1 120px;
+  color: var(--tech-ink);
+  background: transparent;
+  box-shadow: 4px 4px 0 #3b353014;
+}
+
+.btn-brand-ghost:hover {
+  color: #ffffff;
+  background: var(--tech-ink);
+  border-color: var(--tech-ink);
   box-shadow: 6px 6px 0 #c66a7635;
 }
 
@@ -269,48 +296,125 @@
 }
 
 /* ==========================================================================
-   3. Four Core Capabilities (四大核心功能矩阵 - 突出关键词与入口)
+   3. Four Core Capabilities (四大核心功能矩阵 - 点击卡片展开描述)
    ========================================================================== */
 .brand-services-minimal {
   padding: 72px clamp(24px, 5vw, 76px);
   background: var(--tech-paper);
 }
 
-.services-grid-minimal {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid var(--tech-ink);
-  border-left: 1px solid var(--tech-ink);
-}
-
-.service-card-minimal {
-  position: relative;
+/* 横向卡片矩阵：激活卡通过 flex-grow 展宽，露出描述性文本 */
+.services-expand-row {
   display: flex;
-  flex-direction: column;
-  padding: 28px 24px 22px;
-  border-right: 1px solid var(--tech-ink);
-  border-bottom: 1px solid var(--tech-ink);
-  background: #ffffff;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  align-items: stretch;
+  gap: 16px;
+  height: clamp(420px, 33vw, 460px);
 }
 
-.service-card-minimal:hover {
-  z-index: 2;
+.service-expand-card {
+  position: relative;
+  flex: 1 1 0%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--tech-ink);
+  background: #ffffff;
+  transition:
+    flex-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.3s,
+    box-shadow 0.25s,
+    transform 0.25s;
+}
+
+.service-expand-card:not(.is-active):hover {
   transform: translate(-3px, -3px);
   box-shadow: 8px 8px 0 #3b3530;
-  border-color: var(--tech-ink);
 }
 
-.card-top {
+.service-expand-card.is-active {
+  flex-grow: 3.4;
+  background: #fefdfb;
+  box-shadow: 8px 8px 0 #3b3530;
+}
+
+/* 折叠面：序号徽章 + 标题，同时充当无障碍触发器 */
+.service-expand-toggle {
+  position: absolute;
+  inset: 0;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 24px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--tech-ink);
+  font: inherit;
+  cursor: pointer;
+  transition: opacity 0.22s ease;
 }
 
-.card-index {
+.service-expand-card.is-active .service-expand-toggle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.service-expand-toggle:focus-visible {
+  outline: 2px solid var(--tech-red);
+  outline-offset: -4px;
+}
+
+/* 序号：无框纯文本编号，与用户定位模块的编号风格呼应 */
+.service-expand-badge {
   color: var(--tech-red);
-  font: 700 32px/1 Georgia, serif;
+  font: 800 15px/1 "Cascadia Code", Consolas, monospace;
+  letter-spacing: 0.14em;
+}
+
+.service-expand-badge-lg {
+  font-size: 24px;
+}
+
+.service-expand-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* 展开面：序号 + 标题 + 关键词 + 描述 */
+.service-expand-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 34px clamp(26px, 3.6vw, 56px);
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity 0.22s ease, transform 0.22s ease, visibility 0s linear 0.22s;
+}
+
+.service-expand-card.is-active .service-expand-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition:
+    opacity 0.38s ease 0.16s,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.16s,
+    visibility 0s;
+}
+
+.service-expand-panel h3 {
+  margin: 2px 0 0;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--tech-ink);
 }
 
 .card-en {
@@ -319,12 +423,8 @@
   letter-spacing: 0.12em;
 }
 
-.service-card-minimal h3 {
-  margin: 0 0 14px;
-  font-family: Georgia, "Songti SC", serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--tech-ink);
+.service-expand-panel .card-en {
+  font-size: 10px;
 }
 
 /* 核心关键词标签 */
@@ -335,54 +435,32 @@
   margin-bottom: 14px;
 }
 
+.service-expand-panel .card-keywords {
+  justify-content: center;
+  margin: 4px 0 0;
+}
+
 .kw-badge {
   padding: 2px 7px;
   border: 1px solid #e2d9cd;
-  background: #fbf9f5;
+  background: #fcfbf8;
   color: #7a6e63;
   font-size: 11px;
   font-weight: 600;
 }
 
-.service-card-minimal:hover .kw-badge {
+.service-expand-card:hover .kw-badge {
   border-color: #d69ca3;
-  background: #fff4f5;
+  background: #fef8f9;
   color: var(--tech-red);
 }
 
-.service-card-minimal p {
-  margin: 0 0 24px;
+.service-expand-panel p {
+  max-width: 500px;
+  margin: 2px 0 0;
   color: var(--tech-muted);
-  font-size: 12.5px;
-  line-height: 1.75;
-}
-
-.card-link {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--tech-rule);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--tech-ink);
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: color 0.18s;
-}
-
-.card-link i {
-  font-size: 15px;
-  font-style: normal;
-  transition: transform 0.18s;
-}
-
-.service-card-minimal:hover .card-link {
-  color: var(--tech-red);
-}
-
-.service-card-minimal:hover .card-link i {
-  transform: translate(2px, -2px);
+  font-size: 13px;
+  line-height: 1.85;
 }
 
 /* ==========================================================================
@@ -393,7 +471,7 @@
   grid-template-columns: 0.8fr 1.2fr;
   border-top: 1px solid var(--tech-rule);
   border-bottom: 1px solid var(--tech-rule);
-  background: #f7f3ec;
+  background: #f8f4ec;
 }
 
 .audiences-intro-pane {
@@ -460,7 +538,7 @@
    ========================================================================== */
 .brand-ecosystems-section {
   padding: 72px clamp(24px, 5vw, 76px);
-  background: #faf8f5;
+  background: #ffffff;
   border-bottom: 1px solid var(--tech-rule);
 }
 
@@ -489,7 +567,7 @@
   gap: 16px;
   padding: 24px 28px;
   border-right: 1px solid var(--tech-rule);
-  background: #f4eee7;
+  background: #f8f4ee;
 }
 
 .ecosystem-icon {
@@ -594,8 +672,56 @@
     grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
     gap: 24px;
   }
-  .services-grid-minimal {
-    grid-template-columns: repeat(2, 1fr);
+  /* 窄屏回退：横向展宽改为纵向手风琴 */
+  .services-expand-row {
+    flex-direction: column;
+    height: auto;
+    gap: 12px;
+  }
+  .service-expand-card {
+    flex: 0 0 auto;
+    transition: background 0.3s, box-shadow 0.25s, transform 0.25s;
+  }
+  .service-expand-card.is-active {
+    flex-grow: 0;
+    background: #fefdfb;
+    box-shadow: inset 3px 0 0 var(--tech-red);
+  }
+  .service-expand-card:not(.is-active):hover {
+    transform: none;
+    box-shadow: 6px 6px 0 #3b3530;
+  }
+  .service-expand-toggle {
+    position: static;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 18px 22px;
+  }
+  .service-expand-card.is-active .service-expand-toggle {
+    display: none;
+  }
+  .service-expand-toggle .service-expand-badge {
+    font-size: 14px;
+  }
+  .service-expand-name {
+    font-size: 15px;
+  }
+  .service-expand-panel {
+    position: static;
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 24px 28px;
+    text-align: left;
+    transform: none;
+    transition: none;
+  }
+  .service-expand-card.is-active .service-expand-panel {
+    display: flex;
+  }
+  .service-expand-panel p {
+    max-width: none;
   }
 }
 
@@ -617,7 +743,7 @@
     min-height: 280px;
   }
   .brand-quick-links {
-    grid-template-columns: repeat(2, 1fr);
+    max-width: 560px;
   }
   .brand-block-header {
     flex-direction: column;
@@ -651,8 +777,14 @@
 }
 
 @media (max-width: 600px) {
-  .services-grid-minimal {
-    grid-template-columns: 1fr;
+  .services-expand-row {
+    gap: 10px;
+  }
+  .service-expand-toggle {
+    padding: 15px 18px;
+  }
+  .service-expand-panel {
+    padding: 4px 18px 24px;
   }
   .brand-hero-tag {
     font-size: 9px;
@@ -672,7 +804,7 @@
     font-size: 12.5px;
   }
   .brand-quick-links {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
   .ecosystem-brand-list {
     padding: 18px;
@@ -683,74 +815,94 @@
 }
 
 /* ==========================================================================
-   Dark Theme Overrides
+   Dark Theme Overrides（暖黑 / 深海蓝共享组件规则：骨架色消费 --dkb-*，
+   变量默认值与深海蓝覆盖统一在 theme-tokens.css 定义）
    ========================================================================== */
-html[data-theme="dark"] .brand-home-shell {
-  background: #141312;
+html:is([data-theme="dark"], [data-theme="midnight"]) .brand-home-shell {
+  background: var(--dkb-shell);
 }
 
-html[data-theme="dark"] .brand-home-sheet {
-  background: #181716;
-  border-color: #9c3f4c;
+html:is([data-theme="dark"], [data-theme="midnight"]) .brand-home-sheet {
+  background: var(--dkb-sheet);
+  border-color: var(--dkb-sheet-border);
   box-shadow: 0 32px 90px #00000080;
 }
 
-html[data-theme="dark"] .brand-hero-minimal {
+html:is([data-theme="dark"], [data-theme="midnight"]) .brand-hero-minimal {
   background:
-    linear-gradient(180deg, #181716e0 0%, #1a1918 100%),
+    linear-gradient(180deg, var(--dkb-hero-grad-a) 0%, var(--dkb-hero-grad-b) 100%),
     linear-gradient(90deg, #ffffff06 1px, transparent 1px),
     linear-gradient(#ffffff06 1px, transparent 1px);
   background-size: 100% 100%, 40px 40px, 40px 40px;
 }
 
-html[data-theme="dark"] .brand-color-divider {
+html:is([data-theme="dark"], [data-theme="midnight"]) .brand-color-divider {
   border-color: #ffffff18;
 }
 
-html[data-theme="dark"] .service-card-minimal {
-  background: #1e1d1b;
-  border-color: #38332d;
+html:is([data-theme="dark"], [data-theme="midnight"]) .service-expand-card {
+  background: var(--dkb-card);
+  border-color: var(--dkb-card-border);
 }
 
-html[data-theme="dark"] .kw-badge {
-  background: #262422;
-  border-color: #3d3731;
-  color: #c2b8ae;
+html:is([data-theme="dark"], [data-theme="midnight"]) .service-expand-card.is-active {
+  background: var(--dkb-card-active);
 }
 
-html[data-theme="dark"] .brand-audiences-minimal {
-  background: #191817;
+html:is([data-theme="dark"], [data-theme="midnight"]) .kw-badge {
+  background: var(--dkb-badge);
+  border-color: var(--dkb-badge-border);
+  color: var(--dkb-badge-text);
 }
 
-html[data-theme="dark"] .audience-box:hover {
-  background: #23211f;
+html:is([data-theme="dark"], [data-theme="midnight"]) .brand-audiences-minimal {
+  background: var(--dkb-audience);
 }
 
-html[data-theme="dark"] .brand-ecosystems-section {
-  background: #161514;
+html:is([data-theme="dark"], [data-theme="midnight"]) .audience-box:hover {
+  background: var(--dkb-audience-hover);
 }
 
-html[data-theme="dark"] .ecosystem-matrix {
-  border-color: #3c3732;
-  background: #1e1d1b;
+html:is([data-theme="dark"], [data-theme="midnight"]) .brand-ecosystems-section {
+  background: var(--dkb-eco-section);
+}
+
+html:is([data-theme="dark"], [data-theme="midnight"]) .ecosystem-matrix {
+  border-color: var(--dkb-eco-border);
+  background: var(--dkb-card);
   box-shadow: 8px 8px 0 #00000035;
 }
 
-html[data-theme="dark"] .ecosystem-row {
-  border-color: #3c3732;
+html:is([data-theme="dark"], [data-theme="midnight"]) .ecosystem-row {
+  border-color: var(--dkb-eco-border);
 }
 
-html[data-theme="dark"] .ecosystem-row-label {
-  border-color: #3c3732;
-  background: #25221f;
+html:is([data-theme="dark"], [data-theme="midnight"]) .ecosystem-row-label {
+  border-color: var(--dkb-eco-border);
+  background: var(--dkb-eco-label);
 }
 
-html[data-theme="dark"] .ecosystem-row-label h3 {
-  color: #f5f0e9;
+html:is([data-theme="dark"], [data-theme="midnight"]) .ecosystem-row-label h3 {
+  color: var(--dkb-eco-heading);
 }
 
-html[data-theme="dark"] .ecosystem-brand {
-  border-color: #3c3732;
-  color: #d7cec5;
-  background: #161513;
+html:is([data-theme="dark"], [data-theme="midnight"]) .ecosystem-brand {
+  border-color: var(--dkb-eco-border);
+  color: var(--dkb-eco-brand-text);
+  background: var(--dkb-eco-brand-bg);
+}
+
+/* Dark theme：主次 CTA 的层次保持 */
+
+html:is([data-theme="dark"], [data-theme="midnight"]) .btn-brand-ghost {
+  color: var(--dkb-ghost-text);
+  border-color: var(--dkb-ghost-border);
+  box-shadow: 4px 4px 0 #00000040;
+}
+
+html:is([data-theme="dark"], [data-theme="midnight"]) .btn-brand-ghost:hover {
+  color: var(--dkb-ghost-hover-ink);
+  background: var(--dkb-ghost-text);
+  border-color: var(--dkb-ghost-text);
+  box-shadow: 6px 6px 0 #00000055;
 }

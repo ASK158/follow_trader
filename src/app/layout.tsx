@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./mobile-enhance.css";
+import { THEMES } from "@/lib/theme";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -33,7 +34,10 @@ export const viewport = {
   ],
 };
 
-const themeScript = `(function(){try{var m=localStorage.getItem("sigma-theme");if(m!=="light"&&m!=="dark")m=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";var d=m==="dark";var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themeMode=m;r.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
+// 由主题注册表生成：<html data-theme> 白名单与 color-scheme 映射，防止首屏闪烁。
+const themeSchemes = Object.fromEntries(THEMES.map((theme) => [theme.value, theme.colorScheme]));
+
+const themeScript = `(function(){try{var T=${JSON.stringify(themeSchemes)};var m=localStorage.getItem("sigma-theme");if(!(m&&T[m]))m=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";var r=document.documentElement;r.dataset.theme=m;r.dataset.themeMode=T[m];r.style.colorScheme=T[m];}catch(e){}})()`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

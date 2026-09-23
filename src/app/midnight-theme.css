@@ -1,0 +1,12 @@
+/* 深海蓝终端主题（midnight）—— 定点覆盖层。
+   调色板（语义变量与 --dk-* / --dkb-* 骨架取值）统一在 theme-tokens.css 定义；
+   与暖黑共享的暗色组件规则集中在 dark-theme.css / brand-home.css。
+   本文件只保留深海蓝特有的定点覆盖（如开发者页负面状态改用真正的红，
+   与冰蓝品牌强调色区分，保持正误语义稳定）。 */
+
+/* 开发者页负面状态：--tech-red 在本主题为冰蓝品牌强调色，
+   错误 / 驳回 / 警示需用真正的红（与 --red 同源），保持正误与涨跌语义稳定。 */
+html[data-theme="midnight"] .dev-form-error { border-color: #ef7d88; color: #ef7d88; background: #ef7d8814; }
+html[data-theme="midnight"] .dev-review-note { border-left-color: #ef7d88; background: #ef7d880d; }
+html[data-theme="midnight"] .status-rejected { border-color: #ef7d88; color: #ef7d88; background: #ef7d8818; }
+html[data-theme="midnight"] .recharge-warning { border-left-color: #ef7d88; color: #ef7d88 !important; background: #ef7d8810; }

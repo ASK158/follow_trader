@@ -1,30 +1,5 @@
-/* Shared visual system: warm technical canvas, precise rules and signal-red accents. */
-:root {
-  --tech-paper: #fdfbf8;
-  --tech-paper-raised: #ffffff;
-  --tech-ink: #3b3530;
-  --tech-muted: #857b72;
-  --tech-rule: #ebe3d9;
-  --tech-red: #c66a76;
-  --tech-red-dark: #a44d59;
-  --tech-green: #236750;
-}
-
-body {
-  color: var(--tech-ink);
-  background: #f8f5ef;
-  font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body::before {
-  opacity: 1;
-  filter: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='360' viewBox='0 0 600 360'%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle' transform='rotate(-14 300 180)' font-family='-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif' font-size='28' font-weight='600' fill='%239e4a56' fill-opacity='0.032' letter-spacing='12'%3ESIGMA BOT%3C/text%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: auto;
-}
+/* Shared visual system: warm technical canvas, precise rules and signal-red accents.
+   （页面级颜色 token 见 theme-tokens.css；本文件不定义任何主题变量。） */
 
 .brand,
 .editorial-sheet .hero h1,
@@ -452,10 +427,10 @@ body::before {
 .detail-shell .growth-control.selected { color: var(--tech-red); }
 .detail-shell .return-header,
 .detail-shell .trade-header,
-.detail-shell .monthly-year-heading { background: #f4eee7; }
+.detail-shell .monthly-year-heading { background: #f8f4ee; }
 .detail-shell .return-row,
 .detail-shell .trade-row { border-color: var(--tech-rule); }
-.detail-shell .trade-row:not(.trade-header):hover { background: #fffaf2; }
+.detail-shell .trade-row:not(.trade-header):hover { background: #fdfcf8; }
 .detail-shell .metric { border-left: 3px solid var(--tech-red); }
 .detail-shell .metric:hover { border-color: var(--tech-red); }
 .detail-shell .pagination button { border-radius: 0; border-color: var(--tech-rule); background: var(--tech-paper-raised); }
@@ -486,7 +461,7 @@ body::before {
   min-height: 100vh;
   padding: 0 22px 22px;
   color: var(--tech-ink);
-  background: #f8f5ef;
+  background: var(--page-bg);
 }
 
 .agent-shell::before {
@@ -630,11 +605,11 @@ body::before {
   color: #4c4741;
   background: var(--tech-paper-raised);
 }
-.agent-shell .agent-welcome button:hover { border-color: var(--tech-red); color: var(--tech-red); background: #fffaf2; }
+.agent-shell .agent-welcome button:hover { border-color: var(--tech-red); color: var(--tech-red); background: #fdfcf8; }
 .agent-shell .chat-message > span { border-radius: 0; color: #fff; background: var(--tech-red); }
 .agent-shell .chat-message.user > span { background: var(--tech-ink); }
 .agent-shell .chat-message p { border-color: var(--tech-rule); border-radius: 0; color: var(--tech-ink); background: var(--tech-paper-raised); }
-.agent-shell .chat-message.user p { border-left: 3px solid var(--tech-red); background: #f5ede3; }
+.agent-shell .chat-message.user p { border-left: 3px solid var(--tech-red); background: #f9f5ee; }
 .agent-shell .typing-cursor { background: var(--tech-red); }
 .agent-shell .agent-composer {
   border-color: var(--tech-ink);
@@ -667,23 +642,21 @@ body::before {
 .agent-shell .mt5-table {
   border-radius: 0;
 }
-.agent-shell .risk-disclosure { border-color: var(--tech-red); background: #f8eee8; }
+.agent-shell .risk-disclosure { border-color: var(--tech-red); background: #fdf6f1; }
 .agent-shell .risk-disclosure > span { border-radius: 0; background: var(--tech-red); }
-.agent-shell .disclosure-item { border-color: var(--tech-rule); border-left-color: var(--tech-red); background: #fffaf2; }
-.agent-shell .compile-summary { border-color: var(--tech-rule); background: #fffaf2; }
-.agent-shell .version-timeline button { border-color: var(--tech-rule); background: #fffaf2; }
+.agent-shell .disclosure-item { border-color: var(--tech-rule); border-left-color: var(--tech-red); background: #fdfcf8; }
+.agent-shell .compile-summary { border-color: var(--tech-rule); background: #fdfcf8; }
+.agent-shell .version-timeline button { border-color: var(--tech-rule); background: #fdfcf8; }
 .agent-shell .version-timeline button:hover,
-.agent-shell .version-timeline button.selected { border-color: var(--tech-red); background: #f8eee8; }
-.agent-shell .code-change-summary { border-color: #d9a7ae; background: #f5dfdf; }
+.agent-shell .version-timeline button.selected { border-color: var(--tech-red); background: #fdf6f1; }
+.agent-shell .code-change-summary { border-color: #d9a7ae; background: #faefef; }
 .agent-shell .code-change-actions button { border-radius: 0; border-color: var(--tech-red); background: var(--tech-red); }
-.agent-shell .agent-artifact-panel > footer { border-color: var(--tech-rule); color: var(--tech-muted); background: #e9e1d6; font-family: "Cascadia Code", Consolas, monospace; }
+.agent-shell .agent-artifact-panel > footer { border-color: var(--tech-rule); color: var(--tech-muted); background: #f3efe8; font-family: "Cascadia Code", Consolas, monospace; }
 .agent-shell .mt5-parameter-tabs,
 .agent-shell .mt5-table,
 .agent-shell .mt5-group,
 .agent-shell .mt5-header { background: var(--tech-paper-raised) !important; }
-.agent-shell .mt5-row:nth-child(even) { background: #e9e1d6; }
-.agent-shell .mql5-change-highlight { background: #eed0d3; border-color: #ca7180; }
-.agent-shell .mql5-change-gutter { border-color: var(--tech-red); }
+.agent-shell .mt5-row:nth-child(even) { background: #f3efe8; }
 
 @media (max-width: 1180px) {
   .editorial-sheet .hero {

@@ -1,0 +1,322 @@
+/* ============================================================================
+   主题色 Token 层 —— 全站唯一的主题颜色变量定义入口
+   ============================================================================
+   结构约定：
+   • 颜色变量只在本文件定义：:root 为浅色默认值（light 主题），
+     html[data-theme="…"] 为对应主题的整组替换；组件 CSS 一律用 var() 消费，
+     不得再定义这些变量或硬编码主题色。
+   • 无法用单一 token 表达的定点覆盖（水印图片、渐变、局部硬编码色）保留在
+     各主题覆盖文件：dark-theme.css / midnight-theme.css / celadon-theme.css；
+     dark 与 midnight 共享的组件骨架规则集中在 dark-theme.css（仅变量取值不同）。
+   • 暗色系共享骨架变量：--dk-*（通用界面）与 --dkb-*（品牌首页），默认值（暖黑）
+     在下方共享块定义，midnight 在自己的块中按变量整体覆盖。
+   • 组件作用域的旧变量重映射（.platform-shell / .detail-shell / .agent-shell 把
+     --ink/--muted/--line/--blue 等别名到 --tech-*）不在本文件，见对应组件文件。
+   • 新增主题步骤：
+       1) src/lib/theme.ts 登记 value / label / colorScheme；
+       2) 本文件新增一个 html[data-theme="…"] 块（语义变量整组替换）；
+       3) 有残留硬编码色时新建/追加对应主题覆盖文件，并在 globals.css 按序 @import。
+
+   变量分组：
+     --page-bg               页面基础底色（html / body / .home-shell 共用）
+     --ink / --muted / --line         正文 / 次要文字 / 分隔线
+     --blue / --green / --red         旧版信号页遗留别名（detail 页经壳重映射）
+     --tech-*                         平台界面语义色（red=品牌强调，green=收益）
+     --editorial-*                    编辑部首页语义色（red 实为品牌强调色）
+     --focus-ring                     键盘焦点描边（readability.css 消费）
+      --code-change-bg / --code-change-line  AI 实验室局部修改：替换行高亮底色 / 上下描边
+                                       （Monaco 装饰消费；编辑器画布恒为浅色 sigma-mql5，
+                                         故两值取本主题强调色的浅色调）
+     --dk-* / --dkb-*                 暗色系界面骨架（仅 dark / midnight 有值）
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   浅色（light，默认主题）：暖纸白 + 玫瑰强调
+   ------------------------------------------------------------------------- */
+:root {
+  --page-bg: #fafaf7;
+
+  --ink: #3b3530;
+  --muted: #7a7168;
+  --line: #eae6e0;
+  --blue: #c66a76;
+  --green: #236750;
+  --red: #c66a76;
+
+  --tech-paper: #fdfdfc;
+  --tech-paper-raised: #ffffff;
+  --tech-ink: #3b3530;
+  --tech-muted: #7a7168;
+  --tech-rule: #eae6e0;
+  --tech-red: #c66a76;
+  --tech-red-dark: #a44d59;
+  --tech-green: #236750;
+
+  --editorial-red: #c66a76;
+  --editorial-red-dark: #a44d59;
+  --editorial-ink: #3b3530;
+  --editorial-muted: #7a7168;
+  --editorial-rule: #eae6e0;
+
+  --focus-ring: #b9455540;
+
+  /* AI 实验室局部修改：替换行高亮 */
+  --code-change-bg: #f4e2e5;
+  --code-change-line: #ca7180;
+}
+
+/* ---------------------------------------------------------------------------
+   深色（dark）：暖黑纸面 + 玫瑰强调
+   ------------------------------------------------------------------------- */
+html[data-theme="dark"] {
+  --page-bg: #151514;
+
+  --ink: #f0eae4;
+  --muted: #b5aba2;
+  --line: #363432;
+  --blue: #7aa8ff;
+  --green: #54b58e;
+  --red: #f07d88;
+
+  --tech-paper: #171716;
+  --tech-paper-raised: #1f1e1d;
+  --tech-ink: #f0eae4;
+  --tech-muted: #b5aba2;
+  --tech-rule: #363432;
+  --tech-red: #cf7480;
+  --tech-red-dark: #dc8490;
+  --tech-green: #54b58e;
+
+  --editorial-red: #cf7480;
+  --editorial-red-dark: #dc8490;
+  --editorial-ink: #f0eae4;
+  --editorial-muted: #b5aba2;
+  --editorial-rule: #363432;
+
+  --focus-ring: #cf748048;
+
+  /* AI 实验室局部修改：替换行高亮（编辑器画布恒为浅色，取暖玫瑰浅调） */
+  --code-change-bg: #f5e2e6;
+  --code-change-line: #cf7480;
+}
+
+/* ---------------------------------------------------------------------------
+   暗色系（dark + midnight）共享界面骨架 —— 暖黑默认值。
+   midnight 块在其后按变量整体覆盖（同特异性，靠源顺序取胜，勿调换先后）。
+   ------------------------------------------------------------------------- */
+html:is([data-theme="dark"], [data-theme="midnight"]) {
+  /* 通用界面骨架 */
+  --dk-bg: #151514;
+  --dk-bg-soft: #1a1a19;
+  --dk-panel: #1a1a19d9;
+  --dk-panel-deep: #141413d9;
+  --dk-paper: #171716;
+  --dk-paper-glass: #171716eb;
+  --dk-raised: #1f1e1d;
+  --dk-raised-strong: #1f1e1df5;
+  --dk-raised-glass: #1f1e1deb;
+  --dk-header: #262523;
+  --dk-header-alt: #232220;
+  --dk-hover: #2b2a28;
+  --dk-notice: #1c1c1a;
+  --dk-ink: #f0eae4;
+  --dk-ink-soft: #ded6ce;
+  --dk-ink-note: #d8d0c7;
+  --dk-body-text: #b8b0a6;
+  --dk-muted: #b5aba2;
+  --dk-grid: #a39d96;
+  --dk-muted-3: #aba197;
+  --dk-muted-4: #8f867e;
+  --dk-muted-5: #7d756d;
+  --dk-faint: #433e39;
+  --dk-card-border: #353330;
+  --dk-card-grad-a: #1f1e1de8;
+  --dk-card-grad-b: #161615eb;
+  --dk-card-hover: #232221e8;
+  --dk-hover-border: #5c4348;
+  --dk-action-border: #67474c;
+  --dk-action-bg: #281f20;
+  --dk-chat-user: #382428;
+  --dk-toast-bg: #3f2228ed;
+  --dk-toast-text: #fff4ef;
+  --dk-accent-tint: #cf748014;
+  --dk-accent-tint-2: #cf748024;
+  --dk-accent-tint-3: #cf74802e;
+  --dk-accent-chip: #cf748012;
+  --dk-accent-chip-2: #cf748026;
+  --dk-accent-border: #cf748080;
+  --dk-shadow-deep: #090706a8;
+  --dk-shadow-lg: #09070680;
+  --dk-shadow-mid: #0907068c;
+  --dk-shadow-soft: #0a080760;
+  --dk-shadow-drop: #0b08076b;
+  --dk-shadow-toast: #0b08078c;
+
+  /* 品牌首页骨架 */
+  --dkb-shell: #141312;
+  --dkb-sheet: #181716;
+  --dkb-sheet-border: #9c3f4c;
+  --dkb-hero-grad-a: #181716e0;
+  --dkb-hero-grad-b: #1a1918;
+  --dkb-card: #1e1d1b;
+  --dkb-card-border: #38332d;
+  --dkb-card-active: #252220;
+  --dkb-badge: #262422;
+  --dkb-badge-border: #3d3731;
+  --dkb-badge-text: #c2b8ae;
+  --dkb-audience: #201d1a;
+  --dkb-audience-hover: #23211f;
+  --dkb-eco-section: #161514;
+  --dkb-eco-border: #3c3732;
+  --dkb-eco-label: #25221f;
+  --dkb-eco-heading: #f5f0e9;
+  --dkb-eco-brand-text: #d7cec5;
+  --dkb-eco-brand-bg: #161513;
+  --dkb-ghost-text: #f5f0e9;
+  --dkb-ghost-border: #f5f0e966;
+  --dkb-ghost-hover-ink: #141312;
+}
+
+/* ---------------------------------------------------------------------------
+   深海蓝（midnight）：冷调藏青 + 冰蓝青强调（#56b8cc 对正文对比度约 7:1，达 AA）。
+   涨跌/正误语义色的定点处理见 midnight-theme.css。
+   ------------------------------------------------------------------------- */
+html[data-theme="midnight"] {
+  --page-bg: #0d1420;
+
+  --ink: #dfe6f3;
+  --muted: #93a2bd;
+  --line: #28344d;
+  --blue: #7aa8ff;
+  --green: #3fce96;
+  --red: #ef7d88;
+
+  --tech-paper: #121b2b;
+  --tech-paper-raised: #182338;
+  --tech-ink: #dfe6f3;
+  --tech-muted: #93a2bd;
+  --tech-rule: #28344d;
+  --tech-red: #56b8cc;
+  --tech-red-dark: #7ecfe0;
+  --tech-green: #3fce96;
+
+  --editorial-red: #56b8cc;
+  --editorial-red-dark: #7ecfe0;
+  --editorial-ink: #dfe6f3;
+  --editorial-muted: #93a2bd;
+  --editorial-rule: #28344d;
+
+  --focus-ring: #56b8cc48;
+
+  /* AI 实验室局部修改：替换行高亮（编辑器画布恒为浅色，取冰蓝浅调） */
+  --code-change-bg: #dff0f4;
+  --code-change-line: #56b8cc;
+
+  /* 界面骨架（覆盖上方共享块中的暖黑默认值） */
+  --dk-bg: #0d1420;
+  --dk-bg-soft: #121b2e;
+  --dk-panel: #141e33d9;
+  --dk-panel-deep: #101a2dd9;
+  --dk-paper: #121b2b;
+  --dk-paper-glass: #121b2beb;
+  --dk-raised: #182338;
+  --dk-raised-strong: #182338f5;
+  --dk-raised-glass: #182338eb;
+  --dk-header: #1b2536;
+  --dk-header-alt: #1a2440;
+  --dk-hover: #22304a;
+  --dk-notice: #16213a;
+  --dk-ink: #dfe6f3;
+  --dk-ink-soft: #ccd7ea;
+  --dk-ink-note: #c9d5ea;
+  --dk-body-text: #9dabc4;
+  --dk-muted: #93a2bd;
+  --dk-grid: #7f93b3;
+  --dk-muted-3: #8e9cb5;
+  --dk-muted-4: #7686a1;
+  --dk-muted-5: #64748f;
+  --dk-faint: #35496e;
+  --dk-card-border: #24344e;
+  --dk-card-grad-a: #1d2940e8;
+  --dk-card-grad-b: #131c2ceb;
+  --dk-card-hover: #1c2940e8;
+  --dk-hover-border: #2f5d6e;
+  --dk-action-border: #2e6470;
+  --dk-action-bg: #14283a;
+  --dk-chat-user: #1d3a4a;
+  --dk-toast-bg: #123c4aed;
+  --dk-toast-text: #eaf6fa;
+  --dk-accent-tint: #56b8cc24;
+  --dk-accent-tint-2: #56b8cc33;
+  --dk-accent-tint-3: #56b8cc40;
+  --dk-accent-chip: #56b8cc1f;
+  --dk-accent-chip-2: #56b8cc3d;
+  --dk-accent-border: #56b8cc8c;
+  --dk-shadow-deep: #04070fa8;
+  --dk-shadow-lg: #04070f80;
+  --dk-shadow-mid: #04070f8c;
+  --dk-shadow-soft: #04070f66;
+  --dk-shadow-drop: #04070f6b;
+  --dk-shadow-toast: #04070f8c;
+
+  /* 品牌首页骨架 */
+  --dkb-shell: #0d1420;
+  --dkb-sheet: #121b2b;
+  --dkb-sheet-border: #2e6470;
+  --dkb-hero-grad-a: #121b2be0;
+  --dkb-hero-grad-b: #141d30;
+  --dkb-card: #182338;
+  --dkb-card-border: #2b3a55;
+  --dkb-card-active: #1e2b45;
+  --dkb-badge: #1f2c46;
+  --dkb-badge-border: #31435f;
+  --dkb-badge-text: #a9b8d4;
+  --dkb-audience: #17223a;
+  --dkb-audience-hover: #1b2842;
+  --dkb-eco-section: #101a2e;
+  --dkb-eco-border: #2c3c5e;
+  --dkb-eco-label: #1e2b45;
+  --dkb-eco-heading: #dfe6f3;
+  --dkb-eco-brand-text: #c3cede;
+  --dkb-eco-brand-bg: #101a2e;
+  --dkb-ghost-text: #dfe6f3;
+  --dkb-ghost-border: #dfe6f366;
+  --dkb-ghost-hover-ink: #0d1420;
+}
+
+/* ---------------------------------------------------------------------------
+   青瓷绿（celadon，浅色系）：近白纸面 + 深青绿强调（#2c7263 对白底约 5.5:1，达 AA）。
+   涨跌语义色与品牌强调分离：收益绿 #0e7d55（翡翠）/ 跌幅红 #a63f37（赭红）。
+   残留硬编码色的定点覆盖见 celadon-theme.css。
+   ------------------------------------------------------------------------- */
+html[data-theme="celadon"] {
+  --page-bg: #f4f8f5;
+
+  --ink: #2e3a34;
+  --muted: #63756c;
+  --line: #dfe9e2;
+  --blue: #3d6f8e;
+  --green: #0e7d55;
+  --red: #a63f37;
+
+  --tech-paper: #fcfdfc;
+  --tech-paper-raised: #ffffff;
+  --tech-ink: #2e3a34;
+  --tech-muted: #63756c;
+  --tech-rule: #dfe9e2;
+  --tech-red: #2c7263;
+  --tech-red-dark: #1f5a4e;
+  --tech-green: #0e7d55;
+
+  --editorial-red: #2c7263;
+  --editorial-red-dark: #1f5a4e;
+  --editorial-ink: #2e3a34;
+  --editorial-muted: #63756c;
+  --editorial-rule: #dfe9e2;
+
+  --focus-ring: #2c726348;
+
+  /* AI 实验室局部修改：替换行高亮（编辑器画布恒为浅色，取青瓷绿浅调） */
+  --code-change-bg: #dff1e6;
+  --code-change-line: #93c4b3;
+}

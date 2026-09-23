@@ -1,10 +1,10 @@
-/* Readability layer: preserve the editorial identity while making business content scannable. */
+/* Readability layer: preserve the editorial identity while making business content scannable.
+   （焦点描边颜色 token --focus-ring 在 theme-tokens.css） */
 :root {
   --type-micro: 11px;
   --type-caption: 12px;
   --type-ui: 14px;
   --type-title: 20px;
-  --focus-ring: #b9455540;
 }
 
 .site-nav-tabs a,
@@ -135,4 +135,58 @@
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* ===== 主题按钮组（.theme-switch）：四主题并排，当前项高亮 =====
+   置于文件末尾以保证在同特异性下覆盖上方 .theme-toggle 单按钮样式。 */
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--tech-rule);
+  border-radius: 10px;
+  background: var(--tech-paper);
+}
+.theme-switch .theme-toggle {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--tech-muted);
+  background: transparent;
+}
+.theme-switch .theme-toggle:hover { color: var(--tech-red); background: var(--tech-paper-raised); }
+.theme-switch .theme-toggle.is-active {
+  border-color: var(--tech-red);
+  color: var(--tech-red);
+  background: var(--tech-paper-raised);
+  font-weight: 700;
+}
+.theme-switch .theme-toggle span { font-size: 15px; }
+.theme-switch .theme-toggle b { font-size: 11px; white-space: nowrap; }
+
+/* 页脚列内的按钮组：略收紧 */
+.site-footer-theme .theme-switch { flex-wrap: wrap; }
+.site-footer-theme .theme-switch .theme-toggle { min-width: 0; min-height: 30px; padding: 0 10px; }
+
+/* 移动端菜单内的按钮组：纵向铺满 */
+.theme-switch--mobile {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 4px;
+}
+.theme-switch--mobile .theme-toggle {
+  width: 100%;
+  min-height: 44px;
+  border-top: 1px solid var(--tech-rule);
+  border-radius: 8px;
+}
+.theme-switch--mobile .theme-toggle.is-active { border-top-color: var(--tech-red); }
+
+@media (max-width: 700px) {
+  .site-footer-theme .theme-switch .theme-toggle { padding: 0 9px; }
+  .site-footer-theme .theme-switch .theme-toggle b { display: none; }
 }

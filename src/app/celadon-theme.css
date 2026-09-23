@@ -1,0 +1,125 @@
+/* 青瓷绿主题（celadon）—— 浅色系定点覆盖层。
+   调色板（语义变量、--page-bg 页面底色）统一在 theme-tokens.css 定义；
+   涨跌语义色与品牌强调分离：收益绿 #0e7d55（翡翠）/ 跌幅红 #a63f37（赭红）。
+   本文件只负责定点覆盖各组件文件中残留的暖玫瑰硬编码色与主题化水印图。 */
+
+/* 页面水印：玫瑰 → 青瓷 */
+html[data-theme="celadon"] body::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='360' viewBox='0 0 600 360'%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle' transform='rotate(-14 300 180)' font-family='-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif' font-size='28' font-weight='600' fill='%232c7263' fill-opacity='0.032' letter-spacing='12'%3ESIGMA BOT%3C/text%3E%3C/svg%3E");
+}
+
+/* ===== editorial-home.css ===== */
+html[data-theme="celadon"] .home-shell::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='360' viewBox='0 0 600 360'%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle' transform='rotate(-14 300 180)' font-family='-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif' font-size='28' font-weight='600' fill='%232c7263' fill-opacity='0.032' letter-spacing='12'%3ESIGMA BOT%3C/text%3E%3C/svg%3E");
+}
+html[data-theme="celadon"] .editorial-sheet { background: #fdfffd; }
+html[data-theme="celadon"] .sync-indicator i { background: #2c7263; box-shadow: 0 0 0 3px #2c726318; }
+html[data-theme="celadon"] .agent-entry:hover { box-shadow: 4px 4px 0 #2c72631f; }
+html[data-theme="celadon"] .research-points i { box-shadow: inset 0 -2px 0 #e8f1ea; }
+html[data-theme="celadon"] .signal-card:hover { border-color: #9fc4b8; box-shadow: 0 24px 60px #2c726314; }
+/* 卡片「查看详情」按钮（未选中态）：玫瑰粉底/边 → 青瓷浅底/边；悬停反白时的辅助小字同步换青瓷浅色 */
+html[data-theme="celadon"] .editorial-sheet .card-action { border-color: #b9d8cd; background: #f2f8f4; }
+html[data-theme="celadon"] .editorial-sheet .card-action small { color: #63756c; }
+html[data-theme="celadon"] .editorial-sheet .signal-card:hover .card-action small { color: #d9ece3; }
+
+/* ===== brand-home.css ===== */
+html[data-theme="celadon"] .brand-home-shell { background: radial-gradient(circle at 50% 0, #2c726314, transparent 65%), #f4f8f5; }
+html[data-theme="celadon"] .btn-brand-primary:hover,
+html[data-theme="celadon"] .btn-brand-ghost:hover { box-shadow: 6px 6px 0 #2c726335; }
+html[data-theme="celadon"] .brand-color-divider {
+  background: linear-gradient(90deg, #eff6f1 0%, #ffffff 50%, #e8f2ea 100%);
+}
+html[data-theme="celadon"] .brand-color-divider::after { background: linear-gradient(90deg, transparent 0%, #2c726318 50%, transparent 100%); }
+html[data-theme="celadon"] .color-orbit-one { box-shadow: 0 0 0 24px #2c72630a; }
+html[data-theme="celadon"] .service-expand-card:hover .kw-badge { border-color: #9fc4b8; background: #f4f9f6; }
+html[data-theme="celadon"] .ecosystem-icon-ai::before { box-shadow: 0 0 10px #2c726360; }
+
+/* ===== unified-platform.css ===== */
+html[data-theme="celadon"] .typewriter-title-cursor { box-shadow: 0 0 8px #2c72634d; }
+html[data-theme="celadon"] .editorial-sheet .quant-capabilities .capability-item > i { background: #2c726308; }
+html[data-theme="celadon"] .hero-quant-visual::after { border: 1px solid #2c726320; background: radial-gradient(circle, #2c726312 0 28%, transparent 32%); }
+html[data-theme="celadon"] .detail-shell .signal-header::after { border-top: 1px dashed #2c726377; }
+html[data-theme="celadon"] .agent-shell .new-chat-button,
+html[data-theme="celadon"] .agent-shell .model-config-button { border-color: #9fc4b8; color: #f0f9f4; background: #2c726322; }
+html[data-theme="celadon"] .agent-shell .new-chat-button:hover,
+html[data-theme="celadon"] .agent-shell .model-config-button:hover { border-color: #4fa08f; background: #2c726355; }
+html[data-theme="celadon"] .draft-list button:hover,
+html[data-theme="celadon"] .draft-list button.active { border-color: #3d8a77; background: #2c72632b; }
+html[data-theme="celadon"] .draft-list p { color: #6f8579; }
+html[data-theme="celadon"] .agent-load-more { border-color: #6f8177; }
+html[data-theme="celadon"] .model-config { border-color: #4f8a7c; background: #0f1712; }
+html[data-theme="celadon"] .agent-welcome button { color: #4a574f; }
+html[data-theme="celadon"] .agent-welcome button:hover { background: #f6faf6; }
+html[data-theme="celadon"] .chat-message.user p { background: #f1f7f1; }
+html[data-theme="celadon"] .agent-composer { box-shadow: 5px 5px 0 #2c726320; }
+html[data-theme="celadon"] .agent-composer:focus-within { box-shadow: 5px 5px 0 #2c726332; }
+
+/* ===== platform-sections.css ===== */
+html[data-theme="celadon"] .market-subcategory-title { background: #eef4ef; }
+html[data-theme="celadon"] .market-subcategory-group:nth-child(1) { --type-color: #2c7263; }
+html[data-theme="celadon"] .market-card--ea { --type-color: #2c7263; }
+html[data-theme="celadon"] .market-card { background: #f6faf6; }
+html[data-theme="celadon"] .market-card:hover { box-shadow: 7px 7px 0 #2c726320; }
+html[data-theme="celadon"] .product-cover { --product-accent: #2c7263; }
+html[data-theme="celadon"] .tutorial-card:hover { box-shadow: 6px 6px 0 #2c72631b; }
+html[data-theme="celadon"] .tutorial-cover { --tutorial-accent: #2c7263; }
+html[data-theme="celadon"] .purchase-panel { box-shadow: 7px 7px 0 #2c726318; }
+html[data-theme="celadon"] .article-content section > span { color: #2c726322; }
+html[data-theme="celadon"] .article-content ul { background: #f6faf6; }
+html[data-theme="celadon"] .comment-form { background: #f7fbf7; }
+html[data-theme="celadon"] .comment-form textarea { background: #fefffe; }
+html[data-theme="celadon"] .account-menu-panel > header > a { background: #2c72630f; }
+html[data-theme="celadon"] .account-menu-panel section a:hover { background: #2c72630a; }
+html[data-theme="celadon"] .site-footer { background: #f5faf5; }
+html[data-theme="celadon"] .site-footer-col span { color: #5c6e65; }
+html[data-theme="celadon"] .site-footer-notice { background: #f6faf6; }
+html[data-theme="celadon"] .site-footer-legal { color: #4f5f56; }
+html[data-theme="celadon"] .site-footer-legal a { color: #4c5b53; }
+html[data-theme="celadon"] .site-footer-legal i { color: #7f9489; }
+html[data-theme="celadon"] .theme-toggle:hover { background: #eef5f080; }
+html[data-theme="celadon"] .site-footer-theme .theme-toggle:hover { background: #eef5f0; }
+html[data-theme="celadon"] .agent-copy-toast { border-color: #2c7263; color: #1f4a40; background: #f0f7f2f2; }
+html[data-theme="celadon"] .agent-copy-toast::before { background: #2c7263; }
+html[data-theme="celadon"] .code-change-summary { border-bottom-color: #c3ddd3; background: #f3f8f4; color: #4a6b60; }
+html[data-theme="celadon"] .code-change-summary b { color: #2c7263; }
+html[data-theme="celadon"] .code-change-actions button:last-child { border-color: #b9d8cd; color: #2c7263; }
+/* AI 实验室：暖米 / 玫瑰硬编码底色 → 青瓷冷调纸面（高明度） */
+html[data-theme="celadon"] .agent-shell .risk-disclosure { background: #f3f8f4; }
+html[data-theme="celadon"] .agent-shell .disclosure-item,
+html[data-theme="celadon"] .agent-shell .compile-summary,
+html[data-theme="celadon"] .agent-shell .version-timeline button { background: #fafcfb; }
+html[data-theme="celadon"] .agent-shell .version-timeline button:hover,
+html[data-theme="celadon"] .agent-shell .version-timeline button.selected { background: #eef5f0; }
+html[data-theme="celadon"] .agent-shell .agent-artifact-panel > footer { background: #ecf3ee; }
+html[data-theme="celadon"] .agent-shell .mt5-row:nth-child(even) { background: #f3f8f3; }
+
+/* ===== developer.css ===== */
+/* 错误 / 驳回 / 警示为负面语义，用红（与品牌青瓷强调色区分） */
+html[data-theme="celadon"] .dev-auth-card { box-shadow: 0 18px 46px #2c726318; }
+html[data-theme="celadon"] .dev-form-error { border-color: #a63f37; color: #a63f37; background: #a63f3710; }
+html[data-theme="celadon"] .dev-review-note { border-left-color: #a63f37; background: #a63f370d; }
+html[data-theme="celadon"] .status-rejected { border-color: #a63f37; color: #a63f37; background: #a63f3714; }
+html[data-theme="celadon"] .recharge-warning { border-left-color: #a63f37; color: #a63f37 !important; background: #a63f370c; }
+html[data-theme="celadon"] .rte-toolbar button.active { background: #2c726310; }
+html[data-theme="celadon"] .rte-content blockquote { background: #2c72630a; }
+
+/* ===== globals.css（策略流程编辑器） ===== */
+html[data-theme="celadon"] .strategy-diagram-editor { background: #f4f9f4; }
+html[data-theme="celadon"] .strategy-stage-legend { border-bottom-color: #d4e0d6; background: #eef4ef; color: #5a6b60; }
+html[data-theme="celadon"] .strategy-stage-legend i { border-color: #2c726366; color: #2c7263; background: #fafcfa; }
+html[data-theme="celadon"] .strategy-flow-hint { border-color: #cfdcd3; background: #fafcfae8; color: #5a6b60; box-shadow: 3px 3px 0 #2c726315; }
+html[data-theme="celadon"] .flow-node-content > span { color: #4a7a6c; }
+html[data-theme="celadon"] .react-flow__node.flow-node-editable:hover { box-shadow: 7px 7px 0 #2c726325 !important; }
+html[data-theme="celadon"] .react-flow__node.flow-node-selected { outline: 3px solid #2c726335; box-shadow: 7px 7px 0 #2c726332 !important; }
+html[data-theme="celadon"] .strategy-node-editor { border-left-color: #d4e0d6; background: #fafcfa; }
+html[data-theme="celadon"] .strategy-node-editor > header { border-bottom-color: #dce7de; }
+html[data-theme="celadon"] .strategy-node-editor > header small { color: #2c7263; }
+html[data-theme="celadon"] .node-editor-field input:focus,
+html[data-theme="celadon"] .node-editor-field select:focus,
+html[data-theme="celadon"] .node-editor-field textarea:focus,
+html[data-theme="celadon"] .parameter-editor input:focus,
+html[data-theme="celadon"] .condition-row input:focus,
+html[data-theme="celadon"] .condition-group select:focus { border-color: #2c7263; box-shadow: 0 0 0 2px #2c726318; }
+@media (max-width: 650px) {
+  html[data-theme="celadon"] .strategy-node-editor { border-top-color: #2c7263; }
+}
