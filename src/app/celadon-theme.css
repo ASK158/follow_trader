@@ -55,12 +55,9 @@ html[data-theme="celadon"] .agent-composer { box-shadow: 5px 5px 0 #2c726320; }
 html[data-theme="celadon"] .agent-composer:focus-within { box-shadow: 5px 5px 0 #2c726332; }
 
 /* ===== platform-sections.css ===== */
-html[data-theme="celadon"] .market-subcategory-title { background: #eef4ef; }
-html[data-theme="celadon"] .market-subcategory-group:nth-child(1) { --type-color: #2c7263; }
-html[data-theme="celadon"] .market-card--ea { --type-color: #2c7263; }
+/* 类型色（EA 深红 / 指标青绿 / 工具琥珀金）与其他主题统一，仅标题底色跟随主题。 */
+html[data-theme="celadon"] .market-subcategory-title { --subcategory-title-bg: #eef4ef; }
 html[data-theme="celadon"] .market-card { background: #f6faf6; }
-html[data-theme="celadon"] .market-card:hover { box-shadow: 7px 7px 0 #2c726320; }
-html[data-theme="celadon"] .product-cover { --product-accent: #2c7263; }
 html[data-theme="celadon"] .tutorial-card:hover { box-shadow: 6px 6px 0 #2c72631b; }
 html[data-theme="celadon"] .tutorial-cover { --tutorial-accent: #2c7263; }
 html[data-theme="celadon"] .purchase-panel { box-shadow: 7px 7px 0 #2c726318; }

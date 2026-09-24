@@ -87,7 +87,7 @@ html:is([data-theme="dark"], [data-theme="midnight"]) .site-nav-menu-panel a:hov
 html:is([data-theme="dark"], [data-theme="midnight"]) .site-nav-menu-panel a.active { background: var(--dk-accent-tint); }
 
 html:is([data-theme="dark"], [data-theme="midnight"]) .market-category-nav { background: var(--dk-panel); backdrop-filter: blur(16px); }
-html:is([data-theme="dark"], [data-theme="midnight"]) .market-subcategory-title { background: var(--dk-header); }
+html:is([data-theme="dark"], [data-theme="midnight"]) .market-subcategory-title { --subcategory-title-bg: var(--dk-header); }
 html:is([data-theme="dark"], [data-theme="midnight"]) .market-card,
 html:is([data-theme="dark"], [data-theme="midnight"]) .tutorial-card,
 html:is([data-theme="dark"], [data-theme="midnight"]) .product-comments,

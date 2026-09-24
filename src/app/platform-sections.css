@@ -89,7 +89,7 @@
 .market-main-tabs a { min-width:92px; padding:11px 18px; text-align:center; font-size:11px; }
 .market-subcategory-groups { display:grid; gap:8px; padding-bottom:12px; }
 .market-subcategory-group { display:grid; grid-template-columns:92px minmax(0,1fr); align-items:center; gap:10px; }
-.market-subcategory-title { padding:7px 10px; border-left:3px solid var(--type-color,var(--tech-red)); color:var(--tech-ink); background:#eee5d9; font-size:10px; font-weight:800; text-align:center; }
+.market-subcategory-title { padding:7px 10px; border-left:3px solid var(--type-color,var(--tech-red)); color:var(--tech-ink); background:var(--subcategory-title-bg,#eee5d9); font-size:10px; font-weight:800; text-align:center; }
 .market-subcategory-group:nth-child(1) { --type-color:#b4162b; }
 .market-subcategory-group:nth-child(2) { --type-color:#20706f; }
 .market-subcategory-group:nth-child(3) { --type-color:#a56a13; }
