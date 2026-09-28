@@ -5,8 +5,10 @@
 当前生产服务器：
 
 ```text
-http://39.108.191.116
+http://8.216.51.10
 ```
+
+> 2026-09-28 自北京 39.108.191.116（4C8G）迁移至东京 8.216.51.10（2C4G）。旧机保留作回滚，确认稳定后释放。
 
 > HTTP 流量未加密，且没有公网可信 HTTPS 证书。获得域名后请切换至 [生产 HTTPS 部署说明](README.md)。
 
@@ -33,7 +35,7 @@ http://39.108.191.116
 在 Windows PowerShell 中使用创建实例时下载的私钥执行：
 
 ```powershell
-ssh -i "C:\Users\<你的用户名>\Downloads\signal-web-prod-2026.pem" root@39.108.191.116
+ssh -i "C:\Users\<你的用户名>\.ssh\signal-web-tokyo" root@8.216.51.10
 ```
 
 首次连接时确认主机指纹。请妥善保存 `.pem` 私钥，不要上传到 Git、服务器项目目录或发送到聊天中。若实例创建时选择了其他登录用户名，请将 `root` 替换为实际用户名。
@@ -104,7 +106,7 @@ IP/HTTP 模式默认不会为生产账户发送会话 Cookie，因此不能用�
 
 ## 5. 从源码构建并启动
 
-当前服务器为 4 vCPU / 8 GiB，直接使用 IP 源码 Compose 构建：
+当前服务器为 2 vCPU / 4 GiB（东京地域，系统自带 4 GiB swap 可保障构建内存），直接使用 IP 源码 Compose 构建：
 
 ```bash
 cd /opt/signal-web
@@ -124,7 +126,9 @@ curl --fail http://127.0.0.1:3000/api/health/ready
 
 ## 6. 自动 OSS 备份和维护任务
 
-先在阿里云创建名称为 `sigmabot` 的私有 OSS Bucket；建议选择与 ECS 不同的地域形成异地副本，并开启版本控制和生命周期。安装 rclone 后执行 `sudo rclone config` 创建名为 `aliyun-oss` 的阿里云 OSS 远端。AccessKey 只能保存在 root 的 rclone 配置中。然后配置备份目标：
+> **当前状态（2026-09-29）**：OSS 异地备份已配置完成——Bucket `sigmabot-jp-20260929`（新加坡，私有，开启版本控制），rclone 远端名 `aliyun-oss`，`RCLONE_REMOTE=aliyun-oss:sigmabot-jp-20260929/signal-web`。以下为配置方法的存档说明。
+
+先在阿里云创建私有 OSS Bucket；建议选择与 ECS 不同的地域形成异地副本，并开启版本控制和生命周期。安装 rclone 后创建名为 `aliyun-oss` 的阿里云 OSS 远端（type s3 / provider Alibaba）。AccessKey 建议使用仅授权该 Bucket 的 RAM 子账号，密钥只能保存在 root 的 rclone 配置中。然后配置备份目标：
 
 ```bash
 cd /opt/signal-web
@@ -162,12 +166,14 @@ HTTP_PROXY=http://<代理主机>:<端口>
 
 同步服务会显式将上述代理用于 MQL5 请求；修改 `.env` 后执行 `docker compose -f docker-compose.ip.pull.yml up -d` 重建容器环境。
 
-维护安装脚本已通过 `/etc/cron.d/signal-web` 配置每日北京时间 08:00 同步，请勿再重复编辑 root crontab。只需设置时区并检查任务：
+维护安装脚本已通过 `/etc/cron.d/signal-web` 配置每日北京时间 02:30 备份、03:15 充值对账、03:45 Agent 清理、08:00 同步共四个任务，请勿再重复编辑 root crontab。只需设置时区并检查任务：
 
 ```bash
 sudo timedatectl set-timezone Asia/Shanghai
 cat /etc/cron.d/signal-web
 ```
+
+> ⚠️ `/etc/cron.d/` 下的文件必须以换行符结尾，否则 cron 会整体拒载、所有任务静默失效（2026-09-29 曾因此导致四个任务全部未执行）。修改该文件后建议加一条临时每分钟任务并 `grep CRON /var/log/syslog` 验证生效。
 
 ### 服务器无法访问 MQL5 时：改由本机同步
 

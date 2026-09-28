@@ -1,9 +1,11 @@
 # Signal Web 生产运维手册
 
-> 服务器：Alibaba Cloud ECS，CentOS 8.2，2 vCPU / 2GB RAM + 2GB Swap  
-> IP：47.84.72.62  
-> 项目路径：`/opt/signal-web`  
-> 镜像仓库：`ghcr.io/ask158/signal-web:latest`（GitHub Actions 自动构建）
+> 服务器：Alibaba Cloud ECS，Ubuntu 26.04 LTS，2 vCPU / 4 GiB RAM + 4 GiB Swap（东京地域）
+> IP：8.216.51.10
+> 项目路径：`/opt/signal-web`，运行方式：源码 Compose 构建（`docker-compose.ip.yml`）
+> 迁移历史：2026-09-28 自北京 39.108.191.116（4C8G）迁入；更早部署于 47.84.72.62（CentOS 8，已退役）
+> SSH：`ssh -i <本机密钥路径> root@8.216.51.10`，安全组仅放行 22（限管理员 IP）与 80
+> 镜像仓库：`ghcr.io/ask158/signal-web:latest`（GitHub Actions 自动构建，pull 模式备用）
 
 ---
 
@@ -17,7 +19,7 @@
 | 应用进程崩溃 | Docker 自动重启容器 |
 | 手动 `docker compose down` | 不自动重启，需手动启动 |
 
-无需配置 systemd 或 supervisor，Docker 本身已接管进程守护。
+无需配置 systemd 或 supervisor，Docker 本身已接管进程守护。Caddy 会等待应用健康检查通过后才开始代理。
 
 ---
 
@@ -32,29 +34,30 @@ cd /opt/signal-web
 ### 查看运行状态
 
 ```bash
-docker compose -f docker-compose.ip.pull.yml ps
+docker compose -f docker-compose.ip.yml ps
+curl --fail http://127.0.0.1:3000/api/health/ready
 ```
 
 ### 查看实时日志
 
 ```bash
 # 查看 Next.js 应用日志
-docker compose -f docker-compose.ip.pull.yml logs -f signal-web
+docker compose -f docker-compose.ip.yml logs -f signal-web
 
 # 查看 Caddy 代理日志
-docker compose -f docker-compose.ip.pull.yml logs -f caddy
+docker compose -f docker-compose.ip.yml logs -f caddy
 
 # 查看所有容器日志（最近100行）
-docker compose -f docker-compose.ip.pull.yml logs --tail=100
+docker compose -f docker-compose.ip.yml logs --tail=100
 ```
 
 ### 手动触发数据同步
 
 ```bash
-/opt/signal-web/deploy/scripts/sync-signals.sh
+/usr/local/sbin/signal-web-sync
 ```
 
-输出 `"csvUpdated":true` 表示 CSV 历史数据已更新；`"csvUpdated":false` 表示 CSV 无变化（正常）。
+输出 `"csvUpdated":true` 表示 CSV 历史数据已更新；`"csvUpdated":false` 表示 CSV 无变化或未配置 Cookie（正常）。
 
 ### 查看自动同步日志
 
@@ -62,7 +65,7 @@ docker compose -f docker-compose.ip.pull.yml logs --tail=100
 tail -f /var/log/signal-web-sync.log
 ```
 
-脚本仅在所有信号都同步成功时返回成功。若日志中出现 `HTTP 207`，请查看同一条 JSON 的 `results` 字段；其中的 `reason` 即为上游访问或页面解析失败原因。此前 `curl` 会把 `207` 当作成功，容易掩盖数据持续未更新的问题。
+脚本仅在所有信号都同步成功时返回成功。若日志中出现 `HTTP 207`，请查看同一条 JSON 的 `results` 字段；其中的 `reason` 即为上游访问或页面解析失败原因。
 
 ---
 
@@ -70,10 +73,10 @@ tail -f /var/log/signal-web-sync.log
 
 ```bash
 cd /opt/signal-web
-docker compose -f docker-compose.ip.pull.yml down
+docker compose -f docker-compose.ip.yml down
 ```
 
-> 注意：`down` 不会删除数据卷，信号数据完整保留。
+> 注意：`down` 不会删除数据卷，信号数据完整保留。**任何时候都不要执行 `down -v`，会删除数据卷。**
 
 ---
 
@@ -81,39 +84,32 @@ docker compose -f docker-compose.ip.pull.yml down
 
 ```bash
 cd /opt/signal-web
-docker compose -f docker-compose.ip.pull.yml up -d
+docker compose -f docker-compose.ip.yml up -d
 ```
 
 ---
 
 ## 五、更新到最新版本
 
-ssh -p 22 root@47.84.72.62
-
-代码推送到 GitHub `main` 分支后，GitHub Actions 自动构建新镜像。在服务器上执行以下命令拉取并更新：
+完整流程见 [README-ip.md](README-ip.md) 第 8 节。要点：先备份、给当前镜像打 `signal-web:rollback` 标签，再上传新源码构建：
 
 ```bash
 cd /opt/signal-web
-
-# 1. 拉取最新代码（配置文件、脚本等）
-GIT_SSH_COMMAND='ssh -i /root/.ssh/signal-web-deploy -o IdentitiesOnly=yes' \
-  git pull --ff-only origin main
-
-# 2. 拉取最新 Docker 镜像
-docker compose -f docker-compose.ip.pull.yml pull
-
-# 3. 重启容器（零停机时间极短）
-docker compose -f docker-compose.ip.pull.yml up -d
-
-# 4. 同步脚本安装在 /usr/local/sbin；代码库更新后也要覆盖它
-install -m 750 /opt/signal-web/deploy/scripts/sync-signals.sh /usr/local/sbin/signal-web-sync
+/usr/local/sbin/signal-web-backup
+docker image tag "$(docker compose -f docker-compose.ip.yml images -q signal-web)" signal-web:rollback
+# 上传并解压新版源码，保留服务器 .env、.env.backup 与数据卷
+docker compose -f docker-compose.ip.yml build
+docker compose -f docker-compose.ip.yml up -d
+/usr/local/sbin/signal-web-sync
 ```
+
+备选 pull 模式：`docker-compose.ip.pull.yml` 直接拉取 GHCR 镜像（推送 main 后 GitHub Actions 自动构建），适合不想在服务器上构建时使用。
 
 ---
 
 ## 六、敏感配置维护
 
-敏感信息存储在 `/opt/signal-web/.env`，**不纳入 Git 版本控制**。
+敏感信息存储在 `/opt/signal-web/.env`，**不纳入 Git 版本控制**。包含 `CRON_SECRET`、`AUTH_ENCRYPTION_KEY`、`AUTH_AUDIT_PEPPER`、`AUTH_RATE_LIMIT_PEPPER`、`AI_API_KEY`、`NOWPAYMENTS_API_KEY` 等。**迁移服务器时必须原样搬运、禁止重新生成**（`AUTH_ENCRYPTION_KEY` 变更会导致已加密数据无法解密）。
 
 ### 查看当前配置
 
@@ -127,49 +123,45 @@ cat /opt/signal-web/.env
 vi /opt/signal-web/.env
 ```
 
-修改后需重启容器使配置生效：
+修改后需重建容器使配置生效：
 
 ```bash
-docker compose -f docker-compose.ip.pull.yml up -d
+docker compose -f docker-compose.ip.yml up -d
 ```
 
-### .env 文件格式参考
+### MQL5_SESSION_COOKIE
 
-```env
-CRON_SECRET=你的同步密钥
-MQL5_SESSION_COOKIE=从浏览器DevTools获取的完整Cookie字符串
-```
-
-> Cookie 从 MQL5.com 浏览器开发者工具 → Network → 任意请求 → Request Headers → Cookie 字段获取。
-> Cookie 有效期约数周，失效后重新获取并更新即可。
+Cookie 从 MQL5.com 浏览器开发者工具 → Network → 任意请求 → Request Headers → Cookie 字段获取。有效期约数周，失效后公开指标仍每日同步，但完整交易 CSV 与收益曲线停止更新；重新配置后手动执行一次 `/usr/local/sbin/signal-web-sync`。
 
 ---
 
 ## 七、定时任务维护
 
-每日 08:00 自动同步，使用系统 crontab 管理。
-
-### 查看定时任务
-
-```bash
-crontab -l
-```
-
-### 编辑定时任务
-
-```bash
-crontab -e
-```
-
-当前任务内容：
+通过 `/etc/cron.d/signal-web` 管理（由 `install-maintenance.sh` 安装），**不要再用 root crontab 重复添加**。当前任务：
 
 ```
-0 8 * * * /usr/local/sbin/signal-web-sync >> /var/log/signal-web-sync.log 2>&1
+30 2 * * * root /usr/local/sbin/signal-web-backup >> /var/log/signal-web-backup.log 2>&1
+15 3 * * * root /usr/local/sbin/signal-web-reconcile-recharges >> /var/log/signal-web-recharge-reconcile.log 2>&1
+45 3 * * * root /usr/local/sbin/signal-web-cleanup-agent >> /var/log/signal-web-agent-cleanup.log 2>&1
+0 8 * * * root /usr/local/sbin/signal-web-sync >> /var/log/signal-web-sync.log 2>&1
 ```
+
+> ⚠️ `/etc/cron.d/` 下的文件**必须以换行符结尾**，否则 cron 会整体拒载、所有任务静默失效（2026-09-29 曾因缺换行导致四个任务全部未执行）。修改后可用一条临时每分钟任务 + `grep CRON /var/log/syslog` 验证。
+
+宿主机日志由 logrotate 每日轮转，保留 30 份（`/etc/logrotate.d/signal-web`）。
 
 ---
 
-## 八、磁盘与内存维护
+## 八、备份与恢复
+
+- **每日 02:30** `signal-web-backup`：短暂停容器取一致快照 → `/var/backups/signal-web/`（本地保留 14 天）→ rclone 上传 OSS `aliyun-oss:sigmabot-jp-20260929/signal-web`（Bucket：新加坡，私有，开启版本控制）。
+- **充值对账 03:15**、**Agent 清理 03:45**：独立于备份运行。
+- **恢复**：`sudo /usr/local/sbin/signal-web-restore /var/backups/signal-web/signal-data-<时间戳>.tgz`。注意恢复会**清空当前数据卷**后导入；`.tgz` 与 `.sha256` 必须在同一目录（脚本先校验哈希）。从 OSS 恢复前先 `rclone copy` 下载到本地目录。
+- 验证异地备份：`rclone lsl aliyun-oss:sigmabot-jp-20260929/signal-web`。
+
+---
+
+## 九、磁盘与内存维护
 
 ### 查看磁盘使用
 
@@ -189,73 +181,22 @@ free -h
 docker image prune -f
 ```
 
-### 清理同步日志（超过30天的）
-
-```bash
-find /var/log -name "signal-web-sync.log*" -mtime +30 -delete
-```
-
 ---
 
-## 九、故障排查
+## 十、故障排查
 
 | 现象 | 排查步骤 |
 |---|---|
-| 页面无法访问 | `docker compose -f docker-compose.ip.pull.yml ps` 确认容器状态 |
-| 数据未更新 | 手动运行同步脚本，检查 Cookie 是否过期 |
-| 同步报错 | `tail -50 /var/log/signal-web-sync.log` 查看错误信息 |
-| 容器启动失败 | `docker compose -f docker-compose.ip.pull.yml logs signal-web` |
-| 镜像拉取失败 | 检查 GHCR 镜像是否为 Public，或网络是否通畅 |
-| 内存不足 OOM | `free -h` 确认 Swap 是否挂载；`swapon --show` |
+| 页面无法访问 | `docker compose -f docker-compose.ip.yml ps` 确认容器状态；安全组 80 是否放行 |
+| 数据未更新 | 手动运行 `/usr/local/sbin/signal-web-sync`，检查 Cookie 是否过期 |
+| 定时任务未执行 | `grep CRON /var/log/syslog`；确认 `/etc/cron.d/signal-web` 以换行符结尾 |
+| 备份未上传 OSS | `tail -50 /var/log/signal-web-backup.log`；`rclone lsl aliyun-oss:sigmabot-jp-20260929/` 测连通 |
+| 容器启动失败 | `docker compose -f docker-compose.ip.yml logs signal-web` |
+| 镜像拉取失败 | 检查 GHCR 镜像可见性或网络（pull 模式） |
+| 内存不足 OOM | `free -h` 确认 Swap；`swapon --show` |
 
 ---
 
-## 十、完整部署流程（首次/重装）
+## 十一、完整部署流程（首次/重装）
 
-> 适用于服务器重装或迁移到新服务器的场景。
-
-```bash
-# 1. 安装 Docker（CentOS 8）
-dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-systemctl enable --now docker
-
-# 2. 创建 Swap（2GB）
-fallocate -l 2G /swapfile
-chmod 600 /swapfile
-mkswap /swapfile
-swapon /swapfile
-echo '/swapfile none swap sw 0 0' >> /etc/fstab
-
-# 3. 配置 SSH Deploy Key
-mkdir -p ~/.ssh
-# 将私钥内容写入文件（从安全渠道获取）
-vi ~/.ssh/signal-web-deploy
-chmod 600 ~/.ssh/signal-web-deploy
-ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-# 4. 克隆项目
-GIT_SSH_COMMAND='ssh -i /root/.ssh/signal-web-deploy -o IdentitiesOnly=yes' \
-  git clone git@github.com:ASK158/follow_trader.git /opt/signal-web
-cd /opt/signal-web
-
-# 5. 创建 .env 文件
-vi /opt/signal-web/.env
-# 写入：
-# CRON_SECRET=你的密钥
-# MQL5_SESSION_COOKIE=你的Cookie
-chmod 600 /opt/signal-web/.env
-
-# 6. 启动容器
-docker compose -f docker-compose.ip.pull.yml pull
-docker compose -f docker-compose.ip.pull.yml up -d
-
-# 7. 安装同步脚本并设置定时任务
-timedatectl set-timezone Asia/Shanghai
-install -m 750 /opt/signal-web/deploy/scripts/sync-signals.sh /usr/local/sbin/signal-web-sync
-crontab -e
-# 添加：0 8 * * * /usr/local/sbin/signal-web-sync >> /var/log/signal-web-sync.log 2>&1
-
-# 8. 手动验证同步
-/opt/signal-web/deploy/scripts/sync-signals.sh
-```
+参见 [README-ip.md](README-ip.md)，其中包含安全组、Docker 安装、源码构建、维护任务安装与 OSS 备份配置的完整步骤。
