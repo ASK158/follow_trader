@@ -98,6 +98,28 @@ Python 只读取 MT5-A 的**当前全量持仓快照**，不读取成交历史�
 8. 临时设置不可交易映射、低 `InpMaxTotalLots` 或无可用保证金，确认无越限订单、重试后有 Journal 告警。
 9. 检查目标品种的最小手数、步进、止损等级、交易时段及 Hedging 账户模式。
 
+## 实时信号上报（可选，网站中转）
+
+publisher.py 可选把同一份快照上报到 SigmaBot 网站，供「策略信号中心 → 实时信号」页面展示。配置新增字段：
+
+| 字段 | 说明 |
+| --- | --- |
+| `signal_title` | 页面展示名称；留空时显示脱敏账户号。 |
+| `relay_url` | 接收端点，如 `https://sigmabot.com/api/sigmac/publish`；留空即关闭上报。 |
+| `relay_token` | 与服务器 `.env` 中 `SIGMAC_PUBLISH_TOKEN` 一致的 Bearer 令牌。 |
+| `relay_heartbeat_seconds` | 内容无变化时的心跳重发间隔，必须小于 `snapshot_ttl_seconds`。 |
+| `relay_timeout_seconds` | 单次上报请求超时（1 至 30 秒）。 |
+
+行为要点：
+
+- 上报内容与本地快照一致，另附 `account`（余额、净值、浮动盈亏、可用保证金）与 `title`；本地跟单 EA 会忽略这些附加字段。
+- 内容无变化时按心跳间隔重发；网站端超过新鲜窗口（默认 20 秒，可用 `SIGMAC_STALE_SECONDS` 调整）未收到数据即把信号标记为「已停止更新」，绝不把过期持仓当作实时数据展示。
+- 上报失败只记日志并在后续轮询重试，绝不影响本地快照写入与 EA 同步；`relay_token` 永不写入日志。
+- 服务器按与 EA 相同的快照安全协议校验（schema、完整标记、单调序号、数量一致、有效期上限、账号一致），请求体超过 256 KB 直接拒绝，账号在页面上脱敏展示。
+- 运维清理：`DELETE /api/sigmac/publish`，同样的 Bearer 令牌鉴权，请求体 `{"source_account": 12345678}`。
+
+安全注意：在域名与 TLS 就绪前，若 `relay_url` 使用 `http://` IP 直连，令牌与持仓数据会以明文跨越公网；域名配置完成后应立即切换为 `https://`。
+
 ## 运行边界
 
 - 不同步挂单、余额操作、入金出金、历史成交、盈亏或源端 EA 逻辑；仅同步当前市价持仓状态与 SL/TP。

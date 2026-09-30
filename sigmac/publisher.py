@@ -9,12 +9,14 @@ it never sends trading instructions to MT5-B.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import os
 import sys
 import tempfile
 import time
+import urllib.request
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from logging.handlers import RotatingFileHandler
@@ -45,6 +47,11 @@ class PublisherConfig:
     snapshot_ttl_seconds: int
     source_symbols: list[str]
     source_magic_numbers: list[int]
+    signal_title: str
+    relay_url: str
+    relay_token: str
+    relay_heartbeat_seconds: int
+    relay_timeout_seconds: int
 
     @property
     def output_directory(self) -> Path:
@@ -87,7 +94,16 @@ def load_config(config_path: Path) -> PublisherConfig:
     if missing:
         raise RuntimeError(f"配置缺少字段：{', '.join(missing)}")
 
-    config = PublisherConfig(**{key: raw[key] for key in required})
+    optional_defaults = {
+        "signal_title": "",
+        "relay_url": "",
+        "relay_token": "",
+        "relay_heartbeat_seconds": 5,
+        "relay_timeout_seconds": 3,
+    }
+    values = {key: raw[key] for key in required}
+    values.update({key: raw.get(key, default) for key, default in optional_defaults.items()})
+    config = PublisherConfig(**values)
     if config.expected_source_account <= 0:
         raise RuntimeError("expected_source_account 必须为正整数")
     if config.poll_interval_ms < 250:
@@ -100,6 +116,19 @@ def load_config(config_path: Path) -> PublisherConfig:
         raise RuntimeError("source_symbols 必须指定至少一个源端品种，以避免意外同步")
     if not all(isinstance(item, int) for item in config.source_magic_numbers):
         raise RuntimeError("source_magic_numbers 必须是整数数组；空数组代表同步指定品种的全部订单")
+    if config.signal_title and len(config.signal_title) > 80:
+        raise RuntimeError("signal_title 不能超过 80 个字符")
+    if config.relay_url:
+        if not config.relay_url.startswith(("http://", "https://")):
+            raise RuntimeError("relay_url 必须以 http:// 或 https:// 开头")
+        if not config.relay_token:
+            raise RuntimeError("启用上报时必须配置 relay_token")
+        if not 1 <= config.relay_heartbeat_seconds <= 300:
+            raise RuntimeError("relay_heartbeat_seconds 取值范围为 1 至 300 秒")
+        if not 1 <= config.relay_timeout_seconds <= 30:
+            raise RuntimeError("relay_timeout_seconds 取值范围为 1 至 30 秒")
+        if config.relay_heartbeat_seconds >= config.snapshot_ttl_seconds:
+            raise RuntimeError("relay_heartbeat_seconds 必须小于 snapshot_ttl_seconds")
     return config
 
 
@@ -206,7 +235,25 @@ def build_positions(config: PublisherConfig) -> list[dict[str, Any]]:
     return sorted(result, key=lambda item: item["source_id"])
 
 
-def publish_once(config: PublisherConfig, sequence: int) -> tuple[int, int]:
+def build_account_metrics(account: Any) -> dict[str, Any] | None:
+    """账户级指标仅供网站展示；读取失败不影响快照本身。"""
+    try:
+        return {
+            "login": int(account.login),
+            "server": str(account.server),
+            "currency": str(account.currency),
+            "leverage": int(account.leverage),
+            "balance": float(account.balance),
+            "equity": float(account.equity),
+            "margin": float(account.margin),
+            "margin_free": float(account.margin_free),
+            "floating_profit": float(account.profit),
+        }
+    except Exception:
+        return None
+
+
+def publish_once(config: PublisherConfig, sequence: int) -> tuple[int, int, dict[str, Any]]:
     account = mt5.account_info()
     if account is None or account.login != config.expected_source_account:
         mt5.shutdown()
@@ -227,11 +274,71 @@ def publish_once(config: PublisherConfig, sequence: int) -> tuple[int, int]:
         "published_at_utc": datetime.now(UTC).isoformat(timespec="milliseconds"),
         "position_count": 0,
         "positions": positions,
+        "account": build_account_metrics(account),
     }
+    if config.signal_title:
+        snapshot["title"] = config.signal_title
     snapshot["position_count"] = len(snapshot["positions"])
     atomic_write_json(config.signal_path, snapshot)
     save_sequence(config.state_path, sequence)
-    return sequence + 1, len(positions)
+    return sequence + 1, len(positions), snapshot
+
+
+# 指纹只覆盖业务内容；序号与时间戳等易变字段不参与变更检测。
+RELAY_FINGERPRINT_KEYS = ("source_account", "position_count", "positions", "account", "title")
+
+
+def snapshot_fingerprint(snapshot: dict[str, Any]) -> str:
+    stable = {key: snapshot.get(key) for key in RELAY_FINGERPRINT_KEYS}
+    encoded = json.dumps(stable, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def relay_publish(config: PublisherConfig, logger: logging.Logger, snapshot: dict[str, Any], state: dict[str, Any]) -> bool:
+    """把快照上报到网站接收端；内容无变化时按心跳间隔重发，失败不影响本地文件。"""
+    if not config.relay_url:
+        return False
+    fingerprint = snapshot_fingerprint(snapshot)
+    now = time.monotonic()
+    heartbeat_due = state.get("last_sent") is None or (now - state["last_sent"]) >= config.relay_heartbeat_seconds
+    if fingerprint == state.get("fingerprint") and not heartbeat_due:
+        return True
+
+    payload = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    request = urllib.request.Request(
+        config.relay_url,
+        data=payload,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {config.relay_token}",
+            "Content-Type": "application/json",
+            "User-Agent": "sigmac-publisher/1.1",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=config.relay_timeout_seconds) as response:
+            response.read()
+            status = response.status
+        if not 200 <= status < 300:
+            raise RuntimeError(f"接收端返回 HTTP {status}")
+    except Exception as error:
+        state["failure_count"] = state.get("failure_count", 0) + 1
+        should_log = not state.get("failing") or (now - state.get("last_failure_log", 0.0)) >= 60.0
+        if should_log:
+            logger.warning("上报失败（连续 %d 次）：%s；本地快照不受影响", state["failure_count"], error)
+            state["last_failure_log"] = now
+        state["failing"] = True
+        return False
+
+    recovered = bool(state.get("failing"))
+    state["failing"] = False
+    state["failure_count"] = 0
+    state["fingerprint"] = fingerprint
+    state["last_sent"] = time.monotonic()
+    if recovered or not state.get("ever_succeeded"):
+        logger.info("已上报快照至 %s（sequence=%s）", config.relay_url, snapshot.get("sequence"))
+        state["ever_succeeded"] = True
+    return True
 
 
 def main() -> int:
@@ -241,18 +348,26 @@ def main() -> int:
 
     config = load_config(Path(args.config).resolve())
     logger = setup_logging(config.log_path)
-    logger.info("启动发布器：%s", json.dumps(asdict(config), ensure_ascii=False))
+    # relay_token 属于长期凭证，绝不写入日志。
+    safe_config = asdict(config)
+    if config.relay_token:
+        safe_config["relay_token"] = "***"
+    logger.info("启动发布器：%s", json.dumps(safe_config, ensure_ascii=False))
     logger.info("快照输出路径：%s", config.signal_path)
+    if config.relay_url:
+        logger.info("上报已启用：%s（心跳 %s 秒）", config.relay_url, config.relay_heartbeat_seconds)
     sequence = load_next_sequence(config.state_path)
 
     try:
         initialise_mt5(config)
         logger.info("已连接 MT5-A 账户 %s", config.expected_source_account)
+        relay_state: dict[str, Any] = {}
         while True:
             started = time.monotonic()
             try:
-                sequence, position_count = publish_once(config, sequence)
+                sequence, position_count, snapshot = publish_once(config, sequence)
                 logger.info("已发布 sequence=%s，持仓数=%s", sequence - 1, position_count)
+                relay_publish(config, logger, snapshot, relay_state)
             except Exception:
                 logger.exception("发布失败；不会改写上一份有效快照")
             remaining = config.poll_interval_ms / 1000 - (time.monotonic() - started)

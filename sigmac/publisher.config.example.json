@@ -8,5 +8,10 @@
   "poll_interval_ms": 1000,
   "snapshot_ttl_seconds": 10,
   "source_symbols": ["XAUUSD.n", "EURUSD"],
-  "source_magic_numbers": []
+  "source_magic_numbers": [],
+  "signal_title": "",
+  "relay_url": "",
+  "relay_token": "",
+  "relay_heartbeat_seconds": 5,
+  "relay_timeout_seconds": 3
 }
