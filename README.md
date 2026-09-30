@@ -30,7 +30,7 @@ USDT 充值需要配置仅服务端可见的 `NOWPAYMENTS_API_KEY`、`NOWPAYMENT
 
 ## 本地 MT5 持仓同步（独立模块，SigmaC）
 
-项目还提供同一台 Windows 主机上的 MT5 持仓同步模块（SigmaC），位于 [sigmac](sigmac)。Python 从 MT5-A 轮询**当前完整持仓**并原子写入共享文件，MT5-B 中的 `sigmac_sync.mq5` 只读取该本地文件，以独立 magic 隔离并同步受管仓位。它与本 Web 展示应用互不依赖；请严格按照 [sigmac/README.md](sigmac/README.md) 在 Hedging 模拟账户完成验证后使用。
+项目还提供同一台 Windows 主机上的 MT5 持仓同步模块（SigmaC），位于 [sigmac](sigmac)。Python 从 MT5-A 轮询**当前完整持仓**并原子写入共享文件，MT5-B 中的 `sigmac_sync.mq5` 只读取该本地文件，以独立 magic 隔离并同步受管仓位。它与本 Web 展示应用互不依赖；请严格按照 [sigmac/README.md](sigmac/README.md) 在 Hedging 模拟账户完成验证后使用。网络版跟单端（SigmaC-2）位于 [sigmac2](sigmac2)：EA 从本站实时信号接口拉取快照并在跟单终端执行相同收敛逻辑，发布器经 `/api/sigmac/publish` 上报，页面展示见「策略信号中心 → 实时信号」。
 
 ## 云服务器部署与每日 8:00 同步
 

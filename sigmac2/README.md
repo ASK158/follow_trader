@@ -1,0 +1,50 @@
+# SigmaC-2 网络跟单端
+
+SigmaC-2 是**网络版跟单端 EA**：从 SigmaBot 网站的实时信号接口拉取持仓快照，在本地 MT5 终端执行与本地版完全相同的收敛逻辑。它与 [sigmac](../sigmac)（本地文件版）相互独立、互不依赖，也不读写本地共享快照文件；两者可在同一终端并存，但应使用**不同的 magic number**，并注意同时跟随同一信号会叠加仓位。
+
+```text
+发布器(MT5-A) → 东京服务器(实时信号接口) → sigmac2_sync.mq5 → 本地 MT5 跟单终端
+```
+
+## 安装（跟单终端）
+
+1. 将 [sigmac2_sync.mq5](sigmac2_sync.mq5) 复制到终端的 `MQL5\Experts` 并编译（或直接使用已编译的 `sigmac2_sync.ex5`）。
+2. **关键一步**：工具 → 选项 → EA交易 → 勾选“允许WebRequest用于所列的URL”，添加接口域名，例如 `http://8.216.51.10`。未加白名单时 WebRequest 会直接失败，EA 只会冻结并持续在 Journal 报错。
+3. 将 EA 附加到任意图表，启用“算法交易”。EA 不依赖图表品种。
+4. **保持 `InpTradingMode = 0`（仅观察）**，在 Journal 确认能读到信号且“将开/将平”的记录符合预期后，才改为 `1`。
+
+## 输入参数
+
+| 参数 | 推荐值 | 说明 |
+| --- | --- | --- |
+| `InpApiUrl` | `http://8.216.51.10/api/sigmac/signals` | 实时信号接口；域名就绪后换 `https://`。 |
+| `InpApiToken` | 留空 | 预留：未来按用户授权的接口启用后填 Bearer 令牌。 |
+| `InpSignalId` | 实时信号页的信号 ID | 必填白名单，如 `10***58`；页面卡片上的脱敏账号即 ID。 |
+| `InpSymbolMappings` | 按需 | 源→目标品种映射，如 `XAUUSD=XAUUSD;EURUSD=EURUSD`。 |
+| `InpMagicNumber` | 独立正整数 | 只管理该 magic 和 `sigmaC:` 注释的仓位；勿与本地版相同。 |
+| `InpLotMultiplier` / `InpMaxSingleLot` / `InpMaxTotalLots` | 风险上限 | 手数倍率与两级上限，越限时整份快照不执行。 |
+| `InpPollMilliseconds` | `1000` | 拉取间隔。 |
+| `InpHttpTimeoutMs` | `5000` | 单次请求超时（1000 至 60000）。 |
+| `InpSnapshotTimeoutSec` | `15` | 信号数据年龄上限（按服务器时钟计算，无两端时差问题）。 |
+| `InpSyncStops` / `InpRejectInvalidStops` | `true` | 同步 SL/TP；不符合目标品种规则时拒绝而非静默删除。 |
+| `InpTradingMode` | 先 `0` 后 `1` | `0` 仅观察、`1` 全量同步、`2` 仅平掉已消失的受管仓位。 |
+
+## 故障语义（与本地版一致：断链即冻结）
+
+以下任何情况，EA 都**保持现有受管仓位，不开仓也不平仓**：
+
+- WebRequest 失败（网络断、域名未加白名单、HTTP 非 200）；
+- 指定 `InpSignalId` 不在返回列表中（发布器下线超过 24 小时被服务器清理）；
+- 信号 `status` 非 `live`（服务器超过新鲜窗口未收到快照）；
+- 信号年龄超过 `InpSnapshotTimeoutSec`；
+- `sequence` 回退、`positionCount` 不一致、重复 `source_id`、字段无效。
+
+只有“`live` 状态 + 有效快照 + 空 positions 数组”才代表源端确实空仓并平掉受管仓位。
+
+## 延迟预算
+
+源端变动 → 发布器（≤300ms）→ 服务器（~100ms）→ 本 EA 轮询（≤1s）→ 下单，端到端通常 2–3 秒。跨公网链路抖动由重试与全量状态语义吸收：丢几份快照无影响，下一份即追平。
+
+## 多用户授权（未来）
+
+当前实时信号接口为公开只读，适合跟随自家信号。面向多用户收费跟单时，需要把公开接口替换为按用户鉴权的端点（校验订阅/授权），EA 侧只需填写 `InpApiToken` 并更新 `InpApiUrl`，执行逻辑不变。
