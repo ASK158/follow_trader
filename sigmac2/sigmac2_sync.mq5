@@ -14,7 +14,7 @@
 input group  "连接与信号"
 input string InpApiUrl             = "http://8.216.51.10/api/sigmac/signals"; // 实时信号接口地址
 input string InpApiToken           = "";            // 接口令牌（预留，暂留空）
-input string InpSignalId           = "";            // 信号ID（实时信号页的账号，如 10***58 或 1058）
+input string InpSignalId           = "";            // 信号ID（10***58 / 1058 / 完整账号均可）
 input int    InpPollMilliseconds   = 1000;          // 拉取间隔（毫秒）
 input int    InpHttpTimeoutMs      = 5000;          // 单次请求超时（毫秒）
 input int    InpSnapshotTimeoutSec = 15;            // 信号数据最大年龄（秒）
@@ -48,6 +48,7 @@ struct SourcePosition
 
 CTrade g_trade;
 long   g_last_sequence=0;
+bool   g_signal_lock_logged=false;
 
 //+------------------------------------------------------------------+
 string Trim(string value)
@@ -294,6 +295,27 @@ string NormalizeSignalId(string value)
    return digits;
   }
 //+------------------------------------------------------------------+
+//| 信号ID匹配：脱敏ID（10***58 -> 数字1058）完全相等，或输入为完整  |
+// | 账号（>=6位数字）且首两位与末两位与脱敏ID一致时视为同一信号。    |
+//+------------------------------------------------------------------+
+bool SignalIdMatches(const string candidate_id,const string wanted_digits)
+  {
+   string candidate_digits=NormalizeSignalId(candidate_id);
+   if(wanted_digits=="" || candidate_digits=="")
+      return false;
+   if(wanted_digits==candidate_digits)
+      return true;
+   if(StringLen(wanted_digits)>=6 && StringLen(candidate_digits)>=4)
+     {
+      string wanted_head=StringSubstr(wanted_digits,0,2);
+      string wanted_tail=StringSubstr(wanted_digits,StringLen(wanted_digits)-2);
+      string candidate_head=StringSubstr(candidate_digits,0,2);
+      string candidate_tail=StringSubstr(candidate_digits,StringLen(candidate_digits)-2);
+      return wanted_head==candidate_head && wanted_tail==candidate_tail;
+     }
+   return false;
+  }
+//+------------------------------------------------------------------+
 bool ParseLiveSignal(const string json,SourcePosition &positions[],string &reason)
   {
    string signals[];
@@ -302,6 +324,7 @@ bool ParseLiveSignal(const string json,SourcePosition &positions[],string &reaso
 
    string wanted=NormalizeSignalId(InpSignalId);
    string signal_object="";
+   string matched_id="";
    string listed_ids="";
    for(int index=0;index<ArraySize(signals);index++)
      {
@@ -311,11 +334,22 @@ bool ParseLiveSignal(const string json,SourcePosition &positions[],string &reaso
       if(index>0)
          listed_ids+=", ";
       listed_ids+=candidate_id;
-      if(signal_object=="" && NormalizeSignalId(candidate_id)==wanted && wanted!="")
+      if(signal_object=="" && SignalIdMatches(candidate_id,wanted))
+        {
          signal_object=signals[index];
+         matched_id=candidate_id;
+        }
      }
    if(signal_object=="")
       return SnapshotInvalid(reason,StringFormat("未找到指定信号（输入='%s'，可用=[%s]）",InpSignalId,listed_ids));
+
+   if(!g_signal_lock_logged)
+     {
+      string matched_title="";
+      if(JsonGetString(signal_object,"title",matched_title))
+         PrintFormat("%s 已锁定信号 %s（%s）",LOG_PREFIX,matched_id,matched_title);
+      g_signal_lock_logged=true;
+     }
 
    string status="";
    if(!JsonGetString(signal_object,"status",status) || status!="live")
