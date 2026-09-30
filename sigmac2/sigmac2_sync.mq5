@@ -11,23 +11,27 @@
 
 #include <Trade/Trade.mqh>
 
-input string InpApiUrl            = "http://8.216.51.10/api/sigmac/signals";
-input string InpApiToken          = "";            // 预留：未来鉴权接口的 Bearer 令牌
-input string InpSignalId          = "";            // 必填：实时信号页展示的信号 ID（如 10***58）
-input string InpSymbolMappings    = "XAUUSD=XAUUSD;EURUSD=EURUSD";
-input long   InpMagicNumber       = 26080602;
-input double InpLotMultiplier     = 1.00;
-input double InpMaxSingleLot      = 1.00;
-input double InpMaxTotalLots      = 3.00;
-input int    InpPollMilliseconds  = 1000;
-input int    InpHttpTimeoutMs     = 5000;
-input int    InpSnapshotTimeoutSec = 15;
-input int    InpMaxRetries        = 3;
-input int    InpRetryDelayMs      = 500;
-input bool   InpSyncStops         = true;
-input bool   InpRejectInvalidStops = true;
-// 0 = only write journal (safe first run), 1 = full sync, 2 = only close stale managed positions.
-input int    InpTradingMode       = 0;
+input group  "连接与信号"
+input string InpApiUrl             = "http://8.216.51.10/api/sigmac/signals"; // 实时信号接口地址
+input string InpApiToken           = "";            // 接口令牌（预留，暂留空）
+input string InpSignalId           = "";            // 信号ID（实时信号页的脱敏账号，如 10***58）
+input int    InpPollMilliseconds   = 1000;          // 拉取间隔（毫秒）
+input int    InpHttpTimeoutMs      = 5000;          // 单次请求超时（毫秒）
+input int    InpSnapshotTimeoutSec = 15;            // 信号数据最大年龄（秒）
+
+input group  "品种与执行"
+input string InpSymbolMappings     = "XAUUSD=XAUUSD;EURUSD=EURUSD"; // 品种映射（源=目标，分号分隔）
+input long   InpMagicNumber        = 26080602;      // 魔术号（勿与其他EA重复）
+input double InpLotMultiplier      = 1.00;          // 手数倍率
+input bool   InpSyncStops          = true;          // 同步源端止损止盈
+input bool   InpRejectInvalidStops = true;          // 止损不合规时拒绝而非删除
+input int    InpMaxRetries         = 3;             // 交易失败重试次数
+input int    InpRetryDelayMs       = 500;           // 重试间隔（毫秒）
+
+input group  "风控限额与模式"
+input double InpMaxSingleLot       = 1.00;          // 单笔最大手数
+input double InpMaxTotalLots       = 3.00;          // 受管总手数上限
+input int    InpTradingMode        = 0;             // 交易模式：0仅观察 1全量同步 2仅平仓
 
 #define COMMENT_PREFIX "sigmaC:"
 #define LOG_PREFIX     "[SigmaC2] "
