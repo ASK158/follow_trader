@@ -1,5 +1,5 @@
 {
-  "schema": "mt5-copy-snapshot/v1",
+  "schema": "sigmac-snapshot/v1",
   "snapshot_complete": true,
   "sequence": 1760000000000,
   "source_account": 12345678,

@@ -1,7 +1,7 @@
 # 实时快照、运行状态和日志仅保留在本机
-mt5-copy-snapshot.json
-mt5-copy-publisher-state.json
-mt5-copy-publisher.log
+sigmac-snapshot.json
+sigmac-publisher-state.json
+sigmac-publisher.log
 publisher.config.json
 __pycache__/
 *.pyc

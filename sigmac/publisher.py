@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish complete MT5-A hedging-position snapshots for the local follower EA.
+"""Publish complete MT5-A hedging-position snapshots for the local SigmaC executor EA.
 
 The process only reads the locally logged-in MT5-A terminal.  It publishes a
 complete, atomically replaced JSON snapshot into MT5's shared Files folder;
@@ -29,7 +29,7 @@ DEFAULT_COMMON_FILES = (
     / "Terminal"
     / "Common"
     / "Files"
-    / "MT5CopyTrade"
+    / "SigmaC"
 )
 
 
@@ -97,15 +97,15 @@ def load_config(config_path: Path) -> PublisherConfig:
     if config.poll_interval_ms >= config.snapshot_ttl_seconds * 1000:
         raise RuntimeError("轮询间隔必须小于快照有效期")
     if not config.source_symbols or not all(isinstance(item, str) and item for item in config.source_symbols):
-        raise RuntimeError("source_symbols 必须指定至少一个源端品种，以避免意外复制")
+        raise RuntimeError("source_symbols 必须指定至少一个源端品种，以避免意外同步")
     if not all(isinstance(item, int) for item in config.source_magic_numbers):
-        raise RuntimeError("source_magic_numbers 必须是整数数组；空数组代表复制指定品种的全部订单")
+        raise RuntimeError("source_magic_numbers 必须是整数数组；空数组代表同步指定品种的全部订单")
     return config
 
 
 def setup_logging(log_path: Path) -> logging.Logger:
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    logger = logging.getLogger("mt5-copy-publisher")
+    logger = logging.getLogger("sigmac-publisher")
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
     formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
@@ -218,7 +218,7 @@ def publish_once(config: PublisherConfig, sequence: int) -> tuple[int, int]:
     now_ms = time.time_ns() // 1_000_000
     positions = build_positions(config)
     snapshot = {
-        "schema": "mt5-copy-snapshot/v1",
+        "schema": "sigmac-snapshot/v1",
         "snapshot_complete": True,
         "sequence": sequence,
         "source_account": int(account.login),

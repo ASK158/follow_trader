@@ -28,9 +28,9 @@ USDT 充值需要配置仅服务端可见的 `NOWPAYMENTS_API_KEY`、`NOWPAYMENT
 
 常用验证命令：`npm run lint`、`npm test`、`npm run build` 和 `npm audit`。
 
-## 本地 MT5 跟单（独立模块）
+## 本地 MT5 持仓同步（独立模块，SigmaC）
 
-项目还提供同一台 Windows 主机上的 MT5 持仓快照跟单模块，位于 [copy-trade](copy-trade)。Python 从 MT5-A 轮询**当前完整持仓**并原子写入共享文件，MT5-B 中的 `ea_file_copier.mq5` 只读取该本地文件，以独立 magic 隔离并同步受管仓位。它与本 Web 展示应用互不依赖；请严格按照 [copy-trade/README.md](copy-trade/README.md) 在 Hedging 模拟账户完成验证后使用。
+项目还提供同一台 Windows 主机上的 MT5 持仓同步模块（SigmaC），位于 [sigmac](sigmac)。Python 从 MT5-A 轮询**当前完整持仓**并原子写入共享文件，MT5-B 中的 `sigmac_sync.mq5` 只读取该本地文件，以独立 magic 隔离并同步受管仓位。它与本 Web 展示应用互不依赖；请严格按照 [sigmac/README.md](sigmac/README.md) 在 Hedging 模拟账户完成验证后使用。
 
 ## 云服务器部署与每日 8:00 同步
 

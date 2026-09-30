@@ -1,15 +1,15 @@
 //+------------------------------------------------------------------+
-//| ea_file_copier.mq5                                              |
-//| Copies valid local MT5-A position snapshots into this Hedging   |
+//| sigmac_sync.mq5                                                  |
+//| Applies valid local SigmaC position snapshots to this Hedging   |
 //| account. It never opens a connection to the source terminal.    |
 //+------------------------------------------------------------------+
-#property copyright "Local MT5 file copier"
-#property version   "1.0"
+#property copyright "SigmaC"
+#property version   "1.10"
 #property strict
 
 #include <Trade/Trade.mqh>
 
-input string InpSignalFile          = "MT5CopyTrade\\mt5-copy-snapshot.json";
+input string InpSignalFile          = "SigmaC\\sigmac-snapshot.json";
 input long   InpExpectedSourceAccount = 0; // Required: MT5-A login number
 input string InpSymbolMappings      = "XAUUSD.n=XAUUSD;EURUSD=EURUSD";
 input long   InpMagicNumber         = 26080601;
@@ -20,13 +20,13 @@ input int    InpPollMilliseconds     = 1000;
 input int    InpSnapshotTimeoutSec   = 10;
 input int    InpMaxRetries           = 3;
 input int    InpRetryDelayMs         = 500;
-input bool   InpCopyStops            = true;
+input bool   InpSyncStops            = true;
 input bool   InpRejectInvalidStops   = true;
-// 0 = only write journal (safe first run), 1 = full copy, 2 = only close stale copied positions.
+// 0 = only write journal (safe first run), 1 = full sync, 2 = only close stale managed positions.
 input int    InpTradingMode           = 0;
 
-#define SNAPSHOT_SCHEMA "mt5-copy-snapshot/v1"
-#define COMMENT_PREFIX  "MT5CPY:"
+#define SNAPSHOT_SCHEMA "sigmac-snapshot/v1"
+#define COMMENT_PREFIX  "sigmaC:"
 
 struct SourcePosition
   {
@@ -302,7 +302,7 @@ bool ReadSignalFile(string &json,long &file_modified_at_ms)
    int handle=FileOpen(InpSignalFile,FILE_READ|FILE_BIN|FILE_COMMON|FILE_SHARE_READ|FILE_SHARE_WRITE);
    if(handle==INVALID_HANDLE)
      {
-      PrintFormat("[Copy] 无法读取信号文件 '%s'，错误=%d",InpSignalFile,GetLastError());
+      PrintFormat("[SigmaC] 无法读取信号文件 '%s'，错误=%d",InpSignalFile,GetLastError());
       return false;
      }
     long modified_at=(long)FileGetInteger(handle,FILE_MODIFY_DATE);
@@ -311,7 +311,7 @@ bool ReadSignalFile(string &json,long &file_modified_at_ms)
    if(size<=0 || size>1024*1024)
      {
       FileClose(handle);
-      Print("[Copy] 信号文件为空或超过 1 MB，已拒绝");
+      Print("[SigmaC] 信号文件为空或超过 1 MB，已拒绝");
       return false;
      }
    char bytes[];
@@ -320,7 +320,7 @@ bool ReadSignalFile(string &json,long &file_modified_at_ms)
    FileClose(handle);
   if(read!=(uint)size)
      {
-    PrintFormat("[Copy] 信号文件读取不完整，期望=%d，实际=%d",(int)size,(int)read);
+    PrintFormat("[SigmaC] 信号文件读取不完整，期望=%d，实际=%d",(int)size,(int)read);
       return false;
      }
   json=CharArrayToString(bytes,0,(int)read,CP_UTF8);
@@ -359,18 +359,18 @@ string SourceComment(const string source_id)
    return COMMENT_PREFIX+source_id;
   }
 //+------------------------------------------------------------------+
-bool IsCopiedPositionForSource(const string source_id)
+bool IsManagedPositionForSource(const string source_id)
   {
    return PositionGetInteger(POSITION_MAGIC)==InpMagicNumber && PositionGetString(POSITION_COMMENT)==SourceComment(source_id);
   }
 //+------------------------------------------------------------------+
-double CopiedVolumeForSource(const string source_id)
+double ManagedVolumeForSource(const string source_id)
   {
    double total=0.0;
    for(int index=PositionsTotal()-1;index>=0;index--)
      {
       ulong ticket=PositionGetTicket(index);
-      if(ticket>0 && IsCopiedPositionForSource(source_id))
+      if(ticket>0 && IsManagedPositionForSource(source_id))
          total+=PositionGetDouble(POSITION_VOLUME);
      }
    return total;
@@ -392,31 +392,31 @@ bool IsSuccessfulTradeResult(void)
 //+------------------------------------------------------------------+
 void LogTradeFailure(const string action,const int attempt)
   {
-   PrintFormat("[Copy] %s 失败（第 %d/%d 次）：retcode=%u，%s",action,attempt,InpMaxRetries,g_trade.ResultRetcode(),g_trade.ResultRetcodeDescription());
+   PrintFormat("[SigmaC] %s 失败（第 %d/%d 次）：retcode=%u，%s",action,attempt,InpMaxRetries,g_trade.ResultRetcode(),g_trade.ResultRetcodeDescription());
   }
 //+------------------------------------------------------------------+
-bool OpenCopiedPosition(const SourcePosition &source,const string target_symbol,const double volume)
+bool OpenManagedPosition(const SourcePosition &source,const string target_symbol,const double volume)
   {
    if(InpTradingMode!=1)
      {
-      PrintFormat("[Copy] 观察模式：将开 %s %.2f -> %s",source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol);
+      PrintFormat("[SigmaC] 观察模式：将开 %s %.2f -> %s",source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol);
       return false;
      }
    if(!SymbolSelect(target_symbol,true))
      {
-      PrintFormat("[Copy] 品种不可用，无法开仓：%s",target_symbol);
+      PrintFormat("[SigmaC] 品种不可用，无法开仓：%s",target_symbol);
       return false;
      }
-   if(InpCopyStops && InpRejectInvalidStops && !StopsAreValid(target_symbol,source.side,source.sl,source.tp))
+   if(InpSyncStops && InpRejectInvalidStops && !StopsAreValid(target_symbol,source.side,source.sl,source.tp))
      {
-      PrintFormat("[Copy] 源端 SL/TP 不符合目标品种规则，拒绝开仓：%s",target_symbol);
+      PrintFormat("[SigmaC] 源端 SL/TP 不符合目标品种规则，拒绝开仓：%s",target_symbol);
       return false;
      }
    for(int attempt=1;attempt<=InpMaxRetries;attempt++)
      {
       bool sent=(source.side==POSITION_TYPE_BUY)
-                ? g_trade.Buy(volume,target_symbol,0.0,InpCopyStops?source.sl:0.0,InpCopyStops?source.tp:0.0,SourceComment(source.source_id))
-                : g_trade.Sell(volume,target_symbol,0.0,InpCopyStops?source.sl:0.0,InpCopyStops?source.tp:0.0,SourceComment(source.source_id));
+                ? g_trade.Buy(volume,target_symbol,0.0,InpSyncStops?source.sl:0.0,InpSyncStops?source.tp:0.0,SourceComment(source.source_id))
+                : g_trade.Sell(volume,target_symbol,0.0,InpSyncStops?source.sl:0.0,InpSyncStops?source.tp:0.0,SourceComment(source.source_id));
       if(sent && IsSuccessfulTradeResult())
          return true;
       LogTradeFailure("开仓 "+target_symbol,attempt);
@@ -426,11 +426,11 @@ bool OpenCopiedPosition(const SourcePosition &source,const string target_symbol,
    return false;
   }
 //+------------------------------------------------------------------+
-bool CloseCopiedTicket(const ulong ticket,const string reason)
+bool CloseManagedTicket(const ulong ticket,const string reason)
   {
    if(InpTradingMode==0)
      {
-      PrintFormat("[Copy] 观察模式：将平仓 ticket=%I64u（%s）",ticket,reason);
+      PrintFormat("[SigmaC] 观察模式：将平仓 ticket=%I64u（%s）",ticket,reason);
       return false;
      }
    for(int attempt=1;attempt<=InpMaxRetries;attempt++)
@@ -444,12 +444,12 @@ bool CloseCopiedTicket(const ulong ticket,const string reason)
    return false;
   }
 //+------------------------------------------------------------------+
-bool ReduceCopiedVolume(const string source_id,double amount)
+bool ReduceManagedVolume(const string source_id,double amount)
   {
    for(int index=PositionsTotal()-1;index>=0 && amount>0.0;index--)
      {
       ulong ticket=PositionGetTicket(index);
-      if(ticket==0 || !IsCopiedPositionForSource(source_id))
+      if(ticket==0 || !IsManagedPositionForSource(source_id))
          continue;
       double current=PositionGetDouble(POSITION_VOLUME);
       string symbol=PositionGetString(POSITION_SYMBOL);
@@ -461,7 +461,7 @@ bool ReduceCopiedVolume(const string source_id,double amount)
          continue;
       if(InpTradingMode==0)
         {
-         PrintFormat("[Copy] 观察模式：将减仓 ticket=%I64u %.2f",ticket,close_volume);
+         PrintFormat("[SigmaC] 观察模式：将减仓 ticket=%I64u %.2f",ticket,close_volume);
          return false;
         }
       bool closed=false;
@@ -511,19 +511,19 @@ bool StopsAreValid(const string symbol,const ENUM_POSITION_TYPE side,const doubl
    return true;
   }
 //+------------------------------------------------------------------+
-void UpdateCopiedStops(const string source_id,const string symbol,const ENUM_POSITION_TYPE side,const double sl,const double tp)
+void UpdateManagedStops(const string source_id,const string symbol,const ENUM_POSITION_TYPE side,const double sl,const double tp)
   {
-   if(!InpCopyStops || InpTradingMode!=1)
+   if(!InpSyncStops || InpTradingMode!=1)
       return;
    if(InpRejectInvalidStops && !StopsAreValid(symbol,side,sl,tp))
      {
-      PrintFormat("[Copy] 源端 SL/TP 不符合目标品种规则，跳过修改：%s",symbol);
+      PrintFormat("[SigmaC] 源端 SL/TP 不符合目标品种规则，跳过修改：%s",symbol);
       return;
      }
    for(int index=PositionsTotal()-1;index>=0;index--)
      {
       ulong ticket=PositionGetTicket(index);
-      if(ticket==0 || !IsCopiedPositionForSource(source_id))
+      if(ticket==0 || !IsManagedPositionForSource(source_id))
          continue;
       double current_sl=PositionGetDouble(POSITION_SL);
       double current_tp=PositionGetDouble(POSITION_TP);
@@ -542,7 +542,7 @@ void UpdateCopiedStops(const string source_id,const string symbol,const ENUM_POS
             Sleep(InpRetryDelayMs);
         }
       if(!changed)
-         PrintFormat("[Copy] ticket=%I64u 的 SL/TP 更新将于下一轮重试",ticket);
+         PrintFormat("[SigmaC] ticket=%I64u 的 SL/TP 更新将于下一轮重试",ticket);
      }
   }
 //+------------------------------------------------------------------+
@@ -556,33 +556,33 @@ bool DesiredVolumeIsWithinLimits(const SourcePosition &positions[])
          continue;
       if(!SymbolSelect(target,true))
         {
-         PrintFormat("[Copy] 未选择或不存在目标品种：%s -> %s",positions[index].symbol,target);
+         PrintFormat("[SigmaC] 未选择或不存在目标品种：%s -> %s",positions[index].symbol,target);
          return false;
         }
       double requested=positions[index].volume*InpLotMultiplier;
       double maximum=SymbolInfoDouble(target,SYMBOL_VOLUME_MAX);
       if(requested>InpMaxSingleLot+0.0000001 || requested>maximum+0.0000001)
         {
-         PrintFormat("[Copy] 单笔目标手数 %.2f 超过上限（配置=%.2f，品种=%.2f），整份快照不执行",requested,InpMaxSingleLot,maximum);
+         PrintFormat("[SigmaC] 单笔目标手数 %.2f 超过上限（配置=%.2f，品种=%.2f），整份快照不执行",requested,InpMaxSingleLot,maximum);
          return false;
         }
       double desired=NormalizeVolume(target,requested);
       if(desired<=0.0)
         {
-         PrintFormat("[Copy] 手数无法按目标规格规范化：%s，源手数=%.2f",target,positions[index].volume);
+         PrintFormat("[SigmaC] 手数无法按目标规格规范化：%s，源手数=%.2f",target,positions[index].volume);
          return false;
         }
       total+=desired;
      }
    if(total>InpMaxTotalLots+0.0000001)
      {
-      PrintFormat("[Copy] 目标总手数 %.2f 超过限制 %.2f，整份快照不执行",total,InpMaxTotalLots);
+      PrintFormat("[SigmaC] 目标总手数 %.2f 超过限制 %.2f，整份快照不执行",total,InpMaxTotalLots);
       return false;
      }
    return true;
   }
 //+------------------------------------------------------------------+
-void CloseStaleCopiedPositions(const SourcePosition &positions[])
+void CloseStaleManagedPositions(const SourcePosition &positions[])
   {
    for(int index=PositionsTotal()-1;index>=0;index--)
      {
@@ -594,7 +594,7 @@ void CloseStaleCopiedPositions(const SourcePosition &positions[])
          continue;
       string source_id=StringSubstr(comment,StringLen(COMMENT_PREFIX));
       if(!SourceExists(source_id,positions))
-         CloseCopiedTicket(ticket,"源端持仓已不存在");
+         CloseManagedTicket(ticket,"源端持仓已不存在");
      }
   }
 //+------------------------------------------------------------------+
@@ -603,7 +603,7 @@ void Synchronize(const SourcePosition &positions[])
   if(InpTradingMode!=2 && !DesiredVolumeIsWithinLimits(positions))
       return;
 
-   CloseStaleCopiedPositions(positions);
+   CloseStaleManagedPositions(positions);
    if(InpTradingMode==2)
       return;
 
@@ -613,19 +613,19 @@ void Synchronize(const SourcePosition &positions[])
       string target=TargetSymbolFor(source.symbol);
       if(target=="")
         {
-         PrintFormat("[Copy] 未配置品种映射，忽略：%s",source.symbol);
+         PrintFormat("[SigmaC] 未配置品种映射，忽略：%s",source.symbol);
          continue;
         }
       double desired=NormalizeVolume(target,source.volume*InpLotMultiplier);
       if(desired<=0.0)
          continue;
-      double existing=CopiedVolumeForSource(source.source_id);
+      double existing=ManagedVolumeForSource(source.source_id);
       double step=SymbolInfoDouble(target,SYMBOL_VOLUME_STEP);
       if(existing+step/2.0<desired)
-         OpenCopiedPosition(source,target,NormalizeVolume(target,desired-existing));
+         OpenManagedPosition(source,target,NormalizeVolume(target,desired-existing));
       else if(existing>desired+step/2.0)
-         ReduceCopiedVolume(source.source_id,existing-desired);
-      UpdateCopiedStops(source.source_id,target,source.side,source.sl,source.tp);
+         ReduceManagedVolume(source.source_id,existing-desired);
+      UpdateManagedStops(source.source_id,target,source.side,source.sl,source.tp);
      }
   }
 //+------------------------------------------------------------------+
@@ -635,13 +635,13 @@ int OnInit()
       InpMaxTotalLots<=0.0 || InpMaxSingleLot>InpMaxTotalLots || InpPollMilliseconds<250 ||
       InpSnapshotTimeoutSec<2 || InpMaxRetries<1 || InpRetryDelayMs<0 || InpTradingMode<0 || InpTradingMode>2)
      {
-      Print("[Copy] 输入参数无效，EA 未启动");
+      Print("[SigmaC] 输入参数无效，EA 未启动");
       return INIT_PARAMETERS_INCORRECT;
      }
    g_trade.SetExpertMagicNumber(InpMagicNumber);
    g_trade.SetAsyncMode(false);
    EventSetMillisecondTimer(InpPollMilliseconds);
-   PrintFormat("[Copy] 已启动；模式=%d，读取 Common\\Files\\%s",InpTradingMode,InpSignalFile);
+   PrintFormat("[SigmaC] 已启动；模式=%d，读取 Common\\Files\\%s",InpTradingMode,InpSignalFile);
    return INIT_SUCCEEDED;
   }
 //+------------------------------------------------------------------+
@@ -662,7 +662,7 @@ void OnTimer()
   string snapshot_reason="";
   if(!ParseSnapshot(json,file_modified_at_ms,positions,sequence,source_account,snapshot_reason))
      {
-    PrintFormat("[Copy] 快照无效：%s；保持现有跟单仓位",snapshot_reason);
+      PrintFormat("[SigmaC] 快照无效：%s；保持现有受管仓位",snapshot_reason);
       return;
      }
    Synchronize(positions);
