@@ -14,7 +14,7 @@
 input group  "连接与信号"
 input string InpApiUrl             = "http://8.216.51.10/api/sigmac/signals"; // 实时信号接口地址
 input string InpApiToken           = "";            // 接口令牌（预留，暂留空）
-input string InpSignalId           = "";            // 信号ID（实时信号页的脱敏账号，如 10***58）
+input string InpSignalId           = "";            // 信号ID（实时信号页的账号，如 10***58 或 1058）
 input int    InpPollMilliseconds   = 1000;          // 拉取间隔（毫秒）
 input int    InpHttpTimeoutMs      = 5000;          // 单次请求超时（毫秒）
 input int    InpSnapshotTimeoutSec = 15;            // 信号数据最大年龄（秒）
@@ -271,24 +271,51 @@ bool FetchSignalsJson(string &json)
    return StringLen(json)>0;
   }
 //+------------------------------------------------------------------+
+//| 信号ID归一化：仅保留数字（全角转半角），忽略星号与空格，         |
+//| 使 10***58 / 10＊＊＊58 / 1058 等写法等价。                       |
+//+------------------------------------------------------------------+
+string NormalizeSignalId(string value)
+  {
+   string full_width="０１２３４５６７８９";
+   string half_width="0123456789";
+   for(int index=0;index<10;index++)
+     {
+      string from=StringSubstr(full_width,index,1);
+      string to=StringSubstr(half_width,index,1);
+      StringReplace(value,from,to);
+     }
+   string digits="";
+   for(int index=0;index<StringLen(value);index++)
+     {
+      ushort character=(ushort)StringGetCharacter(value,index);
+      if(character>='0' && character<='9')
+         digits+=StringSubstr(value,index,1);
+     }
+   return digits;
+  }
+//+------------------------------------------------------------------+
 bool ParseLiveSignal(const string json,SourcePosition &positions[],string &reason)
   {
    string signals[];
    if(!ExtractObjectsUnderKey(json,"signals",signals))
       return SnapshotInvalid(reason,"signals 数组缺失或格式无效");
 
+   string wanted=NormalizeSignalId(InpSignalId);
    string signal_object="";
+   string listed_ids="";
    for(int index=0;index<ArraySize(signals);index++)
      {
       string candidate_id="";
-      if(JsonGetString(signals[index],"id",candidate_id) && candidate_id==InpSignalId)
-        {
+      if(!JsonGetString(signals[index],"id",candidate_id))
+         continue;
+      if(index>0)
+         listed_ids+=", ";
+      listed_ids+=candidate_id;
+      if(signal_object=="" && NormalizeSignalId(candidate_id)==wanted && wanted!="")
          signal_object=signals[index];
-         break;
-        }
      }
    if(signal_object=="")
-      return SnapshotInvalid(reason,"未找到指定信号（发布器可能已停止或被清理）");
+      return SnapshotInvalid(reason,StringFormat("未找到指定信号（输入='%s'，可用=[%s]）",InpSignalId,listed_ids));
 
    string status="";
    if(!JsonGetString(signal_object,"status",status) || status!="live")
@@ -646,7 +673,8 @@ void Synchronize(const SourcePosition &positions[])
 int OnInit()
   {
    bool url_valid=StringFind(InpApiUrl,"http://")==0 || StringFind(InpApiUrl,"https://")==0;
-   if(!url_valid || StringLen(InpSignalId)==0 || InpMagicNumber<=0 || InpLotMultiplier<=0.0 || InpMaxSingleLot<=0.0 ||
+   bool signal_id_valid=StringLen(InpSignalId)>0 && NormalizeSignalId(InpSignalId)!="";
+   if(!url_valid || !signal_id_valid || InpMagicNumber<=0 || InpLotMultiplier<=0.0 || InpMaxSingleLot<=0.0 ||
       InpMaxTotalLots<=0.0 || InpMaxSingleLot>InpMaxTotalLots || InpPollMilliseconds<250 ||
       InpHttpTimeoutMs<1000 || InpHttpTimeoutMs>60000 || InpSnapshotTimeoutSec<2 || InpMaxRetries<1 ||
       InpRetryDelayMs<0 || InpTradingMode<0 || InpTradingMode>2)
