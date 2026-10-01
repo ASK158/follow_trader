@@ -58,6 +58,8 @@ string g_intent_signature="";
 uint   g_intent_logged_at=0;
 long   g_ms_base_epoch=0;
 ulong  g_ms_base_micro=0;
+int    g_effective_wait_sec=0;
+int    g_poll_success_streak=0;
 
 //+------------------------------------------------------------------+
 //| 毫秒时钟：MQL5 内置时间只有秒级；启动时对准 GMT 秒沿，之后用微秒 |
@@ -316,8 +318,8 @@ bool SnapshotInvalid(string &reason,const string message)
 bool FetchSignalsJson(string &json)
   {
    string url=InpApiUrl;
-   if(InpLongPollWaitSec>0)
-      url+=(StringFind(url,"?")<0?"?":"&")+"since="+(string)g_last_sequence+"&wait="+(string)InpLongPollWaitSec;
+   if(g_effective_wait_sec>0)
+      url+=(StringFind(url,"?")<0?"?":"&")+"since="+(string)g_last_sequence+"&wait="+(string)g_effective_wait_sec;
    char request_body[];
    char response_body[];
    string response_headers="";
@@ -325,8 +327,8 @@ bool FetchSignalsJson(string &json)
    if(StringLen(InpApiToken)>0)
       request_headers="Authorization: Bearer "+InpApiToken+"\r\n";
    int timeout_ms=InpHttpTimeoutMs;
-   if(InpLongPollWaitSec>0)
-      timeout_ms=(int)MathMax(InpHttpTimeoutMs,(InpLongPollWaitSec+10)*1000);
+   if(g_effective_wait_sec>0)
+      timeout_ms=(int)MathMax(InpHttpTimeoutMs,(g_effective_wait_sec+10)*1000);
    ResetLastError();
    int status=WebRequest("GET",url,request_headers,timeout_ms,request_body,response_body,response_headers);
    if(status==-1)
@@ -337,8 +339,27 @@ bool FetchSignalsJson(string &json)
      }
    if(status!=200)
      {
-      PrintFormat("%s 接口返回 HTTP %d，本轮跳过",LOG_PREFIX,status);
+      string body_preview=CharArrayToString(response_body,0,100,CP_UTF8);
+      PrintFormat("%s 接口返回 HTTP %d（错误=%d，响应=%s），本轮跳过",
+                  LOG_PREFIX,status,GetLastError(),body_preview);
+      // 中间设备掐断长连接（如 1001）时收缩等待时长，避开其空闲超时。
+      if(g_effective_wait_sec>3)
+        {
+         g_effective_wait_sec=MathMax(3,g_effective_wait_sec/2);
+         g_poll_success_streak=0;
+         PrintFormat("%s 长轮询等待自动降至 %d 秒",LOG_PREFIX,g_effective_wait_sec);
+        }
       return false;
+     }
+   if(g_effective_wait_sec<InpLongPollWaitSec)
+     {
+      g_poll_success_streak++;
+      if(g_poll_success_streak>=30)
+        {
+         g_effective_wait_sec++;
+         g_poll_success_streak=0;
+         PrintFormat("%s 链路稳定，长轮询等待回升至 %d 秒",LOG_PREFIX,g_effective_wait_sec);
+        }
      }
    json=CharArrayToString(response_body,0,WHOLE_ARRAY,CP_UTF8);
    return StringLen(json)>0;
@@ -831,6 +852,7 @@ int OnInit()
    g_trade.SetAsyncMode(false);
    bool ms_clock_calibrated=CalibrateMsClock();
    PrintFormat("%s 毫秒时钟%s",LOG_PREFIX,ms_clock_calibrated?"已对准GMT秒沿":"仅秒级精度（校准超时）");
+   g_effective_wait_sec=InpLongPollWaitSec;
    int driver_ms=(InpLongPollWaitSec>0)?100:InpPollMilliseconds;
    EventSetMillisecondTimer(driver_ms);
    PrintFormat("%s 已启动；模式=%d，信号=%s，长轮询=%d秒，接口=%s",
