@@ -2,9 +2,8 @@ import "server-only";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ProxyAgent, fetch } from "undici";
-import { getSignalSnapshots, invalidateSignalCaches, type SignalData } from "./signal-data";
+import { getSignalSnapshots, invalidateSignalCaches, type StoredSignalState } from "./signal-data";
 
-type StoredSignalState = Pick<SignalData, "id" | "sourceStatus" | "sourceUpdatedAt" | "growth" | "maxDrawdown" | "profit" | "equity" | "balance">;
 type SyncResult = { id: string; status: "updated" | "failed"; csvUpdated: boolean; reason?: string };
 
 const dataDirectory = process.env.SIGNAL_DATA_DIR ?? join(process.cwd(), ".signal-data");
@@ -37,6 +36,17 @@ function parseMaxDrawdown(page: string): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
+/** 平均持有时间带单位（分钟/小时/天），统一折算为小时。 */
+function parseAverageHoldHours(page: string): number | null {
+  const match = page.match(/s-list-info__label[^>]*>\s*平均持有时间\s*[:：]?\s*<\/div>\s*<div[^>]*class=["'][^"']*s-list-info__value[^"']*["'][^>]*>\s*([\d\s,.]+)\s*(分钟|小时|天)/i);
+  if (!match) return null;
+  const value = Number(match[1].replace(/\s|,/g, ""));
+  if (!Number.isFinite(value)) return null;
+  if (match[2] === "分钟") return Math.max(1, Math.round(value / 60));
+  if (match[2] === "天") return Math.round(value * 24);
+  return Math.round(value);
+}
+
 async function readStates(): Promise<Record<string, StoredSignalState>> {
   try {
     return JSON.parse(await readFile(statePath, "utf8")) as Record<string, StoredSignalState>;
@@ -66,28 +76,45 @@ export async function synchronizeSignals(): Promise<SyncResult[]> {
       const equity = parseNumber(page, "净值");
       const balance = parseNumber(page, "结余");
       const maxDrawdown = parseMaxDrawdown(page);
+      const initialDeposit = parseNumber(page, "初始入金");
+      const withdrawals = parseNumber(page, "出金");
+      const subscribers = parseNumber(page, "订阅者");
+      const weeks = parseNumber(page, "周");
+      const tradeDays = parseNumber(page, "交易日");
+      const averageHoldHours = parseAverageHoldHours(page);
       if (growth === null || profit === null || equity === null || balance === null) {
         throw new Error("无法解析 MQL5 公开页指标");
       }
 
-      states[signal.id] = {
+      const synchronizedAt = new Date().toISOString();
+      // 展开旧状态：明细 CSV 下载失败时保留上一次的 csvUpdatedAt，便于页面暴露明细滞后。
+      const nextState: StoredSignalState = {
+        ...states[signal.id],
         id: signal.id,
         sourceStatus: "live",
-        sourceUpdatedAt: new Date().toISOString(),
+        sourceUpdatedAt: synchronizedAt,
         growth,
         ...(maxDrawdown === null ? {} : { maxDrawdown }),
         profit,
         equity,
         balance,
+        ...(initialDeposit === null ? {} : { initialDeposit }),
+        ...(withdrawals === null ? {} : { withdrawals }),
+        ...(subscribers === null ? {} : { subscribers }),
+        ...(weeks === null ? {} : { weeks }),
+        ...(tradeDays === null ? {} : { tradeDays }),
+        ...(averageHoldHours === null ? {} : { averageHoldHours }),
       };
 
       let csvUpdated = false;
       const csvResponse = await fetchMql5(`${signal.sourceUrl}/export/positions`, headers);
       const csv = await csvResponse.text();
-      if (csvResponse.ok && csv.startsWith("Time;Type;")) {
+      if (csvResponse.ok && csv.startsWith("Time;")) {
         await writeAtomically(join(positionsDirectory, `signal-${signal.id}.positions.csv`), csv);
+        nextState.csvUpdatedAt = synchronizedAt;
         csvUpdated = true;
       }
+      states[signal.id] = nextState;
       return { id: signal.id, status: "updated", csvUpdated };
     } catch (error) {
       return { id: signal.id, status: "failed", csvUpdated: false, reason: error instanceof Error ? error.message : "未知错误" };

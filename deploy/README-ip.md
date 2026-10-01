@@ -166,6 +166,8 @@ HTTP_PROXY=http://<代理主机>:<端口>
 
 同步服务会显式将上述代理用于 MQL5 请求；修改 `.env` 后执行 `docker compose -f docker-compose.ip.pull.yml up -d` 重建容器环境。
 
+同步任务每次抓取公开页指标与持仓明细 CSV 两部分。明细接口 `/export/positions` 需要登录会话：服务器 `.env` 中 `MQL5_SESSION_COOKIE` 失效时指标仍会更新，但明细会停滞——此时同步接口返回 207、cron 日志报 `csvUpdated: false` 并以非 0 退出码结束，页面也会分别显示「指标更新」与「明细更新」两个日期暴露明细滞后（2026-10-01 曾因缺 Cookie 静默滞后两周）。更新 Cookie 后重建容器并手动执行一次 `/usr/local/sbin/signal-web-sync` 验证六个信号 `csvUpdated` 均为 `true`。
+
 维护安装脚本已通过 `/etc/cron.d/signal-web` 配置每日北京时间 02:30 备份、03:15 充值对账、03:45 Agent 清理、08:00 同步共四个任务，请勿再重复编辑 root crontab。只需设置时区并检查任务：
 
 ```bash

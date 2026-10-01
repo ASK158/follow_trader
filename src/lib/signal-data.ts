@@ -1,32 +1,18 @@
 import "server-only";
-import { access, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import {
+  buildDailyPerformanceEntries,
+  deriveMonthlyReturns,
+  deriveTradeStats,
+  parseTradesHistory,
+  scaleCurveToGrowth,
+  type CurvePoint,
+  type MonthlyReturn,
+  type Trade,
+} from "./trade-metrics";
 
-export type CurvePoint = {
-  date: string;
-  growth: number;
-  balance: number;
-};
-
-export type MonthlyReturn = {
-  year: number;
-  values: Array<number | null>;
-  total: number;
-};
-
-export type Trade = {
-  id: string;
-  openedAt: string;
-  closedAt: string;
-  symbol: string;
-  side: "买入" | "卖出";
-  volume: number;
-  openPrice: number;
-  closePrice: number;
-  commission: number;
-  swap: number;
-  profit: number;
-};
+export type { CurvePoint, MonthlyReturn, Trade };
 
 export type SignalData = {
   id: string;
@@ -37,6 +23,7 @@ export type SignalData = {
   sourceUrl: string;
   sourceStatus: "live" | "snapshot";
   sourceUpdatedAt: string;
+  csvUpdatedAt?: string;
   growth: number;
   maxDrawdown?: number;
   profit: number;
@@ -59,7 +46,25 @@ export type SignalData = {
   tradesHistory: Trade[];
 };
 
-type StoredSignalState = Pick<SignalData, "id" | "sourceStatus" | "sourceUpdatedAt" | "growth" | "maxDrawdown" | "profit" | "equity" | "balance">;
+/** 同步任务写入 signals.json 的运行时字段；未覆盖的字段保留内置快照值。 */
+export type StoredSignalState = Pick<
+  SignalData,
+  | "id"
+  | "sourceStatus"
+  | "sourceUpdatedAt"
+  | "csvUpdatedAt"
+  | "growth"
+  | "maxDrawdown"
+  | "profit"
+  | "equity"
+  | "balance"
+  | "initialDeposit"
+  | "withdrawals"
+  | "subscribers"
+  | "weeks"
+  | "tradeDays"
+  | "averageHoldHours"
+>;
 type StoredSignalStates = Record<string, StoredSignalState>;
 
 const runtimeDataDirectory = process.env.SIGNAL_DATA_DIR ?? join(process.cwd(), ".signal-data");
@@ -224,106 +229,40 @@ async function readStoredStates(): Promise<StoredSignalStates> {
   }
 }
 
-async function getCsvPath(signalId: string): Promise<string> {
+/** 优先读取运行时同步的 CSV；缺失时回退仓库内置种子数据，再缺失返回 null。 */
+async function readSynchronizedCsv(signalId: string): Promise<string | null> {
   const synchronizedPath = join(runtimeCsvDirectory, `signal-${signalId}.positions.csv`);
   try {
-    await access(synchronizedPath);
-    return synchronizedPath;
+    return await readFile(synchronizedPath, "utf8");
   } catch {
-    return join(process.cwd(), "src", "data", `signal-${signalId}.positions.csv`);
+    try {
+      return await readFile(join(process.cwd(), "src", "data", `signal-${signalId}.positions.csv`), "utf8");
+    } catch {
+      return null;
+    }
   }
 }
 
-function toNumber(value: string): number {
-  const parsed = Number(value.trim());
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function isReconstructedCurve(): boolean {
-  return true;
-}
-
-/**
- * 使用导出流水中的已平仓盈亏和 Balance 变动重建每日结余。
- * MQL5 的累计收益率会剔除出入金影响，因此收益率只基于已平仓损益，
- * 余额变动仅影响资金曲线；两条曲线均按公开页的最终累计收益率校准。
- */
-async function getReconstructedCurve(signal: SignalData): Promise<CurvePoint[]> {
-  if (!isReconstructedCurve()) return signal.curve;
-
-  return getCsvPath(signal.id).then((csvPath) => readFile(csvPath, "utf8"))
-    .then((csv) => {
-      const dailyChanges = new Map<string, { cashFlow: number; tradeProfit: number }>();
-      csv.trim().split(/\r?\n/).slice(1).forEach((line) => {
-        const [openedAt, type, , , , , closedAt, , commission, swap, profit] = line.split(";");
-        const eventTime = type === "Balance" ? openedAt : closedAt;
-        if (!eventTime || (type !== "Balance" && type !== "Buy" && type !== "Sell")) return;
-        const date = eventTime.slice(0, 10).replaceAll(".", "-");
-        const change = toNumber(profit) + (type === "Balance" ? 0 : toNumber(commission) + toNumber(swap));
-        const daily = dailyChanges.get(date) ?? { cashFlow: 0, tradeProfit: 0 };
-        if (type === "Balance") daily.cashFlow += change;
-        else daily.tradeProfit += change;
-        dailyChanges.set(date, daily);
-      });
-
-      const dailyEntries = [...dailyChanges.entries()].sort(([left], [right]) => left.localeCompare(right));
-      if (dailyEntries.length === 0) return signal.curve;
-
-      let balance = 0;
-      let performanceIndex = 1;
-      const rawPoints = dailyEntries.map(([date, changes]) => {
-        // 现金流先进入账户，但不计入收益；交易损益以当日可用资金计算回报并复利。
-        balance += changes.cashFlow;
-        if (Math.abs(balance) > 0.000001) performanceIndex *= 1 + changes.tradeProfit / balance;
-        balance += changes.tradeProfit;
-        return { date, balance, performanceIndex };
-      });
-      const finalRawGrowth = (rawPoints.at(-1)!.performanceIndex - 1) * 100;
-      const growthScale = Math.abs(finalRawGrowth) > 0.000001 ? signal.growth / finalRawGrowth : 0;
-
-      return rawPoints.map((point) => ({
-        date: point.date,
-        balance: Number(point.balance.toFixed(2)),
-        growth: Number(((point.performanceIndex - 1) * 100 * growthScale).toFixed(2)),
-      }));
-    })
-    .catch(() => signal.curve);
-}
-
-/** 解析从已授权 MQL5 会话导出的完整 CSV；跳过余额变动等非逐笔成交记录。 */
-async function getFullTradesHistory(signal: SignalData): Promise<Trade[]> {
-  return getCsvPath(signal.id).then((csvPath) => readFile(csvPath, "utf8"))
-    .then((csv) => csv.trim().split(/\r?\n/).slice(1)
-        .map((line, index): Trade | null => {
-          const [openedAt, type, volume, symbol, openPrice, , closedAt, closePrice, commission, swap, profit] = line.split(";");
-          if ((type !== "Buy" && type !== "Sell") || !closedAt) return null;
-          return {
-            id: `#${index + 1}`,
-            openedAt: openedAt.replace(/:(\d{2})$/, ""),
-            closedAt: closedAt.replace(/:(\d{2})$/, ""),
-            symbol,
-            side: type === "Buy" ? "买入" : "卖出",
-            volume: toNumber(volume),
-            openPrice: toNumber(openPrice),
-            closePrice: toNumber(closePrice),
-            commission: toNumber(commission),
-            swap: toNumber(swap),
-            profit: toNumber(profit),
-          };
-        })
-      .filter((trade): trade is Trade => trade !== null))
-    .catch(() => signal.tradesHistory);
-}
-
-/** 页面只读取最近一次同步快照；同步任务失败时自动保留内置数据。 */
+/** 页面只读取最近一次同步快照；同步任务失败时自动保留内置数据。
+ * 曲线、月度矩阵与交易统计均由同步的 CSV 重建，指标数值以同步的公开页为准。 */
 export async function getSignal(id = firstSignalSnapshot.id): Promise<SignalData | null> {
   const snapshot = signalSnapshots[id];
   if (!snapshot) return null;
   const states = await readStoredStates();
   const storedState = states[id];
   const signal = { ...snapshot, ...storedState };
-  const [tradesHistory, curve] = await Promise.all([getFullTradesHistory(signal), getReconstructedCurve(signal)]);
-  return { ...signal, curve, tradesHistory };
+  const csv = await readSynchronizedCsv(signal.id);
+  if (csv === null) return signal;
+  const tradesHistory = parseTradesHistory(csv);
+  const curve = scaleCurveToGrowth(buildDailyPerformanceEntries(csv), signal.growth);
+  const derivedStats = deriveTradeStats(tradesHistory);
+  return {
+    ...signal,
+    ...(derivedStats ?? {}),
+    curve: curve.length > 0 ? curve : signal.curve,
+    monthlyReturns: curve.length > 0 ? deriveMonthlyReturns(curve) : signal.monthlyReturns,
+    tradesHistory,
+  };
 }
 
 export async function getSignals(): Promise<SignalData[]> {
