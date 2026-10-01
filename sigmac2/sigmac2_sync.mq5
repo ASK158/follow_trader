@@ -56,6 +56,46 @@ bool   g_signal_lock_logged=false;
 uint   g_next_poll_at=0;
 string g_intent_signature="";
 uint   g_intent_logged_at=0;
+long   g_ms_base_epoch=0;
+ulong  g_ms_base_micro=0;
+
+//+------------------------------------------------------------------+
+//| 毫秒时钟：MQL5 内置时间只有秒级；启动时对准 GMT 秒沿，之后用微秒 |
+//| 计数器推算毫秒。误差约 ±15ms，对秒级延迟观测足够。               |
+//+------------------------------------------------------------------+
+bool CalibrateMsClock()
+  {
+   long second=(long)TimeGMT();
+   ulong started=GetMicrosecondCount();
+   while(GetMicrosecondCount()-started<1200000)
+     {
+      if((long)TimeGMT()!=second)
+        {
+         g_ms_base_epoch=(second+1)*1000;
+         g_ms_base_micro=GetMicrosecondCount();
+         return true;
+        }
+      Sleep(5);
+     }
+   g_ms_base_epoch=(long)TimeGMT()*1000;
+   g_ms_base_micro=GetMicrosecondCount();
+   return false;
+  }
+
+long NowEpochMs()
+  {
+   if(g_ms_base_epoch==0)
+      return (long)TimeGMT()*1000;
+   // 长时间运行后与墙钟漂移超过 2 秒时软校准（精度回到 ±1 秒内）。
+   long computed=g_ms_base_epoch+(long)((GetMicrosecondCount()-g_ms_base_micro)/1000);
+   if(MathAbs(computed/1000-(long)TimeGMT())>2)
+     {
+      g_ms_base_epoch=(long)TimeGMT()*1000;
+      g_ms_base_micro=GetMicrosecondCount();
+      return g_ms_base_epoch;
+     }
+   return computed;
+  }
 
 //+------------------------------------------------------------------+
 //| 观察模式意图日志节流：同一意图只打一条，60 秒提醒一次存活。       |
@@ -535,18 +575,28 @@ bool StopsAreValid(const string symbol,const ENUM_POSITION_TYPE side,const doubl
   }
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
-//| 源单年龄 = 本机GMT - 源端开仓UTC时间。优先使用发布器换算的UTC字段 |
-// | （消除源经纪商服务器时区差）；缺失时回退服务器原始时间。两端系统  |
-// | 时钟需保持NTP同步才准确。                                         |
+//| 源单年龄 = 本机GMT - 源端开仓UTC时间（毫秒）。优先使用发布器换算 |
+//| 的UTC字段（消除源经纪商服务器时区差）；缺失时回退服务器原始时间。|
+//| 两端系统时钟需保持NTP同步才准确。                                |
 //+------------------------------------------------------------------+
-long SourceAgeSeconds(const SourcePosition &source)
+long SourceAgeMs(const SourcePosition &source)
   {
    long opened_utc_ms=source.opened_at_utc_ms;
    if(opened_utc_ms<=0)
       opened_utc_ms=source.opened_at_ms;
    if(opened_utc_ms<=0)
       return -1;
-   return (long)TimeGMT()-opened_utc_ms/1000;
+   return NowEpochMs()-opened_utc_ms;
+  }
+//+------------------------------------------------------------------+
+//| 快照年龄 = 本机GMT - 服务器快照生成时间（毫秒）。源端平仓时拿不到 |
+//| 平仓时刻，快照生成时间是最近似代理。                             |
+//+------------------------------------------------------------------+
+long SnapshotAgeMs()
+  {
+   if(g_last_generated_ms<=0)
+      return -1;
+   return NowEpochMs()-g_last_generated_ms;
   }
 //+------------------------------------------------------------------+
 bool OpenManagedPosition(const SourcePosition &source,const string target_symbol,const double volume)
@@ -554,8 +604,8 @@ bool OpenManagedPosition(const SourcePosition &source,const string target_symbol
    if(InpTradingMode!=1)
      {
       LogObserveIntent(StringFormat("OPEN:%s:%s:%.2f",source.source_id,target_symbol,volume),
-                       StringFormat("观察模式：将开 %s %.2f -> %s（源单年龄≈%I64d秒）",
-                                    source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source)));
+                       StringFormat("观察模式：将开 %s %.2f -> %s（源单年龄≈%I64d毫秒）",
+                                    source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeMs(source)));
       return false;
      }
    if(!SymbolSelect(target_symbol,true))
@@ -568,8 +618,8 @@ bool OpenManagedPosition(const SourcePosition &source,const string target_symbol
       PrintFormat("%s 源端 SL/TP 不符合目标品种规则，拒绝开仓：%s",LOG_PREFIX,target_symbol);
       return false;
      }
-   PrintFormat("%s 开仓 %s %.2f -> %s（源单年龄≈%I64d秒）",
-               LOG_PREFIX,source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source));
+   PrintFormat("%s 开仓 %s %.2f -> %s（源单年龄≈%I64d毫秒）",
+               LOG_PREFIX,source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeMs(source));
    for(int attempt=1;attempt<=InpMaxRetries;attempt++)
      {
       bool sent=(source.side==POSITION_TYPE_BUY)
@@ -589,9 +639,10 @@ bool CloseManagedTicket(const ulong ticket,const string reason)
    if(InpTradingMode==0)
      {
       LogObserveIntent(StringFormat("CLOSE:%I64u",ticket),
-                       StringFormat("观察模式：将平仓 ticket=%I64u（%s）",ticket,reason));
+                       StringFormat("观察模式：将平仓 ticket=%I64u（%s，快照年龄≈%I64d毫秒）",ticket,reason,SnapshotAgeMs()));
       return false;
      }
+   PrintFormat("%s 平仓 ticket=%I64u（%s，快照年龄≈%I64d毫秒）",LOG_PREFIX,ticket,reason,SnapshotAgeMs());
    for(int attempt=1;attempt<=InpMaxRetries;attempt++)
      {
       if(g_trade.PositionClose(ticket) && IsSuccessfulTradeResult())
@@ -621,9 +672,10 @@ bool ReduceManagedVolume(const string source_id,double amount)
       if(InpTradingMode==0)
         {
          LogObserveIntent(StringFormat("REDUCE:%I64u:%.2f",ticket,close_volume),
-                          StringFormat("观察模式：将减仓 ticket=%I64u %.2f",ticket,close_volume));
+                          StringFormat("观察模式：将减仓 ticket=%I64u %.2f（快照年龄≈%I64d毫秒）",ticket,close_volume,SnapshotAgeMs()));
          return false;
         }
+      PrintFormat("%s 减仓 ticket=%I64u %.2f（快照年龄≈%I64d毫秒）",LOG_PREFIX,ticket,close_volume,SnapshotAgeMs());
       bool closed=false;
       for(int attempt=1;attempt<=InpMaxRetries;attempt++)
         {
@@ -727,12 +779,7 @@ void CloseStaleManagedPositions(const SourcePosition &positions[])
          continue;
       string source_id=StringSubstr(comment,StringLen(COMMENT_PREFIX));
       if(!SourceExists(source_id,positions))
-        {
-         long snapshot_age=-1;
-         if(g_last_generated_ms>0)
-            snapshot_age=(long)TimeGMT()-g_last_generated_ms/1000;
-         CloseManagedTicket(ticket,StringFormat("源端持仓已不存在（快照年龄≈%I64d秒）",snapshot_age));
-        }
+         CloseManagedTicket(ticket,"源端持仓已不存在");
      }
   }
 //+------------------------------------------------------------------+
@@ -782,6 +829,8 @@ int OnInit()
      }
    g_trade.SetExpertMagicNumber(InpMagicNumber);
    g_trade.SetAsyncMode(false);
+   bool ms_clock_calibrated=CalibrateMsClock();
+   PrintFormat("%s 毫秒时钟%s",LOG_PREFIX,ms_clock_calibrated?"已对准GMT秒沿":"仅秒级精度（校准超时）");
    int driver_ms=(InpLongPollWaitSec>0)?100:InpPollMilliseconds;
    EventSetMillisecondTimer(driver_ms);
    PrintFormat("%s 已启动；模式=%d，信号=%s，长轮询=%d秒，接口=%s",
