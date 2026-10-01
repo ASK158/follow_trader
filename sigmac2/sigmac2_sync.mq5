@@ -46,6 +46,7 @@ struct SourcePosition
    double sl;
    double tp;
    long   opened_at_ms;
+   long   opened_at_utc_ms;
   };
 
 CTrade g_trade;
@@ -225,6 +226,7 @@ bool ParseSourcePosition(const string object,SourcePosition &position)
   {
    string side="";
    long opened_at=0;
+   long opened_at_utc=0;
    if(!JsonGetString(object,"source_id",position.source_id) || !JsonGetString(object,"symbol",position.symbol) ||
       !JsonGetString(object,"side",side) || !JsonGetDouble(object,"volume",position.volume) ||
       !JsonGetDouble(object,"sl",position.sl) || !JsonGetDouble(object,"tp",position.tp) ||
@@ -233,6 +235,8 @@ bool ParseSourcePosition(const string object,SourcePosition &position)
    if(position.source_id=="" || position.symbol=="" || position.volume<=0.0 || opened_at<0)
       return false;
    position.opened_at_ms=opened_at;
+   // 发布器换算好的真实 UTC 开仓时间；缺失时为 0，回退用服务器原始时间。
+   position.opened_at_utc_ms=JsonGetLong(object,"opened_at_utc_ms",opened_at_utc) && opened_at_utc>0 ? opened_at_utc : 0;
    if(side=="BUY")
       position.side=POSITION_TYPE_BUY;
    else if(side=="SELL")
@@ -531,13 +535,18 @@ bool StopsAreValid(const string symbol,const ENUM_POSITION_TYPE side,const doubl
   }
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
-//| 源单年龄 = 本机时间 - 源端开仓时间；两端时钟需保持同步才准确。    |
+//| 源单年龄 = 本机GMT - 源端开仓UTC时间。优先使用发布器换算的UTC字段 |
+// | （消除源经纪商服务器时区差）；缺失时回退服务器原始时间。两端系统  |
+// | 时钟需保持NTP同步才准确。                                         |
 //+------------------------------------------------------------------+
-long SourceAgeSeconds(const long opened_at_ms)
+long SourceAgeSeconds(const SourcePosition &source)
   {
-   if(opened_at_ms<=0)
+   long opened_utc_ms=source.opened_at_utc_ms;
+   if(opened_utc_ms<=0)
+      opened_utc_ms=source.opened_at_ms;
+   if(opened_utc_ms<=0)
       return -1;
-   return (long)TimeLocal()-opened_at_ms/1000;
+   return (long)TimeGMT()-opened_utc_ms/1000;
   }
 //+------------------------------------------------------------------+
 bool OpenManagedPosition(const SourcePosition &source,const string target_symbol,const double volume)
@@ -546,7 +555,7 @@ bool OpenManagedPosition(const SourcePosition &source,const string target_symbol
      {
       LogObserveIntent(StringFormat("OPEN:%s:%s:%.2f",source.source_id,target_symbol,volume),
                        StringFormat("观察模式：将开 %s %.2f -> %s（源单年龄≈%I64d秒）",
-                                    source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source.opened_at_ms)));
+                                    source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source)));
       return false;
      }
    if(!SymbolSelect(target_symbol,true))
@@ -560,7 +569,7 @@ bool OpenManagedPosition(const SourcePosition &source,const string target_symbol
       return false;
      }
    PrintFormat("%s 开仓 %s %.2f -> %s（源单年龄≈%I64d秒）",
-               LOG_PREFIX,source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source.opened_at_ms));
+               LOG_PREFIX,source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source));
    for(int attempt=1;attempt<=InpMaxRetries;attempt++)
      {
       bool sent=(source.side==POSITION_TYPE_BUY)
@@ -721,7 +730,7 @@ void CloseStaleManagedPositions(const SourcePosition &positions[])
         {
          long snapshot_age=-1;
          if(g_last_generated_ms>0)
-            snapshot_age=(long)TimeLocal()-g_last_generated_ms/1000;
+            snapshot_age=(long)TimeGMT()-g_last_generated_ms/1000;
          CloseManagedTicket(ticket,StringFormat("源端持仓已不存在（快照年龄≈%I64d秒）",snapshot_age));
         }
      }

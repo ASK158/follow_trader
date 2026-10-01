@@ -198,7 +198,25 @@ def initialise_mt5(config: PublisherConfig) -> None:
         )
 
 
-def build_positions(config: PublisherConfig) -> list[dict[str, Any]]:
+_last_offset_logged_ms: int | None = None
+
+
+def resolve_server_utc_offset_ms(config: PublisherConfig) -> int | None:
+    """用最新报价时间估算源经纪商服务器时钟与 UTC 的偏移（整小时取整）。
+    无法可靠判断时返回 None，此时不上报 UTC 字段。"""
+    now = time.time()
+    for symbol in config.source_symbols:
+        tick = mt5.symbol_info_tick(symbol)
+        if tick is None or tick.time <= 0:
+            continue
+        raw = tick.time - now
+        rounded = round(raw / 3600.0) * 3600
+        if abs(rounded) <= 13 * 3600 and abs(raw - rounded) <= 300:
+            return int(rounded) * 1000
+    return None
+
+
+def build_positions(config: PublisherConfig, server_utc_offset_ms: int | None) -> list[dict[str, Any]]:
     positions = mt5.positions_get()
     if positions is None:
         raise RuntimeError(f"无法读取 MT5-A 持仓：{mt5.last_error()}")
@@ -220,20 +238,23 @@ def build_positions(config: PublisherConfig) -> list[dict[str, Any]]:
 
         # identifier survives several server-side changes more reliably than ticket.
         source_id = str(position.identifier or position.ticket)
-        result.append(
-            {
-                "source_id": source_id,
-                "ticket": str(position.ticket),
-                "symbol": position.symbol,
-                "side": side,
-                "volume": float(position.volume),
-                "sl": float(position.sl),
-                "tp": float(position.tp),
-                "price_open": float(position.price_open),
-                "opened_at_unix_ms": int(position.time_msc),
-                "source_magic": int(position.magic),
-            }
-        )
+        opened_at_ms = int(position.time_msc)
+        entry: dict[str, Any] = {
+            "source_id": source_id,
+            "ticket": str(position.ticket),
+            "symbol": position.symbol,
+            "side": side,
+            "volume": float(position.volume),
+            "sl": float(position.sl),
+            "tp": float(position.tp),
+            "price_open": float(position.price_open),
+            "opened_at_unix_ms": opened_at_ms,
+            "source_magic": int(position.magic),
+        }
+        # time_msc 是经纪商服务器时钟；换算成真实 UTC 供跨时区延迟计算。
+        if server_utc_offset_ms is not None:
+            entry["opened_at_utc_ms"] = opened_at_ms - server_utc_offset_ms
+        result.append(entry)
     return sorted(result, key=lambda item: item["source_id"])
 
 
@@ -255,7 +276,7 @@ def build_account_metrics(account: Any) -> dict[str, Any] | None:
         return None
 
 
-def publish_once(config: PublisherConfig, sequence: int) -> tuple[int, int, dict[str, Any]]:
+def publish_once(config: PublisherConfig, sequence: int, logger: logging.Logger) -> tuple[int, int, dict[str, Any]]:
     account = mt5.account_info()
     if account is None or account.login != config.expected_source_account:
         mt5.shutdown()
@@ -265,7 +286,15 @@ def publish_once(config: PublisherConfig, sequence: int) -> tuple[int, int, dict
             raise RuntimeError("重连后仍无法读取 MT5-A 账户")
 
     now_ms = time.time_ns() // 1_000_000
-    positions = build_positions(config)
+    server_utc_offset_ms = resolve_server_utc_offset_ms(config)
+    global _last_offset_logged_ms
+    if server_utc_offset_ms != _last_offset_logged_ms:
+        if server_utc_offset_ms is None:
+            logger.warning("无法从报价时间判断源服务器时区偏移；快照将不带 UTC 开仓时间")
+        else:
+            logger.info("源服务器时区偏移：UTC%+d 小时（开仓时间将换算为 UTC 上报）", server_utc_offset_ms // 3600000)
+        _last_offset_logged_ms = server_utc_offset_ms
+    positions = build_positions(config, server_utc_offset_ms)
     snapshot = {
         "schema": "sigmac-snapshot/v1",
         "snapshot_complete": True,
@@ -392,7 +421,7 @@ def main() -> int:
         while True:
             started = time.monotonic()
             try:
-                sequence, position_count, snapshot = publish_once(config, sequence)
+                sequence, position_count, snapshot = publish_once(config, sequence, logger)
                 logger.info("已发布 sequence=%s，持仓数=%s", sequence - 1, position_count)
                 if relay_inbox is not None:
                     enqueue_relay_snapshot(relay_inbox, snapshot)

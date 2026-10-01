@@ -31,6 +31,7 @@ function validSnapshot(overrides: Record<string, unknown> = {}): Record<string, 
         tp: 0,
         price_open: 4000.5,
         opened_at_unix_ms: now,
+        opened_at_utc_ms: now - 3 * 3600 * 1_000,
         source_magic: 0,
       },
     ],
@@ -65,6 +66,7 @@ test("有效快照被接收并以脱敏形式公开", () => {
   assert.equal(signal.positionCount, 1);
   assert.equal(signal.account?.balance, 5000);
   assert.equal(signal.positions[0].symbol, "XAUUSD");
+  assert.equal(signal.positions[0].opened_at_utc_ms, now - 3 * 3600 * 1_000);
 });
 
 test("schema、完整性标记与计数不一致的快照被拒绝", () => {

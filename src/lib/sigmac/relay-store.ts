@@ -9,6 +9,8 @@ export type SigmacPosition = {
   tp: number;
   price_open: number;
   opened_at_unix_ms: number;
+  /** 发布器换算的真实 UTC 开仓时间；0 表示发布器未能判断源服务器时区。 */
+  opened_at_utc_ms: number;
   source_magic: number;
 };
 
@@ -200,6 +202,13 @@ export function ingestSnapshot(raw: unknown, nowMs: number): { ok: true; login: 
     if (!isInteger(position.opened_at_unix_ms) || position.opened_at_unix_ms < 0) {
       return { ok: false, error: "positions 中存在无效 opened_at_unix_ms" };
     }
+    let openedAtUtcMs = 0;
+    if (position.opened_at_utc_ms !== undefined && position.opened_at_utc_ms !== null) {
+      if (!isInteger(position.opened_at_utc_ms) || position.opened_at_utc_ms < 0) {
+        return { ok: false, error: "positions 中存在无效 opened_at_utc_ms" };
+      }
+      openedAtUtcMs = position.opened_at_utc_ms;
+    }
     positions.push({
       source_id: position.source_id,
       symbol: position.symbol,
@@ -209,6 +218,7 @@ export function ingestSnapshot(raw: unknown, nowMs: number): { ok: true; login: 
       tp: position.tp as number,
       price_open: position.price_open,
       opened_at_unix_ms: position.opened_at_unix_ms,
+      opened_at_utc_ms: openedAtUtcMs,
       source_magic: isInteger(position.source_magic) ? position.source_magic : 0,
     });
   }
