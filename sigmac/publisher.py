@@ -13,8 +13,10 @@ import hashlib
 import json
 import logging
 import os
+import queue
 import sys
 import tempfile
+import threading
 import time
 import urllib.request
 from dataclasses import asdict, dataclass
@@ -341,6 +343,29 @@ def relay_publish(config: PublisherConfig, logger: logging.Logger, snapshot: dic
     return True
 
 
+def relay_worker(config: PublisherConfig, logger: logging.Logger, inbox: "queue.Queue[dict[str, Any]]", state: dict[str, Any]) -> None:
+    """后台发送线程：队列里永远只保留最新一份快照，慢请求不影响主循环节奏。"""
+    while True:
+        snapshot = inbox.get()
+        relay_publish(config, logger, snapshot, state)
+
+
+def start_relay_thread(config: PublisherConfig, logger: logging.Logger) -> tuple["queue.Queue[dict[str, Any]]", dict[str, Any]]:
+    inbox: "queue.Queue[dict[str, Any]]" = queue.Queue(maxsize=1)
+    state: dict[str, Any] = {}
+    threading.Thread(target=relay_worker, args=(config, logger, inbox, state), daemon=True, name="sigmac-relay").start()
+    return inbox, state
+
+
+def enqueue_relay_snapshot(inbox: "queue.Queue[dict[str, Any]]", snapshot: dict[str, Any]) -> None:
+    """用最新快照替换队列中未发送的旧快照；只关心最新状态，丢弃即正确。"""
+    try:
+        inbox.get_nowait()
+    except queue.Empty:
+        pass
+    inbox.put(snapshot)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="发布 MT5-A 全量持仓快照")
     parser.add_argument("--config", default="publisher.config.json", help="JSON 配置文件路径")
@@ -355,19 +380,22 @@ def main() -> int:
     logger.info("启动发布器：%s", json.dumps(safe_config, ensure_ascii=False))
     logger.info("快照输出路径：%s", config.signal_path)
     if config.relay_url:
-        logger.info("上报已启用：%s（心跳 %s 秒）", config.relay_url, config.relay_heartbeat_seconds)
+        logger.info("上报已启用：%s（心跳 %s 秒，异步发送线程）", config.relay_url, config.relay_heartbeat_seconds)
     sequence = load_next_sequence(config.state_path)
 
     try:
         initialise_mt5(config)
         logger.info("已连接 MT5-A 账户 %s", config.expected_source_account)
-        relay_state: dict[str, Any] = {}
+        relay_inbox = None
+        if config.relay_url:
+            relay_inbox, _relay_state = start_relay_thread(config, logger)
         while True:
             started = time.monotonic()
             try:
                 sequence, position_count, snapshot = publish_once(config, sequence)
                 logger.info("已发布 sequence=%s，持仓数=%s", sequence - 1, position_count)
-                relay_publish(config, logger, snapshot, relay_state)
+                if relay_inbox is not None:
+                    enqueue_relay_snapshot(relay_inbox, snapshot)
             except Exception:
                 logger.exception("发布失败；不会改写上一份有效快照")
             remaining = config.poll_interval_ms / 1000 - (time.monotonic() - started)

@@ -15,8 +15,9 @@ input group  "连接与信号"
 input string InpApiUrl             = "http://8.216.51.10/api/sigmac/signals"; // 实时信号接口地址
 input string InpApiToken           = "";            // 接口令牌（预留，暂留空）
 input string InpSignalId           = "";            // 信号ID（10***58 / 1058 / 完整账号均可）
-input int    InpPollMilliseconds   = 1000;          // 拉取间隔（毫秒）
-input int    InpHttpTimeoutMs      = 5000;          // 单次请求超时（毫秒）
+input int    InpLongPollWaitSec    = 20;            // 长轮询等待秒数（0=固定间隔轮询）
+input int    InpPollMilliseconds   = 1000;          // 轮询间隔（长轮询模式下作为失败退避）
+input int    InpHttpTimeoutMs      = 5000;          // 基础请求超时（长轮询时自动放大）
 input int    InpSnapshotTimeoutSec = 15;            // 信号数据最大年龄（秒）
 
 input group  "品种与执行"
@@ -44,11 +45,14 @@ struct SourcePosition
    double volume;
    double sl;
    double tp;
+   long   opened_at_ms;
   };
 
 CTrade g_trade;
 long   g_last_sequence=0;
+long   g_last_generated_ms=0;
 bool   g_signal_lock_logged=false;
+uint   g_next_poll_at=0;
 
 //+------------------------------------------------------------------+
 string Trim(string value)
@@ -205,12 +209,15 @@ bool ExtractObjectsUnderKey(const string json,const string key,string &objects[]
 bool ParseSourcePosition(const string object,SourcePosition &position)
   {
    string side="";
+   long opened_at=0;
    if(!JsonGetString(object,"source_id",position.source_id) || !JsonGetString(object,"symbol",position.symbol) ||
       !JsonGetString(object,"side",side) || !JsonGetDouble(object,"volume",position.volume) ||
-      !JsonGetDouble(object,"sl",position.sl) || !JsonGetDouble(object,"tp",position.tp))
+      !JsonGetDouble(object,"sl",position.sl) || !JsonGetDouble(object,"tp",position.tp) ||
+      !JsonGetLong(object,"opened_at_unix_ms",opened_at))
       return false;
-   if(position.source_id=="" || position.symbol=="" || position.volume<=0.0)
+   if(position.source_id=="" || position.symbol=="" || position.volume<=0.0 || opened_at<0)
       return false;
+   position.opened_at_ms=opened_at;
    if(side=="BUY")
       position.side=POSITION_TYPE_BUY;
    else if(side=="SELL")
@@ -249,14 +256,20 @@ bool SnapshotInvalid(string &reason,const string message)
 //+------------------------------------------------------------------+
 bool FetchSignalsJson(string &json)
   {
+   string url=InpApiUrl;
+   if(InpLongPollWaitSec>0)
+      url+=(StringFind(url,"?")<0?"?":"&")+"since="+(string)g_last_sequence+"&wait="+(string)InpLongPollWaitSec;
    char request_body[];
    char response_body[];
    string response_headers="";
    string request_headers="";
    if(StringLen(InpApiToken)>0)
       request_headers="Authorization: Bearer "+InpApiToken+"\r\n";
+   int timeout_ms=InpHttpTimeoutMs;
+   if(InpLongPollWaitSec>0)
+      timeout_ms=(int)MathMax(InpHttpTimeoutMs,(InpLongPollWaitSec+10)*1000);
    ResetLastError();
-   int status=WebRequest("GET",InpApiUrl,request_headers,InpHttpTimeoutMs,request_body,response_body,response_headers);
+   int status=WebRequest("GET",url,request_headers,timeout_ms,request_body,response_body,response_headers);
    if(status==-1)
      {
       PrintFormat("%s WebRequest 失败，错误=%d；请确认已在 选项->EA交易 中将 %s 加入 WebRequest 白名单",
@@ -363,11 +376,15 @@ bool ParseLiveSignal(const string json,SourcePosition &positions[],string &reaso
 
    string received_at="";
    string server_time="";
-   if(!JsonGetString(signal_object,"receivedAt",received_at) || !JsonGetString(json,"serverTime",server_time))
+   string generated_at="";
+   if(!JsonGetString(signal_object,"receivedAt",received_at) || !JsonGetString(json,"serverTime",server_time) ||
+      !JsonGetString(signal_object,"generatedAt",generated_at))
       return SnapshotInvalid(reason,"时间字段缺失");
    long received_ms=0;
    long server_ms=0;
-   if(!ParseIsoEpochMs(received_at,received_ms) || !ParseIsoEpochMs(server_time,server_ms))
+   long generated_ms=0;
+   if(!ParseIsoEpochMs(received_at,received_ms) || !ParseIsoEpochMs(server_time,server_ms) ||
+      !ParseIsoEpochMs(generated_at,generated_ms))
       return SnapshotInvalid(reason,"时间字段无法解析");
    long age_ms=server_ms-received_ms;
    if(age_ms>(long)InpSnapshotTimeoutSec*1000)
@@ -399,6 +416,7 @@ bool ParseLiveSignal(const string json,SourcePosition &positions[],string &reaso
      }
    if(sequence>g_last_sequence)
       g_last_sequence=sequence;
+   g_last_generated_ms=generated_ms;
    return true;
   }
 //+------------------------------------------------------------------+
@@ -497,11 +515,22 @@ bool StopsAreValid(const string symbol,const ENUM_POSITION_TYPE side,const doubl
    return true;
   }
 //+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//| 源单年龄 = 本机时间 - 源端开仓时间；两端时钟需保持同步才准确。    |
+//+------------------------------------------------------------------+
+long SourceAgeSeconds(const long opened_at_ms)
+  {
+   if(opened_at_ms<=0)
+      return -1;
+   return (long)TimeLocal()-opened_at_ms/1000;
+  }
+//+------------------------------------------------------------------+
 bool OpenManagedPosition(const SourcePosition &source,const string target_symbol,const double volume)
   {
    if(InpTradingMode!=1)
      {
-      PrintFormat("%s 观察模式：将开 %s %.2f -> %s",LOG_PREFIX,source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol);
+      PrintFormat("%s 观察模式：将开 %s %.2f -> %s（源单年龄≈%I64d秒）",
+                  LOG_PREFIX,source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source.opened_at_ms));
       return false;
      }
    if(!SymbolSelect(target_symbol,true))
@@ -514,6 +543,8 @@ bool OpenManagedPosition(const SourcePosition &source,const string target_symbol
       PrintFormat("%s 源端 SL/TP 不符合目标品种规则，拒绝开仓：%s",LOG_PREFIX,target_symbol);
       return false;
      }
+   PrintFormat("%s 开仓 %s %.2f -> %s（源单年龄≈%I64d秒）",
+               LOG_PREFIX,source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source.opened_at_ms));
    for(int attempt=1;attempt<=InpMaxRetries;attempt++)
      {
       bool sent=(source.side==POSITION_TYPE_BUY)
@@ -669,7 +700,12 @@ void CloseStaleManagedPositions(const SourcePosition &positions[])
          continue;
       string source_id=StringSubstr(comment,StringLen(COMMENT_PREFIX));
       if(!SourceExists(source_id,positions))
-         CloseManagedTicket(ticket,"源端持仓已不存在");
+        {
+         long snapshot_age=-1;
+         if(g_last_generated_ms>0)
+            snapshot_age=(long)TimeLocal()-g_last_generated_ms/1000;
+         CloseManagedTicket(ticket,StringFormat("源端持仓已不存在（快照年龄≈%I64d秒）",snapshot_age));
+        }
      }
   }
 //+------------------------------------------------------------------+
@@ -710,7 +746,8 @@ int OnInit()
    bool signal_id_valid=StringLen(InpSignalId)>0 && NormalizeSignalId(InpSignalId)!="";
    if(!url_valid || !signal_id_valid || InpMagicNumber<=0 || InpLotMultiplier<=0.0 || InpMaxSingleLot<=0.0 ||
       InpMaxTotalLots<=0.0 || InpMaxSingleLot>InpMaxTotalLots || InpPollMilliseconds<250 ||
-      InpHttpTimeoutMs<1000 || InpHttpTimeoutMs>60000 || InpSnapshotTimeoutSec<2 || InpMaxRetries<1 ||
+      InpLongPollWaitSec<0 || InpLongPollWaitSec>25 || InpHttpTimeoutMs<1000 || InpHttpTimeoutMs>60000 ||
+      InpSnapshotTimeoutSec<2 || InpMaxRetries<1 ||
       InpRetryDelayMs<0 || InpTradingMode<0 || InpTradingMode>2)
      {
       Print(LOG_PREFIX,"输入参数无效，EA 未启动");
@@ -718,8 +755,10 @@ int OnInit()
      }
    g_trade.SetExpertMagicNumber(InpMagicNumber);
    g_trade.SetAsyncMode(false);
-   EventSetMillisecondTimer(InpPollMilliseconds);
-   PrintFormat("%s 已启动；模式=%d，信号=%s，接口=%s",LOG_PREFIX,InpTradingMode,InpSignalId,InpApiUrl);
+   int driver_ms=(InpLongPollWaitSec>0)?100:InpPollMilliseconds;
+   EventSetMillisecondTimer(driver_ms);
+   PrintFormat("%s 已启动；模式=%d，信号=%s，长轮询=%d秒，接口=%s",
+               LOG_PREFIX,InpTradingMode,InpSignalId,InpLongPollWaitSec,InpApiUrl);
    Print(LOG_PREFIX,"请确认已在 选项->EA交易 中将接口域名加入 WebRequest 白名单，并保持模式=0 直到 Journal 验证通过");
    return INIT_SUCCEEDED;
   }
@@ -731,6 +770,11 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTimer()
   {
+   uint now=GetTickCount();
+   if(now<g_next_poll_at)
+      return;
+   // 先按退避间隔占位：请求失败或校验失败时，等待一个完整间隔再重试。
+   g_next_poll_at=now+(uint)InpPollMilliseconds;
    string json="";
    if(!FetchSignalsJson(json))
       return;
@@ -742,5 +786,7 @@ void OnTimer()
       return;
      }
    Synchronize(positions);
+   if(InpLongPollWaitSec>0)
+      g_next_poll_at=GetTickCount()+150;
   }
 //+------------------------------------------------------------------+
