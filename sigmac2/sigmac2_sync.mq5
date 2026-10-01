@@ -53,6 +53,21 @@ long   g_last_sequence=0;
 long   g_last_generated_ms=0;
 bool   g_signal_lock_logged=false;
 uint   g_next_poll_at=0;
+string g_intent_signature="";
+uint   g_intent_logged_at=0;
+
+//+------------------------------------------------------------------+
+//| 观察模式意图日志节流：同一意图只打一条，60 秒提醒一次存活。       |
+//+------------------------------------------------------------------+
+void LogObserveIntent(const string signature,const string message)
+  {
+   uint now=GetTickCount();
+   if(signature==g_intent_signature && now-g_intent_logged_at<60000)
+      return;
+   g_intent_signature=signature;
+   g_intent_logged_at=now;
+   Print(LOG_PREFIX,message);
+  }
 
 //+------------------------------------------------------------------+
 string Trim(string value)
@@ -529,8 +544,9 @@ bool OpenManagedPosition(const SourcePosition &source,const string target_symbol
   {
    if(InpTradingMode!=1)
      {
-      PrintFormat("%s 观察模式：将开 %s %.2f -> %s（源单年龄≈%I64d秒）",
-                  LOG_PREFIX,source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source.opened_at_ms));
+      LogObserveIntent(StringFormat("OPEN:%s:%s:%.2f",source.source_id,target_symbol,volume),
+                       StringFormat("观察模式：将开 %s %.2f -> %s（源单年龄≈%I64d秒）",
+                                    source.side==POSITION_TYPE_BUY?"BUY":"SELL",volume,target_symbol,SourceAgeSeconds(source.opened_at_ms)));
       return false;
      }
    if(!SymbolSelect(target_symbol,true))
@@ -563,7 +579,8 @@ bool CloseManagedTicket(const ulong ticket,const string reason)
   {
    if(InpTradingMode==0)
      {
-      PrintFormat("%s 观察模式：将平仓 ticket=%I64u（%s）",LOG_PREFIX,ticket,reason);
+      LogObserveIntent(StringFormat("CLOSE:%I64u",ticket),
+                       StringFormat("观察模式：将平仓 ticket=%I64u（%s）",ticket,reason));
       return false;
      }
    for(int attempt=1;attempt<=InpMaxRetries;attempt++)
@@ -594,7 +611,8 @@ bool ReduceManagedVolume(const string source_id,double amount)
          continue;
       if(InpTradingMode==0)
         {
-         PrintFormat("%s 观察模式：将减仓 ticket=%I64u %.2f",LOG_PREFIX,ticket,close_volume);
+         LogObserveIntent(StringFormat("REDUCE:%I64u:%.2f",ticket,close_volume),
+                          StringFormat("观察模式：将减仓 ticket=%I64u %.2f",ticket,close_volume));
          return false;
         }
       bool closed=false;
