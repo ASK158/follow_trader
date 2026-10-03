@@ -21,6 +21,9 @@ export function AdminPlatformSettings({ settings }: { settings: PlatformSettings
       registrationIpDailyLimit: Number(form.get("registrationIpDailyLimit")),
       registrationDevice30dLimit: Number(form.get("registrationDevice30dLimit")),
       registrationRiskThreshold: Number(form.get("registrationRiskThreshold")),
+      checkinBaseReward: Number(form.get("checkinBaseReward")),
+      checkinStreakIncrement: Number(form.get("checkinStreakIncrement")),
+      checkinMaxReward: Number(form.get("checkinMaxReward")),
       telegramUrl: String(form.get("telegramUrl") ?? "").trim(),
       wechatOfficialAccountUrl: String(form.get("wechatOfficialAccountUrl") ?? "").trim(),
       youtubeUrl: String(form.get("youtubeUrl") ?? "").trim(),
@@ -57,6 +60,11 @@ export function AdminPlatformSettings({ settings }: { settings: PlatformSettings
           <label>同 IP 每日注册上限<input name="registrationIpDailyLimit" type="number" min="1" max="100" step="1" defaultValue={settings.registrationIpDailyLimit} required /></label>
           <label>同设备 30 日注册上限<input name="registrationDevice30dLimit" type="number" min="1" max="100" step="1" defaultValue={settings.registrationDevice30dLimit} required /></label>
           <label>取消免费额度风险阈值<input name="registrationRiskThreshold" type="number" min="1" max="100" step="1" defaultValue={settings.registrationRiskThreshold} required /><small>达到阈值仍可注册，但不获得 Agent 免费体验。</small></label>
+        </div></fieldset>
+        <fieldset><legend>每日打卡奖励</legend><div className="dev-form-grid">
+          <label>基础奖励（Gas）<input name="checkinBaseReward" type="number" min="0.1" max="1000" step="0.1" defaultValue={settings.checkinBaseReward} required /><small>断签后重新开始，或新用户首次打卡获得的基础值。</small></label>
+          <label>连击每日增量（Gas）<input name="checkinStreakIncrement" type="number" min="0" max="1000" step="0.1" defaultValue={settings.checkinStreakIncrement} required /><small>连续打卡时，每天的奖励在前一天基础上增加的数量。</small></label>
+          <label>单日奖励上限（Gas）<input name="checkinMaxReward" type="number" min="0.1" max="1000" step="0.1" defaultValue={settings.checkinMaxReward} required /><small>连续打卡奖励的封顶值，需高于基础奖励；封顶周期最多 28 天。</small></label>
         </div></fieldset>
         <fieldset><legend>页脚社交媒体</legend><div className="dev-form-grid">
           <label>Telegram 链接<input name="telegramUrl" type="url" inputMode="url" placeholder="https://t.me/your_channel" defaultValue={settings.telegramUrl} /><small>留空时页脚显示“待配置”。</small></label>

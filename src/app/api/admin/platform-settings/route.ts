@@ -26,6 +26,9 @@ const schema = z.object({
   registrationIpDailyLimit: z.number().int().min(1).max(100),
   registrationDevice30dLimit: z.number().int().min(1).max(100),
   registrationRiskThreshold: z.number().int().min(1).max(100),
+  checkinBaseReward: z.number().min(0.1).max(1000),
+  checkinStreakIncrement: z.number().min(0).max(1000),
+  checkinMaxReward: z.number().min(0.1).max(1000),
   telegramUrl: optionalHttpUrl,
   wechatOfficialAccountUrl: optionalHttpUrl,
   youtubeUrl: optionalHttpUrl,
@@ -34,6 +37,14 @@ const schema = z.object({
   const maximumCost = Math.max(settings.agentChatCost, settings.agentModifyCost, settings.agentGenerateCost);
   if (settings.agentMinimumGasToStart < maximumCost) {
     context.addIssue({ code: "custom", path: ["agentMinimumGasToStart"], message: "最低预授权余额不能低于最高单次价格" });
+  }
+  if (settings.checkinMaxReward < settings.checkinBaseReward) {
+    context.addIssue({ code: "custom", path: ["checkinMaxReward"], message: "打卡奖励上限不能低于基础奖励" });
+  }
+  // 奖励阶梯最多展示 28 天，增量过小会导致封顶周期过长
+  const capDay = settings.checkinStreakIncrement > 0 ? Math.ceil((settings.checkinMaxReward - settings.checkinBaseReward) / settings.checkinStreakIncrement) + 1 : 1;
+  if (capDay > 28) {
+    context.addIssue({ code: "custom", path: ["checkinStreakIncrement"], message: `按当前配置需连续 ${capDay} 天才封顶，最多支持 28 天，请提高每日增量或降低上限` });
   }
 });
 

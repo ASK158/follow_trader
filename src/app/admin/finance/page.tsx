@@ -5,6 +5,7 @@ import { AdminFinancePanel } from "@/components/admin-finance-panel";
 import { AdminPlatformSettings } from "@/components/admin-platform-settings";
 import { SiteNav } from "@/components/site-nav";
 import { listAdminUsers } from "@/lib/auth/admin";
+import { getCheckinFinanceSummary } from "@/lib/marketplace/checkin";
 import { getCurrentUser, isAdmin } from "@/lib/marketplace/auth";
 import { formatGa } from "@/lib/marketplace/currency";
 import { getFinanceSummary, listGaTransactions, type GaTransactionType } from "@/lib/marketplace/ga";
@@ -25,6 +26,7 @@ const transactionLabels: Record<GaTransactionType, string> = {
   agent_charge: "Agent 消费",
   agent_refund: "Agent 退还",
   crypto_recharge: "USDT 充值",
+  checkin_reward: "每日打卡奖励",
 };
 
 export default async function AdminFinancePage() {
@@ -33,6 +35,7 @@ export default async function AdminFinancePage() {
   if (!isAdmin(actor)) redirect("/developer");
   const [users, transactions, orders, recharges] = [listAdminUsers(), listGaTransactions(), listFinanceOrders(), listAdminRecharges()];
   const summary = getFinanceSummary();
+  const checkinSummary = getCheckinFinanceSummary();
   const platformSettings = getPlatformSettings();
   const agentModelConfig = getAdminAgentModelConfig();
   const agentOps = getAgentOperationsSummary(24);
@@ -47,6 +50,7 @@ export default async function AdminFinancePage() {
         <article><small>累计发放</small><b>{formatGa(summary.totalGranted)}</b></article>
         <article><small>累计消费</small><b>{formatGa(summary.totalSpent)}</b></article>
         <article><small>Agent 用量</small><b>{summary.agentFreeRequestCount + summary.agentPaidRequestCount} 次</b><span>对话 {summary.agentChatRequestCount} · 修改 {summary.agentModifyRequestCount} · 完整生成 {summary.agentGenerateRequestCount}</span><span>免费 {summary.agentFreeRequestCount} · 付费 {summary.agentPaidRequestCount} · {formatGa(summary.agentSpent)}</span></article>
+        <article><small>每日打卡累计发放</small><b>{formatGa(checkinSummary.totalGranted)}</b><span>打卡 {checkinSummary.checkinCount} 次 · {checkinSummary.participantCount} 人参与</span></article>
         <article><small>已确认订单</small><b>{summary.confirmedOrderCount}</b><span>{formatGa(summary.confirmedOrderVolume)}</span></article>
       </section>
       <div className="finance-section-heading"><div><span className="panel-code">AGENT OPERATIONS · 24H</span><h2>AI 运行监控</h2></div><p>请求、Provider、编译队列与熔断器实时聚合</p></div>

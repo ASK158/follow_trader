@@ -62,7 +62,6 @@ export default async function SignalsPage({ searchParams }: Props) {
 
         <SiteFooter notice="仅作信息展示，不构成投资建议。历史表现不代表未来结果。" />
       </div>
-      <Link href="/agent" className="agent-float" aria-label="打开 AI 写 MT5 策略"><i>Σ</i><span><b>AI 写策略</b><small>生成 MQL5 代码</small></span><strong>→</strong></Link>
     </main>
   );
 }

@@ -11,6 +11,9 @@ export type PlatformSettings = {
   registrationIpDailyLimit: number;
   registrationDevice30dLimit: number;
   registrationRiskThreshold: number;
+  checkinBaseReward: number;
+  checkinStreakIncrement: number;
+  checkinMaxReward: number;
   telegramUrl: string;
   wechatOfficialAccountUrl: string;
   youtubeUrl: string;
@@ -26,6 +29,9 @@ export const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
   registrationIpDailyLimit: 3,
   registrationDevice30dLimit: 2,
   registrationRiskThreshold: 50,
+  checkinBaseReward: 1,
+  checkinStreakIncrement: 1,
+  checkinMaxReward: 10,
   telegramUrl: "",
   wechatOfficialAccountUrl: "",
   youtubeUrl: "",
@@ -41,6 +47,9 @@ const numberSettingKeys = {
   registrationIpDailyLimit: "registration_ip_daily_limit",
   registrationDevice30dLimit: "registration_device_30d_limit",
   registrationRiskThreshold: "registration_risk_threshold",
+  checkinBaseReward: "checkin_base_reward",
+  checkinStreakIncrement: "checkin_streak_increment",
+  checkinMaxReward: "checkin_max_reward",
 } as const;
 
 const urlSettingKeys = {

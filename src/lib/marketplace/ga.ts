@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { getMarketplaceDb } from "./db";
 
-export type GaTransactionType = "admin_grant" | "admin_deduct" | "purchase" | "refund" | "agent_charge" | "agent_refund" | "crypto_recharge";
+export type GaTransactionType = "admin_grant" | "admin_deduct" | "purchase" | "refund" | "agent_charge" | "agent_refund" | "crypto_recharge" | "checkin_reward";
 
 export type GaTransaction = {
   id: string;

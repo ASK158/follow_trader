@@ -150,6 +150,43 @@
 .recharge-amount b { font-size: 24px; }
 .recharge-warning { margin: 0; padding: 10px 12px; border-left: 3px solid var(--tech-red); color: var(--tech-red)!important; background: #b4162b0c; font-size: 12px; }
 
+/* 每日打卡 */
+.checkin-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr); gap: 18px; padding: 28px 36px 4px; align-items: stretch; }
+.checkin-hero { display: grid; gap: 16px; align-content: start; }
+.checkin-streak { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--tech-rule); background: var(--tech-paper); }
+.checkin-streak small { color: var(--tech-muted); font-size: 12px; font-weight: 700; }
+.checkin-streak b { font-size: 30px; letter-spacing: -.02em; }
+.checkin-streak em { font-size: 44px; font-style: normal; color: var(--tech-red); }
+.checkin-streak span { color: var(--tech-muted); font-size: 12px; }
+.checkin-hero-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.checkin-claim-button { min-width: 240px; min-height: 52px; padding: 14px 22px; border: 0; color: #fff; background: var(--tech-red); font: 800 15px inherit; letter-spacing: .04em; cursor: pointer; transition: transform .15s ease, background .15s ease; }
+.checkin-claim-button:hover:not(:disabled) { background: var(--tech-red-dark); transform: translateY(-1px); }
+.checkin-claim-button:disabled { cursor: default; }
+.checkin-claim-button.done { background: var(--tech-green); }
+.checkin-claim-bounce { color: var(--tech-green); font-weight: 800; font-size: 14px; animation: checkin-bounce 2.6s ease forwards; }
+.checkin-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; }
+.checkin-meta > div { display: grid; gap: 4px; padding: 12px; border: 1px solid var(--tech-rule); background: var(--tech-paper); }
+.checkin-meta dt { color: var(--tech-muted); font-size: 11px; font-weight: 700; }
+.checkin-meta dd { margin: 0; font-size: 17px; font-weight: 800; }
+.checkin-countdown { color: var(--tech-muted); font-size: 11px; }
+.checkin-ladder-card { display: grid; gap: 14px; align-content: start; }
+.checkin-ladder { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.checkin-step { display: grid; grid-template-rows: auto 56px auto auto; justify-items: center; align-items: end; gap: 3px; flex: 1 1 40px; min-width: 0; padding: 7px 2px 9px; border: 1px solid var(--tech-rule); background: var(--tech-paper); text-align: center; }
+.checkin-step-tag { font-size: 10px; font-weight: 700; color: var(--tech-muted); letter-spacing: .04em; white-space: nowrap; }
+.checkin-step-bar { display: block; width: 62%; max-width: 26px; align-self: end; background: var(--tech-rule); transition: height .4s ease, background .3s ease; }
+.checkin-step-amount { font-size: 11px; font-weight: 800; color: var(--tech-muted); white-space: nowrap; }
+.checkin-step-day { color: var(--tech-muted); font-size: 10px; white-space: nowrap; }
+.checkin-step.done .checkin-step-bar { background: var(--tech-green); }
+.checkin-step.done .checkin-step-tag, .checkin-step.done .checkin-step-amount, .checkin-step.done .checkin-step-day { color: var(--tech-green); }
+.checkin-step.today { border-color: var(--tech-red); border-width: 2px; animation: checkin-pulse 2s ease-in-out infinite; }
+.checkin-step.today .checkin-step-bar { background: var(--tech-red); }
+.checkin-step.today .checkin-step-tag, .checkin-step.today .checkin-step-amount { color: var(--tech-red); }
+.checkin-ladder-note { margin: 0; color: var(--tech-muted); font-size: 12px; line-height: 1.7; }
+.dashboard-overview-actions a.checkin-pending { border-color: var(--tech-red); }
+.dashboard-overview-actions a.checkin-pending b { color: var(--tech-red); }
+@keyframes checkin-pulse { 0%, 100% { box-shadow: 0 0 0 0 #00000000; } 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--tech-red) 18%, transparent); } }
+@keyframes checkin-bounce { 0% { opacity: 0; transform: translateY(10px); } 15% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; transform: translateY(-4px); } 100% { opacity: 0; transform: translateY(-14px); } }
+
 /* 审核 */
 .dev-review-row { grid-template-columns: 200px minmax(0, 1fr) 280px; }
 .review-panel { display: grid; gap: 10px; }
@@ -196,12 +233,16 @@
   .finance-table-wrap { margin-inline: 20px; }
   .finance-settings-card { grid-template-columns: 1fr; margin-inline: 20px; }
   .recharge-layout { grid-template-columns: 1fr; padding-inline: 20px; }
+  .checkin-layout { grid-template-columns: 1fr; padding-inline: 20px; }
+  .checkin-meta { grid-template-columns: 1fr; }
   /* 平板竖屏下缩窄外边距 */
   .dev-form-header, .dev-form-section, .dev-notice, .dev-product-list { padding-inline: 20px; }
   .tutorial-admin-actions { padding-inline: 20px; }
 }
 
 @media (max-width: 620px) {
+  .checkin-ladder { overflow-x: auto; }
+  .checkin-step { flex: 0 0 46px; }
   .dashboard-tabs a { padding: 14px 6px; font-size: 10px; }
   .dashboard-tabs span { display: none; }
 .order-subtabs a { padding: 8px 10px; font-size: 10px; }

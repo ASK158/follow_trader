@@ -107,3 +107,65 @@ a { color: inherit; text-decoration: none; }
 .strategy-node-editor { z-index: 6; display: grid; min-width: 0; min-height: 0; grid-template-rows: auto 1fr auto; border-left: 1px solid #cfc3b5; background: #fdfcf8; box-shadow: -12px 0 24px #33251812; }.strategy-node-editor > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 17px 18px 14px; border-bottom: 1px solid #ded4c8; }.strategy-node-editor > header small { color: #b4162b; font: 8px/1.2 "Cascadia Code", Consolas, monospace; letter-spacing: 1.2px; }.strategy-node-editor > header h3 { margin: 5px 0 3px; color: #211f1c; font-size: 16px; }.strategy-node-editor > header p { margin: 0; color: #7a7168; font-size: 10px; }.strategy-node-editor > header button { width: 29px; height: 29px; border: 1px solid #d5c9bc; background: transparent; color: #756c63; font-size: 20px; cursor: pointer; }.node-editor-body { min-height: 0; overflow-y: auto; padding: 16px 18px 22px; }.node-editor-field { display: grid; gap: 6px; margin-bottom: 14px; color: #4f4841; font-size: 10px; font-weight: 800; }.node-editor-field small,.condition-editor-label small { color: #93877c; font-size: 8px; font-weight: 500; line-height: 1.5; }.node-editor-field input,.node-editor-field select,.node-editor-field textarea,.parameter-editor input,.condition-row input,.condition-group select { width: 100%; min-width: 0; padding: 8px 9px; border: 1px solid #bfb3a7; border-radius: 0; outline: 0; color: #28231f; background: #fff; font: 11px/1.4 "Segoe UI", "Microsoft YaHei UI", sans-serif; }.node-editor-field textarea { resize: vertical; }.node-editor-field input:focus,.node-editor-field select:focus,.node-editor-field textarea:focus,.parameter-editor input:focus,.condition-row input:focus,.condition-group select:focus { border-color: #b4162b; box-shadow: 0 0 0 2px #b4162b18; }.parameter-editor { display: grid; gap: 7px; margin-bottom: 8px; }.parameter-editor > span,.condition-editor-label > span { color: #4f4841; font-size: 10px; font-weight: 800; }.parameter-editor > div { display: grid; grid-template-columns: minmax(75px, .8fr) minmax(75px, 1fr) 29px; gap: 5px; }.icon-danger,.text-danger { border: 1px solid #d8aeb2; color: #a83240; background: #fff5f5; cursor: pointer; }.icon-danger { min-width: 29px; min-height: 29px; font-size: 16px; }.text-danger { padding: 5px 7px; font: inherit; font-size: 8px; }.secondary-editor-button,.danger-editor-button { width: 100%; margin-top: 7px; padding: 8px; border: 1px solid #bdb1a5; background: #fff; color: #514942; font: inherit; font-size: 9px; font-weight: 800; cursor: pointer; }.danger-editor-button { border-color: #d7aeb2; color: #a83240; background: #fff6f6; }.condition-editor-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }.condition-group { display: grid; gap: 8px; padding: 9px; border: 1px solid #d2c7ba; border-left: 3px solid #841020; background: #faf7f0; }.condition-group.depth-1 { border-left-color: #b56b28; background: #fdfcf8; }.condition-group.depth-2,.condition-group.depth-3 { border-left-color: #28745a; background: #f5faf7; }.condition-group > header { display: flex; align-items: center; justify-content: space-between; gap: 6px; }.condition-group > header select { max-width: 145px; padding: 6px 7px; font-size: 9px; font-weight: 800; }.condition-children { display: grid; gap: 7px; }.condition-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) 29px; align-items: center; gap: 5px; }.condition-index { display: grid; width: 22px; height: 22px; place-items: center; border: 1px solid #c8bbae; color: #756b62; background: #fff; font-size: 8px; }.condition-add-actions { display: flex; gap: 5px; }.condition-add-actions button { padding: 6px 8px; border: 1px solid #c4b7aa; background: #fff; color: #665c53; font: inherit; font-size: 8px; font-weight: 800; cursor: pointer; }.editor-impact-note,.editor-warning,.node-editor-error { margin-top: 9px; padding: 10px; border-left: 3px solid #b56b28; color: #745225; background: #fff1db; font-size: 9px; line-height: 1.6; }.editor-warning,.node-editor-error { border-left-color: #b4162b; color: #8d2934; background: #fae6e7; }.strategy-node-editor > footer { display: grid; grid-template-columns: .7fr 1.3fr; gap: 7px; padding: 12px 18px; border-top: 1px solid #ded4c8; background: #f7f3ec; }.strategy-node-editor > footer button { min-height: 36px; border: 1px solid #bfb2a5; background: #fff; color: #514941; font: inherit; font-size: 10px; font-weight: 800; cursor: pointer; }.strategy-node-editor > footer button:last-child { border-color: #b4162b; color: #fff; background: #b4162b; }.strategy-node-editor > footer button:disabled { opacity: .5; cursor: not-allowed; }.diagram-locked-note { position: absolute; z-index: 7; right: 16px; bottom: 16px; max-width: 310px; padding: 10px 12px; border: 1px solid #d9a7ae; color: #8d3640; background: #fff4f4; box-shadow: 4px 4px 0 #b4162b18; font-size: 9px; line-height: 1.5; }
 @media (max-width: 1180px) { .strategy-diagram-editor.editing { grid-template-columns: minmax(0, 1fr) 320px; } }
 @media (max-width: 650px) { .strategy-diagram-editor.editing { display: block; }.strategy-node-editor { position: absolute; z-index: 20; inset: 18% 0 0; border-top: 2px solid #b4162b; border-left: 0; box-shadow: 0 -18px 42px #21170f3d; }.strategy-stage-legend { display: flex; min-width: 0; overflow-x: auto; }.strategy-stage-legend span { flex: 0 0 auto; }.strategy-flow-hint { right: 8px; bottom: 8px; left: 8px; text-align: center; }.strategy-node-editor > header { padding-top: 13px; }.node-editor-body { padding-bottom: calc(24px + env(safe-area-inset-bottom)); } }
+
+/* 全局悬浮快捷操作——每日打卡实心（主题绿）+ AI 写策略空心（主题红描边） */
+.float-dock { position: fixed; z-index: 15; right: 22px; bottom: 28px; display: grid; gap: 8px; justify-items: end; }
+.float-dock-button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 7px 13px 7px 8px; border-radius: 12px; font: inherit; text-decoration: none; cursor: pointer; transition: transform .18s, box-shadow .18s, border-color .18s, background .18s; }
+.float-dock-button > i { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 8px; font-family: Georgia, serif; font-size: 15px; font-style: normal; }
+.float-dock-button b { font-size: 12px; line-height: 1; letter-spacing: .02em; }
+.float-dock-button:hover { transform: translateY(-2px); }
+
+/* AI 写策略：空心，描边与文字用主题红，Σ 图标块实心 */
+.float-agent { border: 1.5px solid var(--tech-red); background: var(--tech-paper-raised); color: var(--tech-red); box-shadow: 0 6px 18px #0000001c; }
+.float-agent b { color: var(--tech-red); }
+.float-agent > i { background: var(--tech-red); color: #fff; box-shadow: inset 0 1px #ffffff40; }
+.float-agent:hover { background: color-mix(in srgb, var(--tech-red) 8%, var(--tech-paper-raised)); box-shadow: 0 10px 22px #00000024; }
+.float-agent:focus-visible { outline: 2px solid var(--tech-red); outline-offset: 2px; }
+
+/* 每日打卡：实心，填充随选中主题的强调色，文字用主题底色变量保证各主题可读 */
+.float-checkin { border: 1px solid var(--tech-red); background: var(--tech-red); color: var(--tech-paper-raised); box-shadow: 0 8px 20px color-mix(in srgb, var(--tech-red) 30%, transparent), 0 6px 18px #0000001c; }
+.float-checkin b { color: var(--tech-paper-raised); }
+.float-checkin > i { border: 1px solid color-mix(in srgb, var(--tech-paper-raised) 38%, transparent); background: color-mix(in srgb, var(--tech-paper-raised) 18%, transparent); color: var(--tech-paper-raised); font-family: inherit; font-weight: 800; font-size: 14px; box-shadow: inset 0 1px color-mix(in srgb, var(--tech-paper-raised) 20%, transparent); }
+.float-checkin:hover { box-shadow: 0 12px 26px color-mix(in srgb, var(--tech-red) 40%, transparent), 0 6px 18px #0000001c; }
+.float-checkin:focus-visible { outline: 2px solid var(--tech-red); outline-offset: 2px; }
+.float-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tech-rule); --dot-pulse: color-mix(in srgb, var(--tech-red) 45%, transparent); }
+.float-dot.ready { background: var(--tech-red); animation: float-dot-ready 1.8s ease-in-out infinite; }
+.float-checkin .float-dot { background: color-mix(in srgb, var(--tech-paper-raised) 55%, transparent); }
+.float-checkin .float-dot.ready { background: var(--tech-paper-raised); --dot-pulse: color-mix(in srgb, var(--tech-paper-raised) 70%, transparent); }
+@keyframes float-dot-ready { 0%, 100% { box-shadow: 0 0 0 0 var(--dot-pulse); } 50% { box-shadow: 0 0 0 5px transparent; } }
+
+/* 每日打卡弹窗 */
+.checkin-dialog-backdrop { z-index: 25; }
+.checkin-dialog { display: grid; gap: 14px; width: min(100%, 580px); max-height: min(88vh, 780px); overflow-y: auto; padding: 22px; border: 1px solid var(--tech-rule); border-top: 5px solid var(--tech-red); border-radius: 16px; background: var(--tech-paper-raised); color: var(--tech-ink); box-shadow: 0 22px 56px #10233f42; }
+.checkin-dialog-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.checkin-dialog-heading h2 { margin: 6px 0 0; font-size: 20px; letter-spacing: -.5px; }
+.checkin-dialog .dialog-close { background: var(--tech-paper); color: var(--tech-muted); border: 1px solid var(--tech-rule); }
+.checkin-dialog .dialog-close:hover { color: var(--tech-ink); background: var(--tech-paper-raised); }
+.checkin-dialog-summary { display: grid; grid-template-columns: minmax(150px, .8fr) minmax(0, 1.2fr); gap: 10px; align-items: stretch; }
+.checkin-dialog .checkin-streak { display: grid; align-content: center; }
+.checkin-dialog-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; }
+.checkin-dialog-stats > div { display: grid; gap: 4px; padding: 10px 8px; border: 1px solid var(--tech-rule); background: var(--tech-paper); text-align: center; }
+.checkin-dialog-stats dt { color: var(--tech-muted); font-size: 10px; font-weight: 700; white-space: nowrap; }
+.checkin-dialog-stats dd { margin: 0; font-size: 14px; font-weight: 800; white-space: nowrap; }
+.checkin-dialog-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.checkin-dialog .checkin-claim-button { width: 100%; min-width: 0; }
+.checkin-dialog .checkin-ladder { gap: 4px; }
+.checkin-dialog-note { margin: 0; color: var(--tech-muted); font-size: 11px; line-height: 1.7; }
+.checkin-dialog-recent { display: grid; gap: 6px; padding-top: 10px; border-top: 1px dashed var(--tech-rule); }
+.checkin-dialog-recent small { color: var(--tech-muted); font-size: 10px; font-weight: 700; }
+.checkin-dialog-recent span { color: var(--tech-ink); font-size: 11px; }
+.checkin-dialog-recent a { color: var(--tech-red); font-size: 11px; font-weight: 700; }
+.checkin-dialog-login { display: grid; gap: 12px; }
+.checkin-dialog-login p { margin: 0; color: var(--tech-muted); font-size: 13px; line-height: 1.7; }
+.checkin-dialog-login-link { color: var(--tech-red); font-weight: 800; font-size: 14px; }
+@media (max-width: 650px) {
+  .float-dock { right: 14px; bottom: calc(16px + env(safe-area-inset-bottom)); gap: 7px; }
+  .float-dock-button { min-height: 40px; padding: 6px 11px 6px 7px; border-radius: 10px; }
+  .float-dock-button > i { width: 27px; height: 27px; border-radius: 7px; font-size: 13px; }
+  .float-dock-button b { font-size: 11px; }
+  .checkin-dialog { padding: 18px; }
+  .checkin-dialog-summary { grid-template-columns: 1fr; }
+  .checkin-dialog-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .checkin-dialog .checkin-ladder { overflow-x: auto; }
+  .checkin-dialog .checkin-step { flex: 0 0 46px; }
+}

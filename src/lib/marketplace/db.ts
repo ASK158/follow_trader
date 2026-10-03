@@ -316,6 +316,17 @@ export function getMarketplaceDb(): Database.Database {
     );
     CREATE INDEX IF NOT EXISTS idx_crypto_recharges_user ON crypto_recharges(user_id, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_crypto_recharges_status ON crypto_recharges(status, updated_at);
+    CREATE TABLE IF NOT EXISTS checkin_records (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+      checkin_date TEXT NOT NULL,
+      streak_days INTEGER NOT NULL CHECK (streak_days >= 1),
+      reward_amount REAL NOT NULL CHECK (reward_amount > 0),
+      ga_transaction_id TEXT UNIQUE,
+      created_at TEXT NOT NULL,
+      UNIQUE (user_id, checkin_date)
+    );
+    CREATE INDEX IF NOT EXISTS idx_checkin_records_user ON checkin_records(user_id, checkin_date DESC);
     CREATE TABLE IF NOT EXISTS crypto_webhook_events (
       id TEXT PRIMARY KEY,
       provider TEXT NOT NULL DEFAULT 'nowpayments' CHECK (provider = 'nowpayments'),
@@ -435,6 +446,9 @@ export function getMarketplaceDb(): Database.Database {
     registration_ip_daily_limit: "3",
     registration_device_30d_limit: "2",
     registration_risk_threshold: "50",
+    checkin_base_reward: "1",
+    checkin_streak_increment: "1",
+    checkin_max_reward: "10",
     social_telegram_url: "",
     social_wechat_official_account_url: "",
     social_youtube_url: "",
@@ -496,6 +510,33 @@ export function getMarketplaceDb(): Database.Database {
       CREATE INDEX idx_ga_transactions_created ON ga_transactions(created_at DESC);
       CREATE UNIQUE INDEX idx_ga_transactions_purchase_order ON ga_transactions(order_id, type) WHERE order_id IS NOT NULL;
       INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES ('crypto-recharge-ledger-v1', '${now}');
+      COMMIT;
+      PRAGMA foreign_keys = ON;
+    `);
+  }
+  const checkinLedgerSchema = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'ga_transactions'").get() as { sql: string };
+  if (!checkinLedgerSchema.sql.includes("'checkin_reward'")) {
+    db.exec(`
+      PRAGMA foreign_keys = OFF;
+      BEGIN;
+      ALTER TABLE ga_transactions RENAME TO ga_transactions_legacy;
+      CREATE TABLE ga_transactions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+        actor_user_id TEXT REFERENCES developers(id) ON DELETE SET NULL,
+        type TEXT NOT NULL CHECK (type IN ('admin_grant', 'admin_deduct', 'purchase', 'refund', 'agent_charge', 'agent_refund', 'crypto_recharge', 'checkin_reward')),
+        amount REAL NOT NULL CHECK (amount != 0),
+        balance_after REAL NOT NULL CHECK (balance_after >= 0),
+        order_id TEXT REFERENCES orders(id) ON DELETE SET NULL,
+        reason TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      INSERT INTO ga_transactions SELECT * FROM ga_transactions_legacy;
+      DROP TABLE ga_transactions_legacy;
+      CREATE INDEX idx_ga_transactions_user ON ga_transactions(user_id, created_at DESC);
+      CREATE INDEX idx_ga_transactions_created ON ga_transactions(created_at DESC);
+      CREATE UNIQUE INDEX idx_ga_transactions_purchase_order ON ga_transactions(order_id, type) WHERE order_id IS NOT NULL;
+      INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES ('checkin-reward-ledger-v1', '${now}');
       COMMIT;
       PRAGMA foreign_keys = ON;
     `);
